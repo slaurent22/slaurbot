@@ -11,13 +11,18 @@
   },
   "author": "slaurent22",
   "license": "ISC",
-
-  "engines": {"node": ">14"},
+  "engines": {
+    "node": ">14"
+  },
   "dependencies": {
     "dotenv": "^8.2.0",
-    "easy-twitch-bot": "^4.3.0"
+    "node-cleanup": "^2.1.2",
+    "twitch": "^4.3.0",
+    "twitch-auth": "^4.3.0",
+    "twitch-chat-client": "^4.3.0"
   },
   "devDependencies": {
+    "@types/node-cleanup": "^2.1.1",
     "@typescript-eslint/eslint-plugin": "^4.8.1",
     "@typescript-eslint/parser": "^4.8.1",
     "eslint": "^7.14.0",

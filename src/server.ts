@@ -1,6 +1,6 @@
-import { Bot } from "easy-twitch-bot/lib/Bot";
-import { init } from "./bot";
+import { init, Bot } from "./bot";
 import { log, LogLevel } from "./logger";
+import nodeCleanup from "node-cleanup";
 
 async function server() {
     let bot: Bot;
@@ -12,11 +12,10 @@ async function server() {
         process.exit(1);
     }
 
-    // DO I NEED TO DO SOMETHING LIKE THIS?
-
-    // registerCleanup(() => {
-    //     bot.chat.quit();
-    // });
+    nodeCleanup(() => {
+        log(LogLevel.INFO, "Performing cleanup");
+        bot.chatClient.quit();
+    });
 
 }
 

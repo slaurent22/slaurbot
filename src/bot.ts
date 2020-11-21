@@ -1,37 +1,57 @@
-import { Bot, createBotCommand } from "easy-twitch-bot";
-import { getEnv } from "./env";
+import { getEnv, getTokenData, writeTokenData } from "./env";
 import { log, LogLevel } from "./logger";
+import { RefreshableAuthProvider, StaticAuthProvider, AuthProvider } from "twitch-auth";
+import { ChatClient } from "twitch-chat-client";
 
+export interface Bot {
+    authProvider: AuthProvider;
+    chatClient: ChatClient;
+}
 
-function createBot(): Promise<Bot> {
+async function createBot(): Promise<Bot> {
     log(LogLevel.INFO, "Creating bot");
     const env = getEnv();
     if (env === null) {
         throw new Error("Local environment not found");
     }
+    const tokenData = await getTokenData();
 
-    return Bot.create({
-        auth: env.OAUTH_TOKEN,
-        channel: env.CHANNEL_NAME,
-        commands: [
-            createBotCommand("!dice", (params, { user, say }) => {
-                const diceRoll = Math.floor(Math.random() * 6) + 1;
-                say(`@${user} rolled a ${diceRoll}`);
-            })
-        ]
-    });
+    const authProvider = new RefreshableAuthProvider(
+        new StaticAuthProvider(env.CLIENT_ID, tokenData.accessToken),
+        {
+            clientSecret: env.CLIENT_SECRET,
+            refreshToken: tokenData.refreshToken,
+            expiry: tokenData.expiryTimestamp === null ? null : new Date(tokenData.expiryTimestamp),
+            onRefresh: async ({ accessToken, refreshToken, expiryDate }) => {
+                log(LogLevel.INFO, "Received refresh");
+                const newTokenData = {
+                    accessToken,
+                    refreshToken,
+                    expiryTimestamp: expiryDate === null ? null : expiryDate.getTime()
+                };
+                writeTokenData(newTokenData);
+            }
+        }
+    );
+
+    const chatClient = new ChatClient(authProvider, { channels: [env.CHANNEL_NAME] });
+
+    log(LogLevel.INFO, "Bot created");
+
+    return {
+        authProvider,
+        chatClient
+    };
 }
 
 function logMsg(msg: string|undefined) {
-    log(LogLevel.INFO, `[MSG] ${msg}`);
+    log(LogLevel.DEBUG, `[MSG] ${msg}`);
 }
 
 export async function init(): Promise<Bot> {
     const bot = await createBot();
-    log(LogLevel.INFO, "Bot created");
 
-    const chatClient = bot.chat;
-    // const apiClient = bot.api;
+    const { chatClient } = bot;
 
     chatClient.onAnyMessage(msg => {
         logMsg(msg.rawLine);
@@ -39,18 +59,15 @@ export async function init(): Promise<Bot> {
 
     await chatClient.connect();
 
-    chatClient.onMessage(async (channel: string, user: string, message: string, msg) => {
-        log(LogLevel.INFO, {
-            channel, user, message, msg
-        });
-
+    chatClient.onMessage((channel, user, message) => {
+        log(LogLevel.INFO, `[${channel}; ${user}]`, message);
         if (message === "!ping") {
-            chatClient.say(channel, "pong");
+            chatClient.say(channel, "Pong!");
+        } else if (message === "!dice") {
+            const diceRoll = Math.floor(Math.random() * 6) + 1;
+            chatClient.say(channel, `@${user} rolled a ${diceRoll}`);
         }
     });
-
-    // later, when you don't need this command anymore:
-    // chatClient.removeListener(followAgeListener);
 
     return bot;
 }
