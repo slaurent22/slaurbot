@@ -7,7 +7,8 @@ export enum LogLevel {
 }
 
 function logPrefix(level: LogLevel): string {
-    return `[SLAURBOT] [${level}]`;
+    const now = new Date();
+    return `[${now.toISOString()}]    [SLAURBOT:${level}]`;
 }
 
 export function log(level: LogLevel, ...args: Array<unknown>): void {

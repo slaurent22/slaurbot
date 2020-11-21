@@ -34,7 +34,15 @@ async function createBot(): Promise<Bot> {
         }
     );
 
-    const chatClient = new ChatClient(authProvider, { channels: [env.CHANNEL_NAME] });
+    const chatClient = new ChatClient(authProvider, {
+        channels: [env.CHANNEL_NAME],
+        logger: {
+            name: "SLAURBOT",
+            timestamps: true,
+            minLevel: "DEBUG",
+            colors: false,
+        }
+    });
 
     log(LogLevel.INFO, "Bot created");
 
@@ -44,23 +52,12 @@ async function createBot(): Promise<Bot> {
     };
 }
 
-function logMsg(msg: string|undefined) {
-    log(LogLevel.DEBUG, `[MSG] ${msg}`);
-}
-
 export async function init(): Promise<Bot> {
     const bot = await createBot();
-
     const { chatClient } = bot;
-
-    chatClient.onAnyMessage(msg => {
-        logMsg(msg.rawLine);
-    });
-
     await chatClient.connect();
 
     chatClient.onMessage((channel, user, message) => {
-        log(LogLevel.INFO, `[${channel}; ${user}]`, message);
         if (message === "!ping") {
             chatClient.say(channel, "Pong!");
         } else if (message === "!dice") {
