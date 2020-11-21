@@ -2,6 +2,7 @@ import { getEnv, getTokenData, writeTokenData } from "./env";
 import { log, LogLevel } from "./logger";
 import { RefreshableAuthProvider, StaticAuthProvider, AuthProvider } from "twitch-auth";
 import { ChatClient } from "twitch-chat-client";
+import { CommandManager } from "./command-manager";
 
 export interface Bot {
     authProvider: AuthProvider;
@@ -57,14 +58,22 @@ export async function init(): Promise<Bot> {
     const { chatClient } = bot;
     await chatClient.connect();
 
-    chatClient.onMessage((channel, user, message) => {
-        if (message === "!ping") {
-            chatClient.say(channel, "Pong!");
-        } else if (message === "!dice") {
-            const diceRoll = Math.floor(Math.random() * 6) + 1;
-            chatClient.say(channel, `@${user} rolled a ${diceRoll}`);
-        }
+    const commandManager = new CommandManager({
+        commandPrefix: "!!",
+        chatClient
     });
+
+    commandManager.addCommand("ping", (params, context) => {
+        context.say("pong!");
+    });
+
+    commandManager.addCommand("dice", (params, context) => {
+        const diceRoll = Math.floor(Math.random() * 6) + 1;
+        context.say(`@${context.user} rolled a ${diceRoll}`);
+    });
+
+    commandManager.listen();
+
 
     return bot;
 }

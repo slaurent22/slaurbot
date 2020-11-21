@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "dotenv": "^8.2.0",
+    "easy-twitch-bot": "^4.3.0",
     "node-cleanup": "^2.1.2",
     "twitch": "^4.3.0",
     "twitch-auth": "^4.3.0",
