@@ -78,7 +78,7 @@ export async function init(): Promise<Bot> {
     await chatClient.connect();
 
     const commandManager = new CommandManager({
-        commandPrefix: "!!",
+        commandPrefix: "!",
         chatClient,
         messageCommands: MESSAGE_COMMANDS,
     });
