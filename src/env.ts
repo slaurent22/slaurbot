@@ -1,35 +1,36 @@
-import dotenv from "dotenv";
 import assert from "assert";
-import { promises as fs } from "fs";
+import { createRedis } from "./redis";
 
 export interface Env {
     CHANNEL_NAME: string;
     CLIENT_ID: string;
     CLIENT_SECRET: string;
+    REDIS_TLS_URL: string;
+    REDIS_URL: string;
 }
 
-export function getEnv(): Env {
-    const output = dotenv.config();
-
-    if ("error" in output) {
-        throw output.error;
-    }
-
+export function getEnv(): Readonly<Env> {
     assert(process.env.CHANNEL_NAME,  "CHANNEL_NAME not found in process.env");
     assert(process.env.CLIENT_ID,     "CLIENT_ID not found in process.env");
     assert(process.env.CLIENT_SECRET, "CLIENT_SECRET not found in process.env");
+    assert(process.env.REDIS_TLS_URL, "REDIS_TLS_URL not found in process.env");
+    assert(process.env.REDIS_URL,     "REDIS_URL not found in process.env");
 
     const {
         CHANNEL_NAME,
         CLIENT_ID,
         CLIENT_SECRET,
+        REDIS_TLS_URL,
+        REDIS_URL,
     } = process.env;
 
-    return {
+    return Object.freeze({
         CHANNEL_NAME,
         CLIENT_ID,
         CLIENT_SECRET,
-    };
+        REDIS_TLS_URL,
+        REDIS_URL,
+    });
 }
 
 export interface TokenData {
@@ -38,6 +39,11 @@ export interface TokenData {
     "expiryTimestamp": number|null;
 }
 
+function parseNullableInt(str: string|null): number|null {
+    return str === null ? str : parseInt(str, 10);
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function validateTokenData(tokenData: any): asserts tokenData is TokenData {
     assert("accessToken" in tokenData);
     assert(typeof tokenData.accessToken === "string");
@@ -49,18 +55,30 @@ function validateTokenData(tokenData: any): asserts tokenData is TokenData {
     assert(typeof tokenData.expiryTimestamp === "number" || tokenData.expiryTimestamp === null);
 }
 
-const TOKEN_DATA_FILE = "./tokens.json";
-
 export async function getTokenData(): Promise<TokenData> {
-    const data = await fs.readFile(TOKEN_DATA_FILE);
-    const tokenData = JSON.parse(data.toString());
+    const redis = createRedis();
+    const [
+        accessToken,
+        refreshToken,
+        expiryTimestamp
+    ] = await redis.hmget("twitchTokens", "accessToken", "refreshToken", "expiryTimestamp");
+    const tokenData = {
+        accessToken,
+        refreshToken,
+        expiryTimestamp: parseNullableInt(expiryTimestamp)
+    };
     validateTokenData(tokenData);
+    await redis.quit();
     return tokenData;
 }
 
 export async function writeTokenData(tokenData: TokenData): Promise<void> {
+    const redis = createRedis();
     validateTokenData(tokenData);
-    await fs.writeFile(TOKEN_DATA_FILE, JSON.stringify(tokenData, null, 4), {
-        encoding: "utf-8"
+    await redis.hmset("twitchTokens", {
+        accessToken: tokenData.accessToken,
+        refreshToken: tokenData.refreshToken,
+        expiryTimestamp: String(tokenData.expiryTimestamp)
     });
+    await redis.quit();
 }
