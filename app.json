@@ -1,0 +1,11 @@
+{
+    "name": "slaurbot",
+    "description": "Twitch Bot slaurbot",
+    "repository": "https://github.com/slaurent22/slaurbot",
+    "keywords": [
+        "twitch",
+        "bot",
+        "chatbot"
+    ],
+    "image": "heroku/nodejs"
+}

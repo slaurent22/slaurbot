@@ -1,6 +1,7 @@
 import { init, Bot } from "./bot";
 import { log, LogLevel } from "./logger";
 import nodeCleanup from "node-cleanup";
+import webServer from "./index";
 
 async function server() {
     let bot: Bot;
@@ -19,4 +20,5 @@ async function server() {
 
 }
 
+webServer();
 server();
