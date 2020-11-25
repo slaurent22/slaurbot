@@ -3,7 +3,7 @@ import { log, LogLevel } from "./logger";
 import { RefreshableAuthProvider, StaticAuthProvider, AuthProvider } from "twitch-auth";
 import { ChatClient } from "twitch-chat-client";
 import { ApiClient } from "twitch";
-import { CommandManager } from "./command-manager";
+import { EventManager } from "./event-manager";
 
 export interface Bot {
     apiClient: ApiClient;
@@ -61,14 +61,6 @@ async function createBot(): Promise<Bot> {
     };
 }
 
-const MESSAGE_COMMANDS = Object.freeze({
-    "!ping": "pong!",
-    "!discord": "We have a Discord! If you want to be notified when I go live, or just s**tpost, fall into the Abyss here: https://discord.gg/D5P8gNN",
-    "!twitter": "https://twitter.com/slaurent22",
-    "!oof": "oof 🤮 owie 🤮 OwOuch major 👌 OOF (╯°□°）╯︵ ┻━┻ I can't 🙏📿 bewieve 🙏📿 the yikes uwu 😂 Y I K E S 😂",
-    "!challenge": "If the goal is met, I will spend a long stream trying the skips on ins0mina's list: https://docs.google.com/spreadsheets/d/1s_1FUALP1IxgjFFaII9XApuHWIdtf4lv1fTOBhawkAg/edit#gid=0"
-});
-
 export async function init(): Promise<Bot> {
     const bot = await createBot();
     const {
@@ -77,37 +69,11 @@ export async function init(): Promise<Bot> {
     } = bot;
     await chatClient.connect();
 
-    const commandManager = new CommandManager({
-        commandPrefix: "",
-        chatClient,
-        messageCommands: MESSAGE_COMMANDS,
+    const eventManager = new EventManager({
+        apiClient,
+        chatClient
     });
-
-    commandManager.addCommand("!dice", (params, context) => {
-        const diceRoll = Math.floor(Math.random() * 6) + 1;
-        context.say(`@${context.user} rolled a ${diceRoll}`);
-    });
-
-    commandManager.addCommand("!followage", async (params, context) => {
-        const follow = await apiClient.kraken.users.getFollowedChannel(context.msg.userInfo.userId as string, context.msg.channelId as string);
-
-        if (follow) {
-            context.say(`@${context.user} You have been following since ${follow.followDate.toLocaleString()}`);
-        } else {
-            context.say(`@${context.user} You are not following!`);
-        }
-    });
-
-    commandManager.addCommand("TPFufun", async (params, context) => {
-        const edThoone = context.msg.userInfo.userId === "450323894";
-
-        if (edThoone) {
-            context.say("TPFufun");
-        }
-    });
-
-    commandManager.listen();
-
+    eventManager.listen();
 
     return bot;
 }

@@ -1,5 +1,5 @@
 import { BotCommand, BotCommandContext, BotCommandMatch, createBotCommand } from "easy-twitch-bot";
-import { ChatClient, PrivateMessage } from "twitch-chat-client";
+import type { ChatClient, PrivateMessage } from "twitch-chat-client";
 import { log, LogLevel } from "./logger";
 
 export interface CommandManagerConfig {
