@@ -63,6 +63,7 @@ async function createBot(): Promise<Bot> {
 
 const MESSAGE_COMMANDS = Object.freeze({
     "ping": "pong!",
+    "ed": "TPFunfun",
     "discord": "We have a Discord! If you want to be notified when I go live, or just s**tpost, fall into the Abyss here: https://discord.gg/D5P8gNN",
     "twitter": "https://twitter.com/slaurent22",
     "oof": "oof 🤮 owie 🤮 OwOuch major 👌 OOF (╯°□°）╯︵ ┻━┻ I can't 🙏📿 bewieve 🙏📿 the yikes uwu 😂 Y I K E S 😂",
