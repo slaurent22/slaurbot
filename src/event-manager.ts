@@ -2,24 +2,18 @@ import type { ChatClient } from "twitch-chat-client/lib";
 import { ApiClient } from "twitch/lib";
 import { CommandManager } from "./command-manager";
 import { log, LogLevel } from "./logger";
+import { WebHookManager } from "./webhook-manager";
 
 export interface EventManagerConfig {
     apiClient: ApiClient;
     chatClient: ChatClient;
 }
 
-const MESSAGE_COMMANDS = Object.freeze({
-    "!ping": "pong!",
-    "!discord": "We have a Discord! If you want to be notified when I go live, or just s**tpost, fall into the Abyss here: https://discord.gg/D5P8gNN",
-    "!twitter": "https://twitter.com/slaurent22",
-    "!oof": "oof 🤮 owie 🤮 OwOuch major 👌 OOF (╯°□°）╯︵ ┻━┻ I can't 🙏📿 bewieve 🙏📿 the yikes uwu 😂 Y I K E S 😂",
-    "!challenge": "If the goal is met, I will spend a long stream trying the skips on ins0mina's list: https://docs.google.com/spreadsheets/d/1s_1FUALP1IxgjFFaII9XApuHWIdtf4lv1fTOBhawkAg/edit#gid=0"
-});
-
 export class EventManager {
     private _apiClient: ApiClient;
     private _chatClient: ChatClient;
     private _commandManager: CommandManager;
+    private _webHookManager: WebHookManager;
 
     constructor({
         apiClient,
@@ -27,46 +21,22 @@ export class EventManager {
     }: EventManagerConfig) {
         this._apiClient = apiClient;
         this._chatClient = chatClient;
+
         this._commandManager = new CommandManager({
-            commandPrefix: "",
+            apiClient: this._apiClient,
             chatClient: this._chatClient,
-            messageCommands: MESSAGE_COMMANDS,
-        });
-        this._initCommandManager();
-    }
-
-    private _initCommandManager() {
-        const commandManager = this._commandManager;
-
-        commandManager.addCommand("!dice", (params, context) => {
-            const diceRoll = Math.floor(Math.random() * 6) + 1;
-            context.say(`@${context.user} rolled a ${diceRoll}`);
         });
 
-        commandManager.addCommand("!followage", async (params, context) => {
-            const follow = await this._apiClient.kraken.users
-                .getFollowedChannel(
-                    context.msg.userInfo.userId as string,
-                    context.msg.channelId as string);
-
-            if (follow) {
-                context.say(`@${context.user} You have been following since ${follow.followDate.toLocaleString()}`);
-            } else {
-                context.say(`@${context.user} You are not following!`);
-            }
-        });
-
-        commandManager.addCommand("TPFufun", async (params, context) => {
-            const edThoone = context.msg.userInfo.userId === "450323894";
-
-            if (edThoone) {
-                context.say("TPFufun");
-            }
+        this._webHookManager = new WebHookManager({
+            apiClient: this._apiClient,
+            chatClient: this._chatClient
         });
     }
 
-    public listen(): void {
+    public async listen(): Promise<void> {
         this._commandManager.listen();
+        await this._webHookManager.listen();
+
         const chatClient = this._chatClient;
 
         chatClient.onSub((channel, user, subInfo, msg) => {
@@ -74,7 +44,7 @@ export class EventManager {
                 channel, user, subInfo, msg
             });
 
-            chatClient.say(channel, `Thanks to @${user} for subscribing to the channel!`);
+            chatClient.say(channel, `Thanks to @${subInfo.displayName} for subscribing to the channel!`);
         });
 
         chatClient.onResub((channel, user, subInfo, msg) => {
@@ -82,14 +52,14 @@ export class EventManager {
                 channel, user, subInfo, msg
             });
 
-            chatClient.say(channel, `Thanks to @${user} for subscribing to the channel for a total of ${subInfo.months} months!`);
+            chatClient.say(channel, `Thanks to @${subInfo.displayName} for subscribing to the channel for a total of ${subInfo.months} months!`);
         });
 
         chatClient.onSubGift((channel, user, subInfo, msg) => {
             log(LogLevel.DEBUG, "onSub: ", {
                 channel, user, subInfo, msg
             });
-            chatClient.say(channel, `Thanks to @${subInfo.gifter} for gifting a subscription to @${user}!`);
+            chatClient.say(channel, `Thanks to @${subInfo.gifter} for gifting a subscription to @${subInfo.displayName}!`);
         });
 
         chatClient.onHosted((channel, byChannel, auto, viewers) => {
@@ -106,7 +76,7 @@ export class EventManager {
                 channel, user, raidInfo, msg
             });
 
-            chatClient.say(channel, `${user} just raided the channel with ${raidInfo.viewerCount} viewers!`);
+            chatClient.say(channel, `@${raidInfo.displayName} just raided the channel with ${raidInfo.viewerCount} viewers!`);
         });
     }
 

@@ -11,7 +11,7 @@ export interface Bot {
     chatClient: ChatClient;
 }
 
-async function createBot(): Promise<Bot> {
+export async function createBot(): Promise<Bot> {
     log(LogLevel.INFO, "Creating bot");
     const env = getEnv();
     if (env === null) {
@@ -26,7 +26,7 @@ async function createBot(): Promise<Bot> {
             refreshToken: tokenData.refreshToken,
             expiry: tokenData.expiryTimestamp === null ? null : new Date(tokenData.expiryTimestamp),
             onRefresh: async ({ accessToken, refreshToken, expiryDate }) => {
-                log(LogLevel.INFO, "Received refresh");
+                log(LogLevel.INFO, "RefreshableAuthProvider: received refresh");
                 const newTokenData = {
                     accessToken,
                     refreshToken,
@@ -73,7 +73,7 @@ export async function init(): Promise<Bot> {
         apiClient,
         chatClient
     });
-    eventManager.listen();
+    await eventManager.listen();
 
     return bot;
 }

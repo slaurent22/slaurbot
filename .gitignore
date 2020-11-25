@@ -3,3 +3,4 @@ dist/
 .env*
 tokens.json
 src/redis-test.ts
+src/bot-test.ts
