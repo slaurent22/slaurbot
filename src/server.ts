@@ -3,7 +3,7 @@ import { log, LogLevel } from "./logger";
 import nodeCleanup from "node-cleanup";
 // import webServer from "./index";
 
-async function server() {
+async function botServer() {
     let bot: Bot;
     try {
         bot = await init();
@@ -21,4 +21,4 @@ async function server() {
 }
 
 // webServer();
-server();
+botServer();

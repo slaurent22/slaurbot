@@ -3,7 +3,6 @@ import { EnvPortAdapter, WebHookListener } from "twitch-webhooks";
 import { ApiClient, HelixStream } from "twitch/lib";
 import { getEnv } from "./env";
 import { log, LogLevel } from "./logger";
-import assert from "assert";
 
 export interface WebHookManagerConfig {
     apiClient: ApiClient;
