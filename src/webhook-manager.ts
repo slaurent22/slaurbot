@@ -58,6 +58,7 @@ export class WebHookManager {
     }): Promise<void> {
         let prevStream = await this._apiClient.helix.streams.getStreamByUserId(userId);
         await this._listener.subscribeToStreamChanges(userId, async (stream?: HelixStream) => {
+            log(LogLevel.INFO, "Stream Change:", stream);
             if (stream && !prevStream) {
                 if (!prevStream) {
                     const game = await stream.getGame();
@@ -93,6 +94,7 @@ export class WebHookManager {
         userName: string;
     }): Promise<void> {
         await this._listener.subscribeToFollowsToUser(userId, (follow) => {
+            log(LogLevel.INFO, "Follow:", follow);
             this._chatClient.say(userName,`@${follow.userDisplayName} thank you for the follow!`);
         });
     }
