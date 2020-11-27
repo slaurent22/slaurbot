@@ -2,6 +2,7 @@ import { BotCommand, BotCommandContext, BotCommandMatch, createBotCommand } from
 import type { ChatClient, PrivateMessage } from "twitch-chat-client";
 import { ApiClient } from "twitch/lib";
 import { log, LogLevel } from "./logger";
+import humanizeDuration from "humanize-duration";
 
 export interface CommandManagerConfig {
     apiClient: ApiClient;
@@ -49,7 +50,13 @@ export class CommandManager {
                     context.msg.channelId as string);
 
             if (follow) {
-                context.say(`@${context.user} You have been following since ${follow.followDate.toLocaleString()}`);
+                const followDate = follow.followDate;
+                const duration = (new Date()).getTime() - followDate.getTime();
+                const humanized = humanizeDuration(duration, {
+                    units: ["y", "mo", "w", "d", "h", "m"],
+                    round: true
+                });
+                context.say(`@${context.user} You have been following for ${humanized}`);
             } else {
                 context.say(`@${context.user} You are not following!`);
             }
