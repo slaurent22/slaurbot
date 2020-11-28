@@ -16,7 +16,7 @@ export const USER_ID = Object.freeze({
 
 export const REST_API_URLS = Object.freeze({
     GET: {
-        BTTV_EMOTES: "https://decapi.me/bttv/emotes/slaurent22",
+        BTTV_EMOTES: "https://api.betterttv.net/2/channels/slaurent22",
         FFZ_EMOTES: "https://api.frankerfacez.com/v1/room/slaurent22",
     },
 });

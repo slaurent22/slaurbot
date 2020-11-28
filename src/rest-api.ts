@@ -2,10 +2,6 @@ import got from "got";
 import { REST_API_URLS } from "./constants";
 import { log, LogLevel } from "./logger";
 
-interface GetStringResponseParams {
-    restApiUrl: string; errorMessage: string;
-}
-
 interface FfzRoomResponse {
     sets: Record<string, {
         emoticons: Array<{
@@ -15,24 +11,23 @@ interface FfzRoomResponse {
     }>;
 }
 
-async function getStringResponse({
-    restApiUrl, errorMessage,
-}: GetStringResponseParams): Promise<string> {
-    try {
-        const response = await got<string>(restApiUrl);
-        return response.body;
-    }
-    catch (e) {
-        log(LogLevel.ERROR, errorMessage, e);
-        return errorMessage;
-    }
+interface BttvRoomResponse {
+    emotes: Array<{
+        id: string;
+        code: string;
+    }>;
 }
 
 export async function getBttvEmotes(): Promise<string> {
-    return getStringResponse({
-        restApiUrl: REST_API_URLS.GET.BTTV_EMOTES,
-        errorMessage: "Error fetching BTTV emotes",
-    });
+    try {
+        const { emotes, } = await got(REST_API_URLS.GET.BTTV_EMOTES).json<BttvRoomResponse>();
+        log(LogLevel.DEBUG, emotes);
+        return emotes.map(({ code, }) => code).join(" ");
+    }
+    catch (e) {
+        log(LogLevel.DEBUG, e);
+        return "Error retrieving BTTV emotes";
+    }
 }
 
 export async function getFfzEmotes(): Promise<string> {
@@ -48,7 +43,8 @@ export async function getFfzEmotes(): Promise<string> {
         return emoteNames.join(" ");
 
     }
-    catch {
+    catch (e) {
+        log(LogLevel.DEBUG, e);
         return "Error retrieving FFZ emotes";
     }
 }
