@@ -19,6 +19,7 @@
   "dependencies": {
     "easy-twitch-bot": "^4.3.0",
     "express": "^4.17.1",
+    "got": "^11.8.0",
     "humanize-duration": "^3.24.0",
     "ioredis": "^4.19.2",
     "node-cleanup": "^2.1.2",

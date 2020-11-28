@@ -5,6 +5,7 @@ import type { ApiClient } from "twitch/lib";
 import humanizeDuration from "humanize-duration";
 import { log, LogLevel } from "./logger";
 import { MESSAGE_COMMANDS, USER_ID } from "./constants";
+import { getBttvEmotes, getFfzEmotes } from "./rest-api";
 
 export interface CommandManagerConfig {
     apiClient: ApiClient;
@@ -58,6 +59,14 @@ export class CommandManager {
             if (edThoone) {
                 context.say("TPFufun");
             }
+        });
+
+        this._addCommand("!bttv", async(params, context) => {
+            context.say(await getBttvEmotes());
+        });
+
+        this._addCommand("!ffz", async(params, context) => {
+            context.say(await getFfzEmotes());
         });
     }
 
