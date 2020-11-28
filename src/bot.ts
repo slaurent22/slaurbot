@@ -1,8 +1,9 @@
-import { getEnv, getTokenData, writeTokenData } from "./env";
-import { log, LogLevel } from "./logger";
-import { RefreshableAuthProvider, StaticAuthProvider, AuthProvider } from "twitch-auth";
+import type { AuthProvider } from "twitch-auth";
+import { RefreshableAuthProvider, StaticAuthProvider } from "twitch-auth";
 import { ChatClient } from "twitch-chat-client";
 import { ApiClient } from "twitch";
+import { log, LogLevel } from "./logger";
+import { getEnv, getTokenData, writeTokenData } from "./env";
 import { EventManager } from "./event-manager";
 
 export interface Bot {
@@ -25,15 +26,15 @@ export async function createBot(): Promise<Bot> {
             clientSecret: env.CLIENT_SECRET,
             refreshToken: tokenData.refreshToken,
             expiry: tokenData.expiryTimestamp === null ? null : new Date(tokenData.expiryTimestamp),
-            onRefresh: async ({ accessToken, refreshToken, expiryDate }) => {
+            onRefresh: async({ accessToken, refreshToken, expiryDate, }) => {
                 log(LogLevel.INFO, "RefreshableAuthProvider: received refresh");
                 const newTokenData = {
                     accessToken,
                     refreshToken,
-                    expiryTimestamp: expiryDate === null ? null : expiryDate.getTime()
+                    expiryTimestamp: expiryDate === null ? null : expiryDate.getTime(),
                 };
-                writeTokenData(newTokenData);
-            }
+                await writeTokenData(newTokenData);
+            },
         }
     );
 
@@ -43,13 +44,13 @@ export async function createBot(): Promise<Bot> {
     });
 
     const chatClient = new ChatClient(authProvider, {
-        channels: [env.CHANNEL_NAME],
+        channels: [env.CHANNEL_NAME ],
         logger: {
             name: "SLAURBOT",
             timestamps: true,
             minLevel: "DEBUG",
             colors: false,
-        }
+        },
     });
 
     log(LogLevel.INFO, "Bot created");
@@ -57,7 +58,7 @@ export async function createBot(): Promise<Bot> {
     return {
         apiClient,
         authProvider,
-        chatClient
+        chatClient,
     };
 }
 
@@ -65,13 +66,13 @@ export async function init(): Promise<Bot> {
     const bot = await createBot();
     const {
         apiClient,
-        chatClient
+        chatClient,
     } = bot;
     await chatClient.connect();
 
     const eventManager = new EventManager({
         apiClient,
-        chatClient
+        chatClient,
     });
     await eventManager.listen();
 

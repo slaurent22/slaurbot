@@ -1,3 +1,5 @@
+// is this shadowing `LogLevel` that comes out of the twitch package?
+// eslint-disable-next-line no-shadow
 export enum LogLevel {
     DEBUG = "DEBUG",
     INFO  = "INFO",

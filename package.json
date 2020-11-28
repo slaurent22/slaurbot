@@ -8,7 +8,8 @@
     "build": "tsc -p .",
     "clean": "rm -rf dist/",
     "start": "heroku local web",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "lintfix": "eslint --fix ."
   },
   "author": "slaurent22",
   "license": "ISC",
@@ -35,6 +36,7 @@
     "@typescript-eslint/parser": "^4.8.1",
     "dotenv": "^8.2.0",
     "eslint": "^7.14.0",
+    "eslint-plugin-import": "^2.22.1",
     "typescript": "^4.1.2"
   }
 }

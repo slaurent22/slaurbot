@@ -1,5 +1,5 @@
 import express from "express";
-import {log, LogLevel } from "./logger";
+import { log, LogLevel } from "./logger";
 
 export default function webServer(): void {
     const PORT = process.env.PORT || 5000;

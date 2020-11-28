@@ -1,6 +1,7 @@
-import { init, Bot } from "./bot";
-import { log, LogLevel } from "./logger";
 import nodeCleanup from "node-cleanup";
+import type { Bot } from "./bot";
+import { init } from "./bot";
+import { log, LogLevel } from "./logger";
 // import webServer from "./index";
 
 async function botServer() {
@@ -15,10 +16,10 @@ async function botServer() {
 
     nodeCleanup(() => {
         log(LogLevel.INFO, "Performing cleanup");
-        bot.chatClient.quit();
+        void bot.chatClient.quit();
     });
 
 }
 
 // webServer();
-botServer();
+void botServer();

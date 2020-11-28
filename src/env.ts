@@ -44,7 +44,7 @@ function parseNullableInt(str: string|null): number|null {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function validateTokenData(tokenData: any): asserts tokenData is TokenData {
+function validateTokenData(tokenData: Record<string, any>): asserts tokenData is TokenData {
     assert("accessToken" in tokenData);
     assert(typeof tokenData.accessToken === "string");
 
@@ -65,7 +65,7 @@ export async function getTokenData(): Promise<TokenData> {
     const tokenData = {
         accessToken,
         refreshToken,
-        expiryTimestamp: parseNullableInt(expiryTimestamp)
+        expiryTimestamp: parseNullableInt(expiryTimestamp),
     };
     validateTokenData(tokenData);
     await redis.quit();
@@ -78,7 +78,7 @@ export async function writeTokenData(tokenData: TokenData): Promise<void> {
     await redis.hmset("twitchTokens", {
         accessToken: tokenData.accessToken,
         refreshToken: tokenData.refreshToken,
-        expiryTimestamp: String(tokenData.expiryTimestamp)
+        expiryTimestamp: String(tokenData.expiryTimestamp),
     });
     await redis.quit();
 }

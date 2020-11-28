@@ -1,5 +1,5 @@
 import type { ChatClient } from "twitch-chat-client/lib";
-import { ApiClient } from "twitch/lib";
+import type { ApiClient } from "twitch/lib";
 import { CommandManager } from "./command-manager";
 import { log, LogLevel } from "./logger";
 import { WebHookManager } from "./webhook-manager";
@@ -29,7 +29,7 @@ export class EventManager {
 
         this._webHookManager = new WebHookManager({
             apiClient: this._apiClient,
-            chatClient: this._chatClient
+            chatClient: this._chatClient,
         });
     }
 
@@ -41,7 +41,7 @@ export class EventManager {
 
         chatClient.onSub((channel, user, subInfo, msg) => {
             log(LogLevel.DEBUG, "onSub: ", {
-                channel, user, subInfo, msg
+                channel, user, subInfo, msg,
             });
 
             chatClient.say(channel, `Thanks to @${subInfo.displayName} for subscribing to the channel!`);
@@ -49,22 +49,24 @@ export class EventManager {
 
         chatClient.onResub((channel, user, subInfo, msg) => {
             log(LogLevel.DEBUG, "onSub: ", {
-                channel, user, subInfo, msg
+                channel, user, subInfo, msg,
             });
 
+            // eslint-disable-next-line max-len
             chatClient.say(channel, `Thanks to @${subInfo.displayName} for subscribing to the channel for a total of ${subInfo.months} months!`);
         });
 
         chatClient.onSubGift((channel, user, subInfo, msg) => {
             log(LogLevel.DEBUG, "onSub: ", {
-                channel, user, subInfo, msg
+                channel, user, subInfo, msg,
             });
-            chatClient.say(channel, `Thanks to @${subInfo.gifter} for gifting a subscription to @${subInfo.displayName}!`);
+            const gifter = subInfo.gifter ? `@${subInfo.gifter}` : "unknown gifter";
+            chatClient.say(channel, `Thanks to ${gifter} for gifting a subscription to @${subInfo.displayName}!`);
         });
 
         chatClient.onHosted((channel, byChannel, auto, viewers) => {
             log(LogLevel.DEBUG, "onHosted: ", {
-                channel, byChannel, auto, viewers
+                channel, byChannel, auto, viewers,
             });
 
             const suffix = typeof viewers === "number" ? ` for ${viewers} viewers!` : "!";
@@ -73,9 +75,10 @@ export class EventManager {
 
         chatClient.onRaid((channel, user, raidInfo, msg) => {
             log(LogLevel.DEBUG, "onRaid: ", {
-                channel, user, raidInfo, msg
+                channel, user, raidInfo, msg,
             });
 
+            // eslint-disable-next-line max-len
             chatClient.say(channel, `@${raidInfo.displayName} just raided the channel with ${raidInfo.viewerCount} viewers!`);
         });
     }
