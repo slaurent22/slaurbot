@@ -3,19 +3,12 @@ import type { ChatClient, PrivateMessage } from "twitch-chat-client";
 import { ApiClient } from "twitch/lib";
 import { log, LogLevel } from "./logger";
 import humanizeDuration from "humanize-duration";
+import { MESSAGE_COMMANDS, USER_ID } from "./constants";
 
 export interface CommandManagerConfig {
     apiClient: ApiClient;
     chatClient: ChatClient;
 }
-
-const MESSAGE_COMMANDS = Object.freeze({
-    "!ping": "pong!",
-    "!discord": "We have a Discord! If you want to be notified when I go live, or just s**tpost, fall into the Abyss here: https://discord.gg/D5P8gNN",
-    "!twitter": "https://twitter.com/slaurent22",
-    "!oof": "oof 🤮 owie 🤮 OwOuch major 👌 OOF (╯°□°）╯︵ ┻━┻ I can't 🙏📿 bewieve 🙏📿 the yikes uwu 😂 Y I K E S 😂",
-    "!challenge": "The goal has been met! I will soon spend a long stream trying the skips on ins0mina's list: https://docs.google.com/spreadsheets/d/1s_1FUALP1IxgjFFaII9XApuHWIdtf4lv1fTOBhawkAg/edit#gid=0"
-});
 
 export class CommandManager {
     private _apiClient: ApiClient;
@@ -38,11 +31,6 @@ export class CommandManager {
 
         this._commandPrefix = "";
 
-        this._addCommand("!dice", (params, context) => {
-            const diceRoll = Math.floor(Math.random() * 6) + 1;
-            context.say(`@${context.user} rolled a ${diceRoll}`);
-        });
-
         this._addCommand("!followage", async (params, context) => {
             const follow = await this._apiClient.kraken.users
                 .getFollowedChannel(
@@ -63,7 +51,7 @@ export class CommandManager {
         });
 
         this._addCommand("TPFufun", async (params, context) => {
-            const edThoone = context.msg.userInfo.userId === "450323894";
+            const edThoone = context.msg.userInfo.userId === USER_ID.EDTHOONE;
 
             if (edThoone) {
                 context.say("TPFufun");

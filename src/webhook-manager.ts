@@ -1,6 +1,7 @@
 import { ChatClient } from "twitch-chat-client/lib";
 import { EnvPortAdapter, WebHookListener } from "twitch-webhooks";
 import { ApiClient, HelixStream } from "twitch/lib";
+import { USER_ID } from "./constants";
 import { getEnv } from "./env";
 import { log, LogLevel } from "./logger";
 
@@ -36,12 +37,7 @@ export class WebHookManager {
         const {
             CHANNEL_NAME: userName
         } = getEnv();
-        const channelUser = await this._apiClient.kraken.users.getUserByName(userName);
-        if (!channelUser) {
-            log(LogLevel.ERROR, `User not found for ${userName}. Not listening to webhooks`);
-            return;
-        }
-        const userId = channelUser.id;
+        const userId = USER_ID.SLAURENT;
 
         await this._listener.listen();
         await Promise.all([
