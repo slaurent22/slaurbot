@@ -1,4 +1,5 @@
 import type { ChatClient } from "twitch-chat-client/lib";
+import type { ConnectCompatibleApp } from "twitch-webhooks";
 import { EnvPortAdapter, WebHookListener } from "twitch-webhooks";
 import type { ApiClient, HelixStream } from "twitch/lib";
 import { USER_ID } from "./constants";
@@ -33,13 +34,13 @@ export class WebHookManager {
         });
     }
 
-    public async listen(): Promise<void> {
+    public async listen(app: ConnectCompatibleApp): Promise<void> {
         const {
             CHANNEL_NAME: userName,
         } = getEnv();
         const userId = USER_ID.SLAURENT;
 
-        await this._listener.listen();
+        this._listener.applyMiddleware(app);
         await Promise.all([
             this._subscribeToStreamChanges({ userId, userName, }),
             this._subscribeToFollowsToUser({ userId, userName, })

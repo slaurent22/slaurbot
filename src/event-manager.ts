@@ -1,4 +1,5 @@
 import type { ChatClient } from "twitch-chat-client/lib";
+import type { ConnectCompatibleApp } from "twitch-webhooks/lib";
 import type { ApiClient } from "twitch/lib";
 import { CommandManager } from "./command-manager";
 import { log, LogLevel } from "./logger";
@@ -33,9 +34,9 @@ export class EventManager {
         });
     }
 
-    public async listen(): Promise<void> {
+    public async listen(app: ConnectCompatibleApp): Promise<void> {
         this._commandManager.listen();
-        await this._webHookManager.listen();
+        await this._webHookManager.listen(app);
 
         const chatClient = this._chatClient;
 

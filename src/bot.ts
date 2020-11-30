@@ -2,6 +2,7 @@ import type { AuthProvider } from "twitch-auth";
 import { RefreshableAuthProvider, StaticAuthProvider } from "twitch-auth";
 import { ChatClient } from "twitch-chat-client";
 import { ApiClient } from "twitch";
+import type { ConnectCompatibleApp } from "twitch-webhooks/lib";
 import { log, LogLevel } from "./logger";
 import { getEnv, getTokenData, writeTokenData } from "./env";
 import { EventManager } from "./event-manager";
@@ -62,7 +63,7 @@ export async function createBot(): Promise<Bot> {
     };
 }
 
-export async function init(): Promise<Bot> {
+export async function init(app: ConnectCompatibleApp): Promise<Bot> {
     const bot = await createBot();
     const {
         apiClient,
@@ -74,7 +75,7 @@ export async function init(): Promise<Bot> {
         apiClient,
         chatClient,
     });
-    await eventManager.listen();
+    await eventManager.listen(app);
 
     return bot;
 }

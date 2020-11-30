@@ -2,12 +2,16 @@ import nodeCleanup from "node-cleanup";
 import type { Bot } from "./bot";
 import { init } from "./bot";
 import { log, LogLevel } from "./logger";
-// import webServer from "./index";
+import { createExpress } from "./express";
+
+const PORT = process.env.PORT || 5000;
 
 async function botServer() {
-    let bot: Bot;
+    let bot: Bot|undefined;
     try {
-        bot = await init();
+        const app = createExpress();
+        app.listen(PORT, () => log(LogLevel.INFO, `Listening on ${ PORT }`));
+        bot = await init(app);
     }
     catch (e) {
         log(LogLevel.ERROR, "Bot init failed:", e);
@@ -16,7 +20,9 @@ async function botServer() {
 
     nodeCleanup(() => {
         log(LogLevel.INFO, "Performing cleanup");
-        void bot.chatClient.quit();
+        if (bot) {
+            void bot.chatClient.quit();
+        }
     });
 
 }
