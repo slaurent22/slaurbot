@@ -6,7 +6,8 @@ export const MESSAGE_COMMANDS = Object.freeze({
     "!oof": "oof 🤮 owie 🤮 OwOuch major 👌 OOF (╯°□°）╯︵ ┻━┻ I can't 🙏📿 bewieve 🙏📿 the yikes uwu 😂 Y I K E S 😂",
     "!challenge": "The goal has been met! I will soon spend a long stream trying the skips on ins0mina's list: https://docs.google.com/spreadsheets/d/1s_1FUALP1IxgjFFaII9XApuHWIdtf4lv1fTOBhawkAg/edit#gid=0",
     "!emotes": "Run !bttv to see BetterTTV emotes. Run !ffz to see FrankerFaceZ emotes.",
-    "!bot": "I am slaurbot. My code is open-sourced at https://github.com/slaurent22/slaurbot",
+    "!bot": "I am slaurbot. See https://slaurbot.herokuapp.com/",
+    "!commands": "https://slaurbot.herokuapp.com/commands",
 });
 /* eslint-enable max-len */
 
