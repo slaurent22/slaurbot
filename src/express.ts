@@ -5,10 +5,19 @@ import type { Express } from "express";
 import marked from "marked";
 import { log, LogLevel } from "./logger";
 
+const renderedMarkdownCache = new Map<string, string>();
+
 async function getHTMLFromMarkdownFile(path: string): Promise<string> {
+    if (renderedMarkdownCache.has(path)) {
+        log(LogLevel.DEBUG, `RENDER '${path}': returning from render cache`);
+        return renderedMarkdownCache.get(path) as string;
+    }
     try {
+        log(LogLevel.DEBUG, `RENDER '${path}': reading file`);
         const markdownSource = String(await fs.readFile(path));
-        return marked(markdownSource);
+        const rendered = marked(markdownSource);
+        renderedMarkdownCache.set(path, rendered);
+        return rendered;
     }
     catch (e) {
         const msg = `Failed to render ${path}`;
