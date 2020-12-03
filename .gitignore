@@ -4,3 +4,5 @@ dist/
 tokens.json
 src/test/redis-test.ts
 src/test/bot-test.ts
+src/test/discord-test.ts
+discord-channels-cache.json

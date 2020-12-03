@@ -22,3 +22,8 @@ export const REST_API_URLS = Object.freeze({
         FFZ_EMOTES: "https://api.frankerfacez.com/v1/room/slaurent22",
     },
 });
+
+export const DISCORD_CHANNEL_ID = Object.freeze({
+    TEST: "781393866200842242",
+    STREAM_STATUS: "784103728994189332",
+});

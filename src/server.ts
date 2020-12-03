@@ -23,7 +23,7 @@ async function botServer() {
     try {
         const app = createExpress();
         app.listen(PORT, () => log(LogLevel.INFO, `Express app listening on ${ PORT }`));
-        bot = await init(app);
+        bot = await init(app, discordClient);
     }
     catch (e) {
         log(LogLevel.ERROR, "Bot init failed:", e);

@@ -1,6 +1,7 @@
 import type { ChatClient } from "twitch-chat-client/lib";
 import type { ConnectCompatibleApp } from "twitch-webhooks/lib";
 import type { ApiClient } from "twitch/lib";
+import type { Client as DiscordClient } from "discord.js";
 import { log, LogLevel } from "../util/logger";
 import { TwitchCommandManager } from "./command-manager";
 import { TwitchWebHookManager } from "./webhook-manager";
@@ -8,20 +9,24 @@ import { TwitchWebHookManager } from "./webhook-manager";
 export interface TwitchEventManagerConfig {
     apiClient: ApiClient;
     chatClient: ChatClient;
+    discordClient: DiscordClient;
 }
 
 export class TwitchEventManager {
     private _apiClient: ApiClient;
     private _chatClient: ChatClient;
     private _commandManager: TwitchCommandManager;
+    private _discordClient: DiscordClient;
     private _webHookManager: TwitchWebHookManager;
 
     constructor({
         apiClient,
         chatClient,
+        discordClient,
     }: TwitchEventManagerConfig) {
         this._apiClient = apiClient;
         this._chatClient = chatClient;
+        this._discordClient = discordClient;
 
         this._commandManager = new TwitchCommandManager({
             apiClient: this._apiClient,
@@ -31,6 +36,7 @@ export class TwitchEventManager {
         this._webHookManager = new TwitchWebHookManager({
             apiClient: this._apiClient,
             chatClient: this._chatClient,
+            discordClient: this._discordClient,
         });
     }
 

@@ -2,6 +2,7 @@ import type { ChatClient } from "twitch-chat-client/lib";
 import type { ConnectCompatibleApp } from "twitch-webhooks";
 import { EnvPortAdapter, WebHookListener } from "twitch-webhooks";
 import type { ApiClient, HelixStream } from "twitch/lib";
+import type { Client as DiscordClient } from "discord.js";
 import { USER_ID } from "../util/constants";
 import { getEnv } from "../util/env";
 import { log, LogLevel } from "../util/logger";
@@ -9,19 +10,23 @@ import { log, LogLevel } from "../util/logger";
 export interface TwitchWebHookManagerConfig {
     apiClient: ApiClient;
     chatClient: ChatClient;
+    discordClient: DiscordClient;
 }
 
 export class TwitchWebHookManager {
     private _apiClient: ApiClient;
     private _chatClient: ChatClient;
+    private _discordClient: DiscordClient;
     private _listener: WebHookListener;
 
     constructor({
         apiClient,
         chatClient,
+        discordClient,
     }: TwitchWebHookManagerConfig) {
         this._apiClient = apiClient;
         this._chatClient = chatClient;
+        this._discordClient = discordClient;
         this._listener = new WebHookListener(this._apiClient, new EnvPortAdapter({
             hostName: "slaurbot.herokuapp.com",
         }), {
