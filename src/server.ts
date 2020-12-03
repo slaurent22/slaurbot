@@ -1,7 +1,7 @@
 import nodeCleanup from "node-cleanup";
-import type { Bot } from "./bot";
-import { init } from "./bot";
-import { log, LogLevel } from "./logger";
+import type { Bot } from "./twitch/bot";
+import { init } from "./twitch/bot";
+import { log, LogLevel } from "./util/logger";
 import { createExpress } from "./express";
 
 const PORT = process.env.PORT || 5000;

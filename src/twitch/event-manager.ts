@@ -1,8 +1,8 @@
 import type { ChatClient } from "twitch-chat-client/lib";
 import type { ConnectCompatibleApp } from "twitch-webhooks/lib";
 import type { ApiClient } from "twitch/lib";
+import { log, LogLevel } from "../util/logger";
 import { CommandManager } from "./command-manager";
-import { log, LogLevel } from "./logger";
 import { WebHookManager } from "./webhook-manager";
 
 export interface EventManagerConfig {

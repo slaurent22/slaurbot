@@ -3,8 +3,8 @@ import { RefreshableAuthProvider, StaticAuthProvider } from "twitch-auth";
 import { ChatClient } from "twitch-chat-client";
 import { ApiClient } from "twitch";
 import type { ConnectCompatibleApp } from "twitch-webhooks/lib";
-import { log, LogLevel } from "./logger";
-import { getEnv, getTokenData, writeTokenData } from "./env";
+import { log, LogLevel } from "../util/logger";
+import { getEnv, getTokenData, writeTokenData } from "../util/env";
 import { EventManager } from "./event-manager";
 
 export interface Bot {

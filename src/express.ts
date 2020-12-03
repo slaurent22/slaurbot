@@ -3,7 +3,7 @@ import fs from "fs/promises";
 import express from "express";
 import type { Express } from "express";
 import marked from "marked";
-import { log, LogLevel } from "./logger";
+import { log, LogLevel } from "./util/logger";
 
 const renderedMarkdownCache = new Map<string, string>();
 

@@ -3,8 +3,8 @@ import { BotCommandContext, createBotCommand } from "easy-twitch-bot";
 import type { ChatClient, PrivateMessage } from "twitch-chat-client";
 import type { ApiClient } from "twitch/lib";
 import humanizeDuration from "humanize-duration";
-import { log, LogLevel } from "./logger";
-import { MESSAGE_COMMANDS, USER_ID } from "./constants";
+import { log, LogLevel } from "../util/logger";
+import { MESSAGE_COMMANDS, USER_ID } from "../util/constants";
 import { getBttvEmotes, getFfzEmotes } from "./rest-api";
 
 export interface CommandManagerConfig {

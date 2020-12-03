@@ -2,5 +2,5 @@ node_modules
 dist/
 .env*
 tokens.json
-src/redis-test.ts
-src/bot-test.ts
+src/test/redis-test.ts
+src/test/bot-test.ts

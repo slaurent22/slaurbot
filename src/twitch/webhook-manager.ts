@@ -2,9 +2,9 @@ import type { ChatClient } from "twitch-chat-client/lib";
 import type { ConnectCompatibleApp } from "twitch-webhooks";
 import { EnvPortAdapter, WebHookListener } from "twitch-webhooks";
 import type { ApiClient, HelixStream } from "twitch/lib";
-import { USER_ID } from "./constants";
-import { getEnv } from "./env";
-import { log, LogLevel } from "./logger";
+import { USER_ID } from "../util/constants";
+import { getEnv } from "../util/env";
+import { log, LogLevel } from "../util/logger";
 
 export interface WebHookManagerConfig {
     apiClient: ApiClient;

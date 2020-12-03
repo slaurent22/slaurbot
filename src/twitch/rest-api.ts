@@ -1,6 +1,6 @@
 import got from "got";
-import { REST_API_URLS } from "./constants";
-import { log, LogLevel } from "./logger";
+import { REST_API_URLS } from "../util/constants";
+import { log, LogLevel } from "../util/logger";
 
 interface FfzRoomResponse {
     sets: Record<string, {
