@@ -17,6 +17,7 @@
     "node": ">14"
   },
   "dependencies": {
+    "discord.js": "^12.5.1",
     "easy-twitch-bot": "^4.3.0",
     "express": "^4.17.1",
     "got": "^11.8.0",

@@ -1,16 +1,28 @@
 import nodeCleanup from "node-cleanup";
+import type { Client as DiscordClient } from "discord.js";
 import type { TwitchBot } from "./twitch/bot";
 import { init } from "./twitch/bot";
 import { log, LogLevel } from "./util/logger";
 import { createExpress } from "./express";
+import { createDiscordClient } from "./discord/discord-bot";
 
 const PORT = process.env.PORT || 5000;
 
 async function botServer() {
     let bot: TwitchBot|undefined;
+    let discordClient: DiscordClient;
+
+    try {
+        discordClient = await createDiscordClient();
+    }
+    catch (e) {
+        log(LogLevel.ERROR, "createDiscordClient failed:", e);
+        process.exit(1);
+    }
+
     try {
         const app = createExpress();
-        app.listen(PORT, () => log(LogLevel.INFO, `Listening on ${ PORT }`));
+        app.listen(PORT, () => log(LogLevel.INFO, `Express app listening on ${ PORT }`));
         bot = await init(app);
     }
     catch (e) {
@@ -20,6 +32,9 @@ async function botServer() {
 
     nodeCleanup(() => {
         log(LogLevel.INFO, "Performing cleanup");
+        if (discordClient) {
+            discordClient.destroy();
+        }
         if (bot) {
             void bot.chatClient.quit();
         }
