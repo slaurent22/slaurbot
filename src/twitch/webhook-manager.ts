@@ -2,8 +2,8 @@ import type { ChatClient } from "twitch-chat-client/lib";
 import type { ConnectCompatibleApp } from "twitch-webhooks";
 import { EnvPortAdapter, WebHookListener } from "twitch-webhooks";
 import type { ApiClient, HelixStream } from "twitch/lib";
-import type { Client as DiscordClient } from "discord.js";
-import { USER_ID } from "../util/constants";
+import type { Channel as DiscordChannel, Client as DiscordClient } from "discord.js";
+import { DISCORD_CHANNEL_ID, USER_ID } from "../util/constants";
 import { getEnv } from "../util/env";
 import { log, LogLevel } from "../util/logger";
 
@@ -52,6 +52,10 @@ export class TwitchWebHookManager {
         ]);
     }
 
+    private getDiscordStreamStatusChannel(): DiscordChannel|undefined {
+        return this._discordClient.channels.cache.get(DISCORD_CHANNEL_ID.STREAM_STATUS);
+    }
+
     private async _subscribeToStreamChanges({
         userId, userName,
     }: {
@@ -61,6 +65,7 @@ export class TwitchWebHookManager {
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         await this._listener.subscribeToStreamChanges(userId, async(stream?: HelixStream) => {
             log(LogLevel.INFO, "Stream Change:", stream);
+            let message = "stream status updated";
             if (stream && !prevStream) {
                 if (!prevStream) {
                     const game = await stream.getGame();
@@ -77,14 +82,19 @@ export class TwitchWebHookManager {
                         gameName,
                         gameId,
                     });
-                    this._chatClient.say(userName, `${userName} went playing ${gameName}: "${stream.title}"`);
+                    message = `${userName} went playing ${gameName}: "${stream.title}"`;
                 }
             }
             else {
                 // no stream, no display name
-                log(LogLevel.INFO, `${userName} just went offline`);
+                message = `${userName} just went offline`;
             }
             prevStream = stream ? stream : null;
+
+            const discordChannel = this.getDiscordStreamStatusChannel();
+            if (discordChannel && discordChannel.isText()) {
+                await discordChannel.send(message);
+            }
         });
     }
 
