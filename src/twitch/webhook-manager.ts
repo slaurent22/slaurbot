@@ -36,7 +36,7 @@ export class TwitchWebHookManager {
 
     public async listen(app: ConnectCompatibleApp): Promise<void> {
         const {
-            CHANNEL_NAME: userName,
+            TWITCH_CHANNEL_NAME: userName,
         } = getEnv();
         const userId = USER_ID.SLAURENT;
 

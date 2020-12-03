@@ -2,32 +2,32 @@ import assert from "assert";
 import { createRedis } from "./redis";
 
 export interface Env {
-    CHANNEL_NAME: string;
-    CLIENT_ID: string;
-    CLIENT_SECRET: string;
+    TWITCH_CHANNEL_NAME: string;
+    TWITCH_CLIENT_ID: string;
+    TWITCH_CLIENT_SECRET: string;
     REDIS_TLS_URL: string;
     REDIS_URL: string;
 }
 
 export function getEnv(): Readonly<Env> {
-    assert(process.env.CHANNEL_NAME,  "CHANNEL_NAME not found in process.env");
-    assert(process.env.CLIENT_ID,     "CLIENT_ID not found in process.env");
-    assert(process.env.CLIENT_SECRET, "CLIENT_SECRET not found in process.env");
+    assert(process.env.TWITCH_CHANNEL_NAME,  "TWITCH_CHANNEL_NAME not found in process.env");
+    assert(process.env.TWITCH_CLIENT_ID,     "TWITCH_CLIENT_ID not found in process.env");
+    assert(process.env.TWITCH_CLIENT_SECRET, "TWITCH_CLIENT_SECRET not found in process.env");
     assert(process.env.REDIS_TLS_URL, "REDIS_TLS_URL not found in process.env");
     assert(process.env.REDIS_URL,     "REDIS_URL not found in process.env");
 
     const {
-        CHANNEL_NAME,
-        CLIENT_ID,
-        CLIENT_SECRET,
+        TWITCH_CHANNEL_NAME,
+        TWITCH_CLIENT_ID,
+        TWITCH_CLIENT_SECRET,
         REDIS_TLS_URL,
         REDIS_URL,
     } = process.env;
 
     return Object.freeze({
-        CHANNEL_NAME,
-        CLIENT_ID,
-        CLIENT_SECRET,
+        TWITCH_CHANNEL_NAME,
+        TWITCH_CLIENT_ID,
+        TWITCH_CLIENT_SECRET,
         REDIS_TLS_URL,
         REDIS_URL,
     });

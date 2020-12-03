@@ -22,9 +22,9 @@ export async function createBot(): Promise<TwitchBot> {
     const tokenData = await getTokenData();
 
     const authProvider = new RefreshableAuthProvider(
-        new StaticAuthProvider(env.CLIENT_ID, tokenData.accessToken),
+        new StaticAuthProvider(env.TWITCH_CLIENT_ID, tokenData.accessToken),
         {
-            clientSecret: env.CLIENT_SECRET,
+            clientSecret: env.TWITCH_CLIENT_SECRET,
             refreshToken: tokenData.refreshToken,
             expiry: tokenData.expiryTimestamp === null ? null : new Date(tokenData.expiryTimestamp),
             onRefresh: async({ accessToken, refreshToken, expiryDate, }) => {
@@ -45,7 +45,7 @@ export async function createBot(): Promise<TwitchBot> {
     });
 
     const chatClient = new ChatClient(authProvider, {
-        channels: [env.CHANNEL_NAME ],
+        channels: [env.TWITCH_CHANNEL_NAME ],
         logger: {
             name: "SLAURBOT",
             timestamps: true,

@@ -1,11 +1,13 @@
 # slaurbot
 
 ## Local Development
+Requires [the Heroku CLI](https://devcenter.heroku.com/articles/heroku-cli) and [NodeJs](https://nodejs.org/en/).
+
 Create a `.env` file with:
 ```
-CHANNEL_NAME=slaurent22
-CLIENT_ID=[redacted]
-CLIENT_SECRET=[redacted]
+TWITCH_CHANNEL_NAME=slaurent22
+TWITCH_CLIENT_ID=[redacted]
+TWITCH_CLIENT_SECRET=[redacted]
 REDIS_TLS_URL=[redacted]
 REDIS_URL=[redacted]
 ```
@@ -17,5 +19,5 @@ npm run build
 
 Start
 ```
-heroku local web
+npm start
 ```
