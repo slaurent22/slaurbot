@@ -5,15 +5,15 @@ import { ApiClient } from "twitch";
 import type { ConnectCompatibleApp } from "twitch-webhooks/lib";
 import { log, LogLevel } from "../util/logger";
 import { getEnv, getTokenData, writeTokenData } from "../util/env";
-import { EventManager } from "./event-manager";
+import { TwitchEventManager } from "./event-manager";
 
-export interface Bot {
+export interface TwitchBot {
     apiClient: ApiClient;
     authProvider: AuthProvider;
     chatClient: ChatClient;
 }
 
-export async function createBot(): Promise<Bot> {
+export async function createBot(): Promise<TwitchBot> {
     log(LogLevel.INFO, "Creating bot");
     const env = getEnv();
     if (env === null) {
@@ -63,7 +63,7 @@ export async function createBot(): Promise<Bot> {
     };
 }
 
-export async function init(app: ConnectCompatibleApp): Promise<Bot> {
+export async function init(app: ConnectCompatibleApp): Promise<TwitchBot> {
     const bot = await createBot();
     const {
         apiClient,
@@ -71,7 +71,7 @@ export async function init(app: ConnectCompatibleApp): Promise<Bot> {
     } = bot;
     await chatClient.connect();
 
-    const eventManager = new EventManager({
+    const eventManager = new TwitchEventManager({
         apiClient,
         chatClient,
     });

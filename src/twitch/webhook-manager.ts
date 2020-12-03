@@ -6,12 +6,12 @@ import { USER_ID } from "../util/constants";
 import { getEnv } from "../util/env";
 import { log, LogLevel } from "../util/logger";
 
-export interface WebHookManagerConfig {
+export interface TwitchWebHookManagerConfig {
     apiClient: ApiClient;
     chatClient: ChatClient;
 }
 
-export class WebHookManager {
+export class TwitchWebHookManager {
     private _apiClient: ApiClient;
     private _chatClient: ChatClient;
     private _listener: WebHookListener;
@@ -19,7 +19,7 @@ export class WebHookManager {
     constructor({
         apiClient,
         chatClient,
-    }: WebHookManagerConfig) {
+    }: TwitchWebHookManagerConfig) {
         this._apiClient = apiClient;
         this._chatClient = chatClient;
         this._listener = new WebHookListener(this._apiClient, new EnvPortAdapter({

@@ -1,5 +1,5 @@
 import nodeCleanup from "node-cleanup";
-import type { Bot } from "./twitch/bot";
+import type { TwitchBot } from "./twitch/bot";
 import { init } from "./twitch/bot";
 import { log, LogLevel } from "./util/logger";
 import { createExpress } from "./express";
@@ -7,7 +7,7 @@ import { createExpress } from "./express";
 const PORT = process.env.PORT || 5000;
 
 async function botServer() {
-    let bot: Bot|undefined;
+    let bot: TwitchBot|undefined;
     try {
         const app = createExpress();
         app.listen(PORT, () => log(LogLevel.INFO, `Listening on ${ PORT }`));

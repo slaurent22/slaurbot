@@ -18,7 +18,7 @@ interface BttvRoomResponse {
     }>;
 }
 
-export async function getBttvEmotes(): Promise<string> {
+export async function getTwitchBttvEmotes(): Promise<string> {
     try {
         const { emotes, } = await got(REST_API_URLS.GET.BTTV_EMOTES).json<BttvRoomResponse>();
         log(LogLevel.DEBUG, emotes);
@@ -30,7 +30,7 @@ export async function getBttvEmotes(): Promise<string> {
     }
 }
 
-export async function getFfzEmotes(): Promise<string> {
+export async function getTwitchFfzEmotes(): Promise<string> {
     try {
         const { sets, } = await got(REST_API_URLS.GET.FFZ_EMOTES).json<FfzRoomResponse>();
         const emoteNames = [] as Array<string>;

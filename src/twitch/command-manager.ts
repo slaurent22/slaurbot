@@ -5,14 +5,14 @@ import type { ApiClient } from "twitch/lib";
 import humanizeDuration from "humanize-duration";
 import { log, LogLevel } from "../util/logger";
 import { MESSAGE_COMMANDS, USER_ID } from "../util/constants";
-import { getBttvEmotes, getFfzEmotes } from "./rest-api";
+import { getTwitchBttvEmotes, getTwitchFfzEmotes } from "./rest-api";
 
-export interface CommandManagerConfig {
+export interface TwitchCommandManagerConfig {
     apiClient: ApiClient;
     chatClient: ChatClient;
 }
 
-export class CommandManager {
+export class TwitchCommandManager {
     private _apiClient: ApiClient;
     private _commandPrefix: string;
     private _chatClient: ChatClient;
@@ -21,7 +21,7 @@ export class CommandManager {
     constructor({
         apiClient,
         chatClient,
-    }: CommandManagerConfig) {
+    }: TwitchCommandManagerConfig) {
         this._apiClient = apiClient;
         this._chatClient = chatClient;
 
@@ -62,11 +62,11 @@ export class CommandManager {
         });
 
         this._addCommand("!bttv", async(params, context) => {
-            context.say(await getBttvEmotes());
+            context.say(await getTwitchBttvEmotes());
         });
 
         this._addCommand("!ffz", async(params, context) => {
-            context.say(await getFfzEmotes());
+            context.say(await getTwitchFfzEmotes());
         });
     }
 

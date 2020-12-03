@@ -2,33 +2,33 @@ import type { ChatClient } from "twitch-chat-client/lib";
 import type { ConnectCompatibleApp } from "twitch-webhooks/lib";
 import type { ApiClient } from "twitch/lib";
 import { log, LogLevel } from "../util/logger";
-import { CommandManager } from "./command-manager";
-import { WebHookManager } from "./webhook-manager";
+import { TwitchCommandManager } from "./command-manager";
+import { TwitchWebHookManager } from "./webhook-manager";
 
-export interface EventManagerConfig {
+export interface TwitchEventManagerConfig {
     apiClient: ApiClient;
     chatClient: ChatClient;
 }
 
-export class EventManager {
+export class TwitchEventManager {
     private _apiClient: ApiClient;
     private _chatClient: ChatClient;
-    private _commandManager: CommandManager;
-    private _webHookManager: WebHookManager;
+    private _commandManager: TwitchCommandManager;
+    private _webHookManager: TwitchWebHookManager;
 
     constructor({
         apiClient,
         chatClient,
-    }: EventManagerConfig) {
+    }: TwitchEventManagerConfig) {
         this._apiClient = apiClient;
         this._chatClient = chatClient;
 
-        this._commandManager = new CommandManager({
+        this._commandManager = new TwitchCommandManager({
             apiClient: this._apiClient,
             chatClient: this._chatClient,
         });
 
-        this._webHookManager = new WebHookManager({
+        this._webHookManager = new TwitchWebHookManager({
             apiClient: this._apiClient,
             chatClient: this._chatClient,
         });
