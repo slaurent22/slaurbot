@@ -70,22 +70,23 @@ export class TwitchWebHookManager {
         await this._listener.subscribeToStreamChanges(userId, async(stream?: HelixStream) => {
             // TODO: REORGANIZE ALL OF THIS DISGUSTING MESS
             log(LogLevel.INFO, "Stream Change:", stream);
-            if (stream && !prevStream) {
+            log(LogLevel.INFO, "Previous Stream?", Boolean(prevStream));
+            if (stream) {
+                const game = await stream.getGame();
+                const gameName = game ? game.name : "<unknown game>";
+                const gameId = game ? game.id : "<unknown id>";
+                const {
+                    userDisplayName,
+                    startDate,
+                } = stream;
+                log(LogLevel.DEBUG, {
+                    userDisplayName,
+                    userId,
+                    startDate,
+                    gameName,
+                    gameId,
+                });
                 if (!prevStream) {
-                    const game = await stream.getGame();
-                    const gameName = game ? game.name : "<unknown game>";
-                    const gameId = game ? game.id : "<unknown id>";
-                    const {
-                        userDisplayName,
-                        startDate,
-                    } = stream;
-                    log(LogLevel.INFO, {
-                        userDisplayName,
-                        userId,
-                        startDate,
-                        gameName,
-                        gameId,
-                    });
                     if (discordChannel && discordChannel.isText()) {
                         await discordChannel.send({
                             content: `@everyone ${userName} went live!`,
