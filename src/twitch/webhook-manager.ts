@@ -7,11 +7,31 @@ import { DISCORD_CHANNEL_ID, USER_ID } from "../util/constants";
 import { getEnv } from "../util/env";
 import { log, LogLevel } from "../util/logger";
 import { getTwitchOfflineEmbed, getTwitchStreamEmbed } from "../discord/discord-embed";
+import {
+    fetchTwitchStreamUpdateCache,
+    getCachedTwitchStreamStatus,
+    TwitchStreamStatus,
+    writeTwitchStreamStatusToCache
+} from "./twitch-stream-status-cache";
 
 export interface TwitchWebHookManagerConfig {
     apiClient: ApiClient;
     chatClient: ChatClient;
     discordClient: DiscordClient;
+}
+
+function getStreamStatus(stream: HelixStream|undefined): TwitchStreamStatus {
+    return stream ? TwitchStreamStatus.LIVE : TwitchStreamStatus.OFFLINE;
+}
+
+function wentOnline(previouStatus: TwitchStreamStatus, currentStatus: TwitchStreamStatus): boolean {
+    return previouStatus === TwitchStreamStatus.OFFLINE &&
+           currentStatus === TwitchStreamStatus.LIVE;
+}
+
+function wentOffline(previousStatus: TwitchStreamStatus, currentStatus: TwitchStreamStatus): boolean {
+    return previousStatus === TwitchStreamStatus.LIVE &&
+           currentStatus === TwitchStreamStatus.OFFLINE;
 }
 
 export class TwitchWebHookManager {
@@ -57,6 +77,10 @@ export class TwitchWebHookManager {
         return this._discordClient.channels.cache.get(DISCORD_CHANNEL_ID.STREAM_STATUS);
     }
 
+    private getDiscordDevStatusChannel(): DiscordChannel|undefined {
+        return this._discordClient.channels.cache.get(DISCORD_CHANNEL_ID.TEST);
+    }
+
 
     private async _subscribeToStreamChanges({
         userId, userName,
@@ -64,42 +88,66 @@ export class TwitchWebHookManager {
         userId: string; userName: string;
     }): Promise<void> {
         const discordChannel = this.getDiscordStreamStatusChannel();
-        // TODO: STORE PREVIOUS STREAM IN REDIS CACHE
-        let prevStream = await this._apiClient.helix.streams.getStreamByUserId(userId);
+        const devDiscordChannel = this.getDiscordDevStatusChannel();
+        const initialStatus = await fetchTwitchStreamUpdateCache({
+            apiClient: this._apiClient,
+            userId,
+        });
+        if (devDiscordChannel && devDiscordChannel.isText()) {
+            await devDiscordChannel.send("Initial stream status: " + initialStatus);
+        }
+        log(LogLevel.INFO, "Initial stream status:", initialStatus);
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         await this._listener.subscribeToStreamChanges(userId, async(stream?: HelixStream) => {
-            // TODO: REORGANIZE ALL OF THIS DISGUSTING MESS
             log(LogLevel.INFO, "Stream Change:", stream);
-            log(LogLevel.INFO, "Previous Stream?", Boolean(prevStream));
+            const previousStatus = await getCachedTwitchStreamStatus();
+            const currentStatus = getStreamStatus(stream);
+            const streamStatusData = {
+                previousStatus,
+                currentStatus,
+                becameLive: wentOnline(previousStatus, currentStatus),
+                becameOffline: wentOffline(previousStatus, currentStatus),
+            };
+            log(LogLevel.INFO, streamStatusData);
             if (stream) {
                 const game = await stream.getGame();
                 const gameName = game ? game.name : "<unknown game>";
-                const gameId = game ? game.id : "<unknown id>";
-                const {
-                    userDisplayName,
-                    startDate,
-                } = stream;
-                log(LogLevel.DEBUG, {
-                    userDisplayName,
-                    userId,
-                    startDate,
-                    gameName,
-                    gameId,
-                });
-                if (!prevStream) {
+                const streamData = {
+                    id: stream.id,
+                    userId: stream.userId,
+                    userDisplayName: stream.userDisplayName,
+                    gameId: stream.gameId,
+                    type: stream.type,
+                    title: stream.title,
+                    viewers: stream.viewers,
+                    startDate: stream.startDate,
+                    language: stream.language,
+                    thumbnailUrl: stream.thumbnailUrl,
+                    tagIds: stream.tagIds,
+                    game: {
+                        id: game ? game.id : "<unknown id>",
+                        name: gameName,
+                        boxArtUrl: game ? game.boxArtUrl : "<unknown url>",
+                    },
+                };
+                log(LogLevel.INFO, streamData);
+                if (devDiscordChannel && devDiscordChannel.isText()) {
+                    await devDiscordChannel.send(JSON.stringify(streamData, null, 4));
+                }
+                if (wentOnline(previousStatus, currentStatus)) {
                     if (discordChannel && discordChannel.isText()) {
                         await discordChannel.send({
                             content: `@everyone ${userName} went live!`,
                             embed: getTwitchStreamEmbed({
                                 title: stream.title,
                                 gameName,
-                                startDate,
+                                startDate: stream.startDate,
                             }),
                         });
                     }
                 }
             }
-            else {
+            else if (wentOffline(previousStatus, currentStatus)) {
                 // no stream, no display name
                 if (discordChannel && discordChannel.isText()) {
                     await discordChannel.send({
@@ -110,7 +158,10 @@ export class TwitchWebHookManager {
                     });
                 }
             }
-            prevStream = stream ? stream : null;
+            await writeTwitchStreamStatusToCache(currentStatus);
+            if (devDiscordChannel && devDiscordChannel.isText()) {
+                await devDiscordChannel.send(JSON.stringify(streamStatusData, null, 4));
+            }
         });
     }
 
