@@ -142,6 +142,8 @@ export class TwitchWebHookManager {
                                 title: stream.title,
                                 gameName,
                                 startDate: stream.startDate,
+                                thumbnailUrl: stream.thumbnailUrl,
+                                boxArtUrl: game ? game.boxArtUrl : null,
                             }),
                         });
                     }
