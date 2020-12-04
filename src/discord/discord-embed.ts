@@ -26,7 +26,7 @@ export function getTestEmbed(): Discord.MessageEmbed {
     // .setFooter("Some footer text here", IMAGE_URL);
 }
 
-interface StreamEmbedConfig {
+interface TwitchStreamEmbedConfig {
     title: string;
     gameName: string;
     startDate: Date;
@@ -34,7 +34,7 @@ interface StreamEmbedConfig {
 
 export function getTwitchStreamEmbed({
     title, startDate, gameName,
-}: StreamEmbedConfig): Discord.MessageEmbed {
+}: TwitchStreamEmbedConfig): Discord.MessageEmbed {
     return new Discord.MessageEmbed()
         .setColor(EMBED_COLOR)
         .setTitle(title)
@@ -45,5 +45,17 @@ export function getTwitchStreamEmbed({
             { name: "Game", value: gameName, }
         )
         .setImage(IMAGE_URL)
+        .setTimestamp(startDate);
+}
+
+interface TwitchOfflineEmbedConfig {
+    startDate: Date;
+}
+export function getTwitchOfflineEmbed({
+    startDate,
+}: TwitchOfflineEmbedConfig): Discord.MessageEmbed {
+    return new Discord.MessageEmbed()
+        .setColor(EMBED_COLOR)
+        .setFooter("Stream went offline")
         .setTimestamp(startDate);
 }

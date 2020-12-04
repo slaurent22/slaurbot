@@ -6,7 +6,7 @@ import type { Channel as DiscordChannel, Client as DiscordClient } from "discord
 import { DISCORD_CHANNEL_ID, USER_ID } from "../util/constants";
 import { getEnv } from "../util/env";
 import { log, LogLevel } from "../util/logger";
-import { getTwitchStreamEmbed } from "../discord/discord-embed";
+import { getTwitchOfflineEmbed, getTwitchStreamEmbed } from "../discord/discord-embed";
 
 export interface TwitchWebHookManagerConfig {
     apiClient: ApiClient;
@@ -102,7 +102,12 @@ export class TwitchWebHookManager {
             else {
                 // no stream, no display name
                 if (discordChannel && discordChannel.isText()) {
-                    await discordChannel.send(`${userName} just went offline`);
+                    await discordChannel.send({
+                        content: `${userName} went offline`,
+                        embed: getTwitchOfflineEmbed({
+                            startDate: new Date(),
+                        }),
+                    });
                 }
             }
             prevStream = stream ? stream : null;
