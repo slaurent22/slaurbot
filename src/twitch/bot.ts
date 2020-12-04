@@ -5,8 +5,9 @@ import { ApiClient } from "twitch";
 import type { ConnectCompatibleApp } from "twitch-webhooks/lib";
 import type { Client as DiscordClient } from "discord.js";
 import { log, LogLevel } from "../util/logger";
-import { getEnv, getTokenData, writeTokenData } from "../util/env";
+import { getEnv } from "../util/env";
 import { TwitchEventManager } from "./event-manager";
+import { getTwitchTokens, writeTwitchTokens } from "./twitch-token-cache";
 
 export interface TwitchBot {
     apiClient: ApiClient;
@@ -20,7 +21,7 @@ export async function createBot(): Promise<TwitchBot> {
     if (env === null) {
         throw new Error("Local environment not found");
     }
-    const tokenData = await getTokenData();
+    const tokenData = await getTwitchTokens();
 
     const authProvider = new RefreshableAuthProvider(
         new StaticAuthProvider(env.TWITCH_CLIENT_ID, tokenData.accessToken),
@@ -35,7 +36,7 @@ export async function createBot(): Promise<TwitchBot> {
                     refreshToken,
                     expiryTimestamp: expiryDate === null ? null : expiryDate.getTime(),
                 };
-                await writeTokenData(newTokenData);
+                await writeTwitchTokens(newTokenData);
             },
         }
     );
