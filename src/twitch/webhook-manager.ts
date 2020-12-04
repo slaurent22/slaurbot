@@ -94,7 +94,7 @@ export class TwitchWebHookManager {
             userId,
         });
         if (devDiscordChannel && devDiscordChannel.isText()) {
-            await devDiscordChannel.send("Initial stream status: " + initialStatus);
+            await devDiscordChannel.send("Initial stream status: `" + initialStatus + "`");
         }
         log(LogLevel.INFO, "Initial stream status:", initialStatus);
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
@@ -160,7 +160,7 @@ export class TwitchWebHookManager {
             }
             await writeTwitchStreamStatusToCache(currentStatus);
             if (devDiscordChannel && devDiscordChannel.isText()) {
-                await devDiscordChannel.send(JSON.stringify(streamStatusData, null, 4));
+                await devDiscordChannel.send("```\n" + JSON.stringify(streamStatusData, null, 4) + "```");
             }
         });
     }
