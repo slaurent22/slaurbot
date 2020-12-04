@@ -6,6 +6,7 @@ import type { Channel as DiscordChannel, Client as DiscordClient } from "discord
 import { DISCORD_CHANNEL_ID, USER_ID } from "../util/constants";
 import { getEnv } from "../util/env";
 import { log, LogLevel } from "../util/logger";
+import { getTwitchStreamEmbed } from "../discord/discord-embed";
 
 export interface TwitchWebHookManagerConfig {
     apiClient: ApiClient;
@@ -56,16 +57,19 @@ export class TwitchWebHookManager {
         return this._discordClient.channels.cache.get(DISCORD_CHANNEL_ID.STREAM_STATUS);
     }
 
+
     private async _subscribeToStreamChanges({
         userId, userName,
     }: {
         userId: string; userName: string;
     }): Promise<void> {
+        const discordChannel = this.getDiscordStreamStatusChannel();
+        // TODO: STORE PREVIOUS STREAM IN REDIS CACHE
         let prevStream = await this._apiClient.helix.streams.getStreamByUserId(userId);
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         await this._listener.subscribeToStreamChanges(userId, async(stream?: HelixStream) => {
+            // TODO: REORGANIZE ALL OF THIS DISGUSTING MESS
             log(LogLevel.INFO, "Stream Change:", stream);
-            let message = "stream status updated";
             if (stream && !prevStream) {
                 if (!prevStream) {
                     const game = await stream.getGame();
@@ -82,19 +86,25 @@ export class TwitchWebHookManager {
                         gameName,
                         gameId,
                     });
-                    message = `${userName} went playing ${gameName}: "${stream.title}"`;
+                    if (discordChannel && discordChannel.isText()) {
+                        await discordChannel.send({
+                            content: `@everyone ${userName} went live!`,
+                            embed: getTwitchStreamEmbed({
+                                title: stream.title,
+                                gameName,
+                                startDate,
+                            }),
+                        });
+                    }
                 }
             }
             else {
                 // no stream, no display name
-                message = `${userName} just went offline`;
+                if (discordChannel && discordChannel.isText()) {
+                    await discordChannel.send(`${userName} just went offline`);
+                }
             }
             prevStream = stream ? stream : null;
-
-            const discordChannel = this.getDiscordStreamStatusChannel();
-            if (discordChannel && discordChannel.isText()) {
-                await discordChannel.send(message);
-            }
         });
     }
 

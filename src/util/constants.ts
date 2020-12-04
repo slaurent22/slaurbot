@@ -27,3 +27,7 @@ export const DISCORD_CHANNEL_ID = Object.freeze({
     TEST: "781393866200842242",
     STREAM_STATUS: "784103728994189332",
 });
+
+export const DISCORD_ROLE_ID = Object.freeze({
+    ADMIN: "763581147141505024",
+});
