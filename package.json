@@ -18,17 +18,17 @@
   },
   "dependencies": {
     "discord.js": "^12.5.1",
-    "easy-twitch-bot": "^4.3.0",
+    "easy-twitch-bot": "^4.3.5",
     "express": "^4.17.1",
     "got": "^11.8.0",
     "humanize-duration": "^3.24.0",
     "ioredis": "^4.19.2",
     "marked": "^1.2.5",
     "node-cleanup": "^2.1.2",
-    "twitch": "^4.3.0",
-    "twitch-auth": "^4.3.0",
-    "twitch-chat-client": "^4.3.0",
-    "twitch-webhooks": "^4.3.1"
+    "twitch": "^4.3.5",
+    "twitch-auth": "^4.3.5",
+    "twitch-chat-client": "^4.3.5",
+    "twitch-webhooks": "^4.3.5"
   },
   "devDependencies": {
     "@types/express": "^4.17.9",
