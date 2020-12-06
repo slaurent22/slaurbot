@@ -14,8 +14,9 @@ Everyone may use these commands.
 | `!bot`       | Display slaurbot information.
 | `!followage` | Display how long you have been following.
 | `!uptime`    | Display how long the stream has been live.
-| `!quote`     | Trigger a random or specific quote.
+| `!quote`     | Trigger a random or specific quote (e.g. `!quote 6`)
 | `!addquote`  | Add a quote through chat.
+| `!precept`   | Display a random or specific Zote Precept (e.g. `!precept 56`)
 
 ## Moderators
 Only moderators and the broadcaster may use these commands.

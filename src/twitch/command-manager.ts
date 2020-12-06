@@ -4,12 +4,16 @@ import type { ChatClient, PrivateMessage } from "twitch-chat-client";
 import type { ApiClient } from "twitch/lib";
 import humanizeDuration from "humanize-duration";
 import { log, LogLevel } from "../util/logger";
-import { MESSAGE_COMMANDS, USER_ID } from "../util/constants";
+import { MESSAGE_COMMANDS, USER_ID, ZOTE_PRECEPTS } from "../util/constants";
 import { getTwitchBttvEmotes, getTwitchFfzEmotes } from "./rest-api";
 
 export interface TwitchCommandManagerConfig {
     apiClient: ApiClient;
     chatClient: ChatClient;
+}
+
+function getRandomInt(max: number): number {
+    return Math.floor(Math.random() * Math.floor(max));
 }
 
 export class TwitchCommandManager {
@@ -67,6 +71,22 @@ export class TwitchCommandManager {
 
         this._addCommand("!ffz", async(params, context) => {
             context.say(await getTwitchFfzEmotes());
+        });
+
+        this._addCommand("!precept", (params, context) => {
+            log(LogLevel.INFO, "!precept params:", params);
+            let preceptNum = parseInt(params[0], 10);
+            let precept = ZOTE_PRECEPTS.get(preceptNum);
+            if (isNaN(preceptNum) || !precept) {
+                preceptNum = 1 + getRandomInt(ZOTE_PRECEPTS.size - 1);
+                precept = ZOTE_PRECEPTS.get(preceptNum);
+            }
+            if (!precept) {
+                precept = "Precept: 'Do Not Break Slaurbot'. He is very busy and doesn't appreciate being abused.";
+            }
+            precept = precept.replace(/<page>/g, " ");
+
+            context.say(precept);
         });
     }
 
