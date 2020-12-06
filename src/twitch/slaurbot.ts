@@ -7,21 +7,21 @@ import type { Client as DiscordClient } from "discord.js";
 import { log, LogLevel } from "../util/logger";
 import { getEnv } from "../util/env";
 import { TwitchEventManager } from "./event-manager";
-import { getTwitchTokens, writeTwitchTokens } from "./twitch-token-cache";
+import type { TokenData } from "./twitch-token-cache";
+import { writeTwitchTokens } from "./twitch-token-cache";
 
-export interface TwitchBot {
+export interface TwitchBotConfig {
     apiClient: ApiClient;
     authProvider: AuthProvider;
     chatClient: ChatClient;
 }
 
-export async function createBot(): Promise<TwitchBot> {
-    log(LogLevel.INFO, "Creating bot");
+export function createBotConfig(tokenData: TokenData): TwitchBotConfig {
+    log(LogLevel.INFO, "Creating bot config");
     const env = getEnv();
     if (env === null) {
         throw new Error("Local environment not found");
     }
-    const tokenData = await getTwitchTokens();
 
     const authProvider = new RefreshableAuthProvider(
         new StaticAuthProvider(env.TWITCH_CLIENT_ID, tokenData.accessToken),
@@ -56,8 +56,6 @@ export async function createBot(): Promise<TwitchBot> {
         },
     });
 
-    log(LogLevel.INFO, "Bot created");
-
     return {
         apiClient,
         authProvider,
@@ -65,21 +63,44 @@ export async function createBot(): Promise<TwitchBot> {
     };
 }
 
-export async function init(app: ConnectCompatibleApp, discordClient: DiscordClient): Promise<TwitchBot> {
-    const bot = await createBot();
-    const {
-        apiClient,
-        chatClient,
-    } = bot;
-    await chatClient.connect();
-
-    const eventManager = new TwitchEventManager({
-        apiClient,
-        chatClient,
-        discordClient,
-    });
-    await eventManager.listen(app);
-
-    return bot;
+interface SlaurbotConfig {
+    discordClient: DiscordClient;
+    tokenData: TokenData;
 }
 
+export class Slaurbot {
+    private _chatClient: ChatClient;
+    private _discordClient: DiscordClient;
+    private _eventManager: TwitchEventManager;
+
+    constructor({
+        discordClient,
+        tokenData,
+    }: SlaurbotConfig) {
+        const {
+            apiClient,
+            chatClient,
+        } = createBotConfig(tokenData);
+
+        this._chatClient = chatClient;
+        this._discordClient = discordClient;
+
+        this._eventManager = new TwitchEventManager({
+            apiClient,
+            chatClient,
+            discordClient,
+        });
+    }
+
+    public async start(app: ConnectCompatibleApp): Promise<void> {
+        await Promise.all([
+            this._chatClient.connect(),
+            this._eventManager.listen(app)
+        ]);
+    }
+
+    public destroy(): void {
+        this._discordClient.destroy();
+        void this._chatClient.quit();
+    }
+}

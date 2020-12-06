@@ -1,7 +1,7 @@
 import assert from "assert";
 import { createRedis } from "../util/redis";
 
-interface TokenData {
+export interface TokenData {
     "accessToken": string;
     "refreshToken": string;
     "expiryTimestamp": number|null;
