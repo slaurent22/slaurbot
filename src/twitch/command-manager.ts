@@ -16,6 +16,14 @@ function getRandomInt(max: number): number {
     return Math.floor(Math.random() * Math.floor(max));
 }
 
+const LAST_USED = {
+    precept: new Date(),
+};
+
+function refreshed(lastUse: Date, cooldownMs: number) {
+    return Number(new Date()) - Number(lastUse) > cooldownMs;
+}
+
 export class TwitchCommandManager {
     private _apiClient: ApiClient;
     private _commandPrefix: string;
@@ -74,6 +82,11 @@ export class TwitchCommandManager {
         });
 
         this._addCommand("!precept", (params, context) => {
+            if (!refreshed(LAST_USED.precept, 3000)) {
+                log(LogLevel.INFO, "!precept is on cooldown. Ignoring.");
+                return;
+            }
+            LAST_USED.precept = new Date();
             log(LogLevel.INFO, "!precept params:", params);
             let preceptNum = parseInt(params[0], 10);
             let precept = ZOTE_PRECEPTS.get(preceptNum);
