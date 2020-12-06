@@ -1,9 +1,14 @@
-import type { Client as DiscordClient, Channel as DiscordChannel } from "discord.js";
+import type { Client as DiscordClient, Channel as DiscordChannel, MessageEmbed } from "discord.js";
 import { DISCORD_CHANNEL_ID } from "../util/constants";
 import { log, LogLevel } from "../util/logger";
 
 interface DiscordNotifierConfig {
     discordClient: DiscordClient;
+}
+
+interface MessageConfig {
+    content: string;
+    embed?: MessageEmbed;
 }
 
 export class DiscordNotifier {
@@ -21,18 +26,18 @@ export class DiscordNotifier {
         this._testChannel = this._discordClient.channels.cache.get(DISCORD_CHANNEL_ID.TEST);
     }
 
-    public async notifyStreamStatusChannel(): Promise<void> {
+    public async notifyStreamStatusChannel(message: MessageConfig): Promise<void> {
         if (this._streamStatusChannel && this._streamStatusChannel.isText()) {
-            await this._streamStatusChannel.send("notifyStreamStatusChannel");
+            await this._streamStatusChannel.send(message);
         }
         else {
-            log(LogLevel.ERROR, "DiscordNotifier: Test Channel not found");
+            log(LogLevel.ERROR, "DiscordNotifier: Stream Status Channel not found");
         }
     }
 
-    public async notifyTestChannel(content: string): Promise<void> {
+    public async notifyTestChannel(message: MessageConfig): Promise<void> {
         if (this._testChannel && this._testChannel.isText()) {
-            await this._testChannel.send(content);
+            await this._testChannel.send(message);
         }
         else {
             log(LogLevel.ERROR, "DiscordNotifier: Test Channel not found");

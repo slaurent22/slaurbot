@@ -14,7 +14,9 @@ export async function createDiscordClient(): Promise<Discord.Client> {
             discordClient: client,
         });
 
-        await notifier.notifyTestChannel("Hello slaurent I am the Discord Notifier");
+        await notifier.notifyTestChannel({
+            content: "Hello slaurent I am the Discord Notifier",
+        });
     });
 
     client.on("message", message => {

@@ -2,8 +2,7 @@ import type { ChatClient } from "twitch-chat-client/lib";
 import type { ConnectCompatibleApp } from "twitch-webhooks";
 import { EnvPortAdapter, WebHookListener } from "twitch-webhooks";
 import type { ApiClient, HelixStream } from "twitch/lib";
-import type { Channel as DiscordChannel, Client as DiscordClient } from "discord.js";
-import { DISCORD_CHANNEL_ID, USER_ID } from "../util/constants";
+import { USER_ID } from "../util/constants";
 import { getEnv } from "../util/env";
 import { log, LogLevel } from "../util/logger";
 import { getTwitchOfflineEmbed, getTwitchStreamEmbed } from "../discord/discord-embed";
@@ -18,7 +17,6 @@ import {
 export interface TwitchWebHookManagerConfig {
     apiClient: ApiClient;
     chatClient: ChatClient;
-    discordClient: DiscordClient;
     discordNotifier: DiscordNotifier;
 }
 
@@ -39,19 +37,16 @@ function wentOffline(previousStatus: TwitchStreamStatus, currentStatus: TwitchSt
 export class TwitchWebHookManager {
     private _apiClient: ApiClient;
     private _chatClient: ChatClient;
-    private _discordClient: DiscordClient;
     private _discordNotifier: DiscordNotifier;
     private _listener: WebHookListener;
 
     constructor({
         apiClient,
         chatClient,
-        discordClient,
         discordNotifier,
     }: TwitchWebHookManagerConfig) {
         this._apiClient = apiClient;
         this._chatClient = chatClient;
-        this._discordClient = discordClient;
         this._discordNotifier = discordNotifier;
         this._listener = new WebHookListener(this._apiClient, new EnvPortAdapter({
             hostName: "slaurbot.herokuapp.com",
@@ -78,24 +73,22 @@ export class TwitchWebHookManager {
         ]);
     }
 
-    private getDiscordStreamStatusChannel(): DiscordChannel|undefined {
-        return this._discordClient.channels.cache.get(DISCORD_CHANNEL_ID.STREAM_STATUS);
-    }
-
     private async _subscribeToStreamChanges({
         userId, userName,
     }: {
         userId: string; userName: string;
     }): Promise<void> {
-        const discordChannel = this.getDiscordStreamStatusChannel();
         const initialStatus = await fetchTwitchStreamUpdateCache({
             apiClient: this._apiClient,
             userId,
         });
 
-        await this._discordNotifier.notifyTestChannel("Initial stream status: `" + initialStatus + "`");
-
         log(LogLevel.INFO, "Initial stream status:", initialStatus);
+
+        await this._discordNotifier.notifyTestChannel({
+            content: "Initial stream status: `" + initialStatus + "`",
+        });
+
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         await this._listener.subscribeToStreamChanges(userId, async(stream?: HelixStream) => {
             log(LogLevel.INFO, "Stream Change:", stream);
@@ -130,36 +123,35 @@ export class TwitchWebHookManager {
                     },
                 };
                 log(LogLevel.INFO, streamData);
-                await this._discordNotifier.notifyTestChannel(JSON.stringify(streamData, null, 4));
+                await this._discordNotifier.notifyTestChannel({
+                    content: "```\n" + JSON.stringify(streamData, null, 4) + "```",
+                });
 
                 if (wentOnline(previousStatus, currentStatus)) {
-                    if (discordChannel && discordChannel.isText()) {
-                        await discordChannel.send({
-                            content: `@everyone ${userName} went live!`,
-                            embed: getTwitchStreamEmbed({
-                                title: stream.title,
-                                gameName,
-                                startDate: stream.startDate,
-                                thumbnailUrl: stream.thumbnailUrl,
-                                boxArtUrl: game ? game.boxArtUrl : null,
-                            }),
-                        });
-                    }
-                }
-            }
-            else if (wentOffline(previousStatus, currentStatus)) {
-                // no stream, no display name
-                if (discordChannel && discordChannel.isText()) {
-                    await discordChannel.send({
-                        content: `${userName} went offline`,
-                        embed: getTwitchOfflineEmbed({
-                            startDate: new Date(),
+                    await this._discordNotifier.notifyStreamStatusChannel({
+                        content: `@everyone ${userName} went live!`,
+                        embed: getTwitchStreamEmbed({
+                            title: stream.title,
+                            gameName,
+                            startDate: stream.startDate,
+                            thumbnailUrl: stream.thumbnailUrl,
+                            boxArtUrl: game ? game.boxArtUrl : null,
                         }),
                     });
                 }
             }
+            else if (wentOffline(previousStatus, currentStatus)) {
+                await this._discordNotifier.notifyStreamStatusChannel({
+                    content: `${userName} went offline`,
+                    embed: getTwitchOfflineEmbed({
+                        startDate: new Date(),
+                    }),
+                });
+            }
             await writeTwitchStreamStatusToCache(currentStatus);
-            await this._discordNotifier.notifyTestChannel("```\n" + JSON.stringify(streamStatusData, null, 4) + "```");
+            await this._discordNotifier.notifyTestChannel({
+                content: "```\n" + JSON.stringify(streamStatusData, null, 4) + "```",
+            });
         });
     }
 
