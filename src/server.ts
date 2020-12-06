@@ -1,7 +1,7 @@
 import nodeCleanup from "node-cleanup";
 import type { Client as DiscordClient } from "discord.js";
-import type { TwitchBot } from "./twitch/bot";
-import { init } from "./twitch/bot";
+import type { TwitchBot } from "./twitch/slaurbot";
+import { init } from "./twitch/slaurbot";
 import { log, LogLevel } from "./util/logger";
 import { createExpress } from "./express";
 import { createDiscordClient } from "./discord/discord-bot";
