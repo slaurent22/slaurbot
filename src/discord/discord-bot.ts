@@ -1,22 +1,20 @@
 import Discord from "discord.js";
-import { DISCORD_CHANNEL_ID } from "../util/constants";
 import { getEnv } from "../util/env";
 import { log, LogLevel } from "../util/logger";
+import { DiscordNotifier } from "./discord-notifier";
 
 
 export async function createDiscordClient(): Promise<Discord.Client> {
     const client = new Discord.Client();
 
-    client.once("ready", () => {
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    client.once("ready", async() => {
         log(LogLevel.INFO, "Discord client is ready");
-        const testChannel = client.channels.cache.get(DISCORD_CHANNEL_ID.TEST);
-        if (testChannel && testChannel.isText()) {
-            void testChannel.send("Discord client is up and running!");
-        }
-        else {
-            log(LogLevel.ERROR, "Could not find #test channel");
-        }
+        const notifier = new DiscordNotifier({
+            discordClient: client,
+        });
 
+        await notifier.notifyTestChannel("Hello slaurent I am the Discord Notifier");
     });
 
     client.on("message", message => {

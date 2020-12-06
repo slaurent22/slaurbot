@@ -7,6 +7,7 @@ import { DISCORD_CHANNEL_ID, USER_ID } from "../util/constants";
 import { getEnv } from "../util/env";
 import { log, LogLevel } from "../util/logger";
 import { getTwitchOfflineEmbed, getTwitchStreamEmbed } from "../discord/discord-embed";
+import type { DiscordNotifier } from "../discord/discord-notifier";
 import {
     fetchTwitchStreamUpdateCache,
     getCachedTwitchStreamStatus,
@@ -18,6 +19,7 @@ export interface TwitchWebHookManagerConfig {
     apiClient: ApiClient;
     chatClient: ChatClient;
     discordClient: DiscordClient;
+    discordNotifier: DiscordNotifier;
 }
 
 function getStreamStatus(stream: HelixStream|undefined): TwitchStreamStatus {
@@ -38,16 +40,19 @@ export class TwitchWebHookManager {
     private _apiClient: ApiClient;
     private _chatClient: ChatClient;
     private _discordClient: DiscordClient;
+    private _discordNotifier: DiscordNotifier;
     private _listener: WebHookListener;
 
     constructor({
         apiClient,
         chatClient,
         discordClient,
+        discordNotifier,
     }: TwitchWebHookManagerConfig) {
         this._apiClient = apiClient;
         this._chatClient = chatClient;
         this._discordClient = discordClient;
+        this._discordNotifier = discordNotifier;
         this._listener = new WebHookListener(this._apiClient, new EnvPortAdapter({
             hostName: "slaurbot.herokuapp.com",
         }), {
@@ -77,25 +82,19 @@ export class TwitchWebHookManager {
         return this._discordClient.channels.cache.get(DISCORD_CHANNEL_ID.STREAM_STATUS);
     }
 
-    private getDiscordDevStatusChannel(): DiscordChannel|undefined {
-        return this._discordClient.channels.cache.get(DISCORD_CHANNEL_ID.TEST);
-    }
-
-
     private async _subscribeToStreamChanges({
         userId, userName,
     }: {
         userId: string; userName: string;
     }): Promise<void> {
         const discordChannel = this.getDiscordStreamStatusChannel();
-        const devDiscordChannel = this.getDiscordDevStatusChannel();
         const initialStatus = await fetchTwitchStreamUpdateCache({
             apiClient: this._apiClient,
             userId,
         });
-        if (devDiscordChannel && devDiscordChannel.isText()) {
-            await devDiscordChannel.send("Initial stream status: `" + initialStatus + "`");
-        }
+
+        await this._discordNotifier.notifyTestChannel("Initial stream status: `" + initialStatus + "`");
+
         log(LogLevel.INFO, "Initial stream status:", initialStatus);
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         await this._listener.subscribeToStreamChanges(userId, async(stream?: HelixStream) => {
@@ -131,9 +130,8 @@ export class TwitchWebHookManager {
                     },
                 };
                 log(LogLevel.INFO, streamData);
-                if (devDiscordChannel && devDiscordChannel.isText()) {
-                    await devDiscordChannel.send(JSON.stringify(streamData, null, 4));
-                }
+                await this._discordNotifier.notifyTestChannel(JSON.stringify(streamData, null, 4));
+
                 if (wentOnline(previousStatus, currentStatus)) {
                     if (discordChannel && discordChannel.isText()) {
                         await discordChannel.send({
@@ -161,9 +159,7 @@ export class TwitchWebHookManager {
                 }
             }
             await writeTwitchStreamStatusToCache(currentStatus);
-            if (devDiscordChannel && devDiscordChannel.isText()) {
-                await devDiscordChannel.send("```\n" + JSON.stringify(streamStatusData, null, 4) + "```");
-            }
+            await this._discordNotifier.notifyTestChannel("```\n" + JSON.stringify(streamStatusData, null, 4) + "```");
         });
     }
 
