@@ -1,5 +1,7 @@
 # slaurbot
 
+I am the custom bot for [slaurent22](https://twitch.tv/slaurent22) on Twitch.
+
 ## Local Development
 Requires [the Heroku CLI](https://devcenter.heroku.com/articles/heroku-cli) and [NodeJs](https://nodejs.org/en/).
 
