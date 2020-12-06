@@ -8,6 +8,7 @@ export const MESSAGE_COMMANDS = Object.freeze({
     "!emotes": "Run !bttv to see BetterTTV emotes. Run !ffz to see FrankerFaceZ emotes.",
     "!bot": "I am slaurbot. See https://slaurbot.herokuapp.com/",
     "!commands": "https://slaurbot.herokuapp.com/commands",
+    "!onmi2": "\"i once tried using a toilet but broke down mentally and just started drowning myself\" - @Onmiwe",
 });
 /* eslint-enable max-len */
 
