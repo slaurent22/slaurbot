@@ -53,7 +53,7 @@ export function createBotConfig(tokenData: TokenData): TwitchBotConfig {
     const chatClient = new ChatClient(authProvider, {
         channels: [env.TWITCH_CHANNEL_NAME ],
         logger: {
-            name: "SLAURBOT",
+            name: "twitch-chat-client",
             timestamps: true,
             minLevel: "DEBUG",
             colors: false,

@@ -54,7 +54,7 @@ export class TwitchWebHookManager {
             hostName: "slaurbot.herokuapp.com",
         }), {
             logger: {
-                name: "SLAURBOT",
+                name: "twitch-webhook-listener",
                 timestamps: true,
                 minLevel: "DEBUG",
                 colors: false,
