@@ -4,7 +4,7 @@ import { ChatClient } from "twitch-chat-client";
 import { ApiClient } from "twitch";
 import type { ConnectCompatibleApp } from "twitch-webhooks/lib";
 import type { Client as DiscordClient } from "discord.js";
-import { log, LogLevel } from "../util/logger";
+import { getLogger } from "../util/logger";
 import { getEnv } from "../util/env";
 import { TwitchEventManager } from "./event-manager";
 import type { TokenData } from "./twitch-token-cache";
@@ -16,8 +16,12 @@ export interface TwitchBotConfig {
     chatClient: ChatClient;
 }
 
+const logger = getLogger({
+    name: "slaurbot-startup",
+});
+
 export function createBotConfig(tokenData: TokenData): TwitchBotConfig {
-    log(LogLevel.INFO, "Creating bot config");
+    logger.info("Creating bot config");
     const env = getEnv();
     if (env === null) {
         throw new Error("Local environment not found");
@@ -30,7 +34,7 @@ export function createBotConfig(tokenData: TokenData): TwitchBotConfig {
             refreshToken: tokenData.refreshToken,
             expiry: tokenData.expiryTimestamp === null ? null : new Date(tokenData.expiryTimestamp),
             onRefresh: async({ accessToken, refreshToken, expiryDate, }) => {
-                log(LogLevel.INFO, "RefreshableAuthProvider: received refresh");
+                logger.info("RefreshableAuthProvider: received refresh");
                 const newTokenData = {
                     accessToken,
                     refreshToken,

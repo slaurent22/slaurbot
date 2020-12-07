@@ -3,7 +3,8 @@ import { BotCommandContext, createBotCommand } from "easy-twitch-bot";
 import type { ChatClient, PrivateMessage } from "twitch-chat-client";
 import type { ApiClient } from "twitch/lib";
 import humanizeDuration from "humanize-duration";
-import { log, LogLevel } from "../util/logger";
+import type { Logger } from "@d-fischer/logger";
+import { getLogger } from "../util/logger";
 import { MESSAGE_COMMANDS, USER_ID, ZOTE_PRECEPTS } from "../util/constants";
 import { getTwitchBttvEmotes, getTwitchFfzEmotes } from "./rest-api";
 
@@ -29,6 +30,7 @@ export class TwitchCommandManager {
     private _commandPrefix: string;
     private _chatClient: ChatClient;
     private _commands = new Map<string, BotCommand>();
+    private _logger: Logger;
 
     constructor({
         apiClient,
@@ -36,6 +38,9 @@ export class TwitchCommandManager {
     }: TwitchCommandManagerConfig) {
         this._apiClient = apiClient;
         this._chatClient = chatClient;
+        this._logger = getLogger({
+            name: "slaurbot-twitch-command-manager",
+        });
 
         for (const [name, message ] of Object.entries(MESSAGE_COMMANDS)) {
             this._addCommand(name, (param, context) => {
@@ -83,11 +88,11 @@ export class TwitchCommandManager {
 
         this._addCommand("!precept", (params, context) => {
             if (!refreshed(LAST_USED.precept, 3000)) {
-                log(LogLevel.INFO, "!precept is on cooldown. Ignoring.");
+                this._logger.info("!precept is on cooldown. Ignoring.");
                 return;
             }
             LAST_USED.precept = new Date();
-            log(LogLevel.INFO, "!precept params:", params);
+            this._logger.info("!precept params:" + [params].join(" "));
             let preceptNum = parseInt(params[0], 10);
             let precept = ZOTE_PRECEPTS.get(preceptNum);
             if (isNaN(preceptNum) || !precept) {
@@ -113,17 +118,17 @@ export class TwitchCommandManager {
             }
             const commandContext = new BotCommandContext(this._chatClient, msg);
             try {
-                log(LogLevel.INFO, "Executing command:", match.command.name);
+                this._logger.info("Executing command:" + match.command.name);
                 await match.command.execute(match.params, commandContext);
             }
             catch (e) {
                 const errMsg = `${match.command.name} command failed`;
-                log(LogLevel.ERROR, `${errMsg}:`, e);
+                this._logger.error(`${errMsg}:` + String(e));
                 commandContext.say(errMsg);
             }
         });
 
-        log(LogLevel.INFO, "Listening for commands");
+        this._logger.info("Listening for commands");
     }
 
     private _addCommand(
@@ -132,7 +137,7 @@ export class TwitchCommandManager {
     void {
         const command = createBotCommand(commandName, handler);
         this._commands.set(commandName, command);
-        log(LogLevel.INFO, `Command added: ${commandName}`);
+        this._logger.info(`Command added: ${commandName}`);
     }
 
     // https://github.com/d-fischer/twitch/blob/master/packages/easy-twitch-bot/src/Bot.ts

@@ -1,6 +1,7 @@
+import type { Logger } from "@d-fischer/logger";
 import type { Client as DiscordClient, Channel as DiscordChannel, MessageEmbed } from "discord.js";
 import { DISCORD_CHANNEL_ID } from "../util/constants";
-import { log, LogLevel } from "../util/logger";
+import { getLogger } from "../util/logger";
 
 interface DiscordNotifierConfig {
     discordClient: DiscordClient;
@@ -13,6 +14,7 @@ interface MessageConfig {
 
 export class DiscordNotifier {
     private _discordClient: DiscordClient;
+    private _logger: Logger;
     private _streamStatusChannel?: DiscordChannel;
     private _testChannel?: DiscordChannel;
 
@@ -21,6 +23,9 @@ export class DiscordNotifier {
         discordClient,
     }: DiscordNotifierConfig) {
         this._discordClient = discordClient;
+        this._logger = getLogger({
+            name: "slaurbot-discord-notifier",
+        });
 
         this._streamStatusChannel = this._discordClient.channels.cache.get(DISCORD_CHANNEL_ID.STREAM_STATUS);
         this._testChannel = this._discordClient.channels.cache.get(DISCORD_CHANNEL_ID.TEST);
@@ -31,7 +36,7 @@ export class DiscordNotifier {
             await this._streamStatusChannel.send(message);
         }
         else {
-            log(LogLevel.ERROR, "DiscordNotifier: Stream Status Channel not found");
+            this._logger.error("DiscordNotifier: Stream Status Channel not found");
         }
     }
 
@@ -40,7 +45,7 @@ export class DiscordNotifier {
             await this._testChannel.send(message);
         }
         else {
-            log(LogLevel.ERROR, "DiscordNotifier: Test Channel not found");
+            this._logger.error("DiscordNotifier: Test Channel not found");
         }
     }
 

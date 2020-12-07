@@ -2,7 +2,8 @@ import type { ChatClient } from "twitch-chat-client/lib";
 import type { ConnectCompatibleApp } from "twitch-webhooks/lib";
 import type { ApiClient } from "twitch/lib";
 import type { Client as DiscordClient } from "discord.js";
-import { log, LogLevel } from "../util/logger";
+import type { Logger } from "@d-fischer/logger";
+import { getLogger } from "../util/logger";
 import { DiscordNotifier } from "../discord/discord-notifier";
 import { TwitchCommandManager } from "./command-manager";
 import { TwitchWebHookManager } from "./webhook-manager";
@@ -19,6 +20,7 @@ export class TwitchEventManager {
     private _commandManager: TwitchCommandManager;
     private _discordClient: DiscordClient;
     private _discordNotifier: DiscordNotifier;
+    private _logger: Logger;
     private _webHookManager: TwitchWebHookManager;
 
     constructor({
@@ -39,6 +41,10 @@ export class TwitchEventManager {
             discordClient: this._discordClient,
         });
 
+        this._logger = getLogger({
+            name: "slaurbot-twitch-event-manager",
+        });
+
         this._webHookManager = new TwitchWebHookManager({
             apiClient: this._apiClient,
             chatClient: this._chatClient,
@@ -53,43 +59,43 @@ export class TwitchEventManager {
         const chatClient = this._chatClient;
 
         chatClient.onSub((channel, user, subInfo, msg) => {
-            log(LogLevel.DEBUG, "onSub: ", {
+            this._logger.debug("onSub: " + JSON.stringify({
                 channel, user, subInfo, msg,
-            });
+            }));
 
             chatClient.say(channel, `Thanks to @${subInfo.displayName} for subscribing to the channel!`);
         });
 
         chatClient.onResub((channel, user, subInfo, msg) => {
-            log(LogLevel.DEBUG, "onSub: ", {
+            this._logger.debug("onSub: " + JSON.stringify({
                 channel, user, subInfo, msg,
-            });
+            }));
 
             // eslint-disable-next-line max-len
             chatClient.say(channel, `Thanks to @${subInfo.displayName} for subscribing to the channel for a total of ${subInfo.months} months!`);
         });
 
         chatClient.onSubGift((channel, user, subInfo, msg) => {
-            log(LogLevel.DEBUG, "onSub: ", {
+            this._logger.debug("onSub: " + JSON.stringify({
                 channel, user, subInfo, msg,
-            });
+            }));
             const gifter = subInfo.gifter ? `@${subInfo.gifter}` : "unknown gifter";
             chatClient.say(channel, `Thanks to ${gifter} for gifting a subscription to @${subInfo.displayName}!`);
         });
 
         chatClient.onHosted((channel, byChannel, auto, viewers) => {
-            log(LogLevel.DEBUG, "onHosted: ", {
+            this._logger.debug("onHosted: " + JSON.stringify({
                 channel, byChannel, auto, viewers,
-            });
+            }));
 
             const suffix = typeof viewers === "number" ? ` for ${viewers} viewers!` : "!";
             chatClient.say(channel, `${byChannel} just hosted the channel${suffix}`);
         });
 
         chatClient.onRaid((channel, user, raidInfo, msg) => {
-            log(LogLevel.DEBUG, "onRaid: ", {
+            this._logger.debug("onRaid: " + JSON.stringify({
                 channel, user, raidInfo, msg,
-            });
+            }));
 
             // eslint-disable-next-line max-len
             chatClient.say(channel, `@${raidInfo.displayName} just raided the channel with ${raidInfo.viewerCount} viewers!`);

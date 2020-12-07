@@ -2,9 +2,10 @@ import type { ChatClient } from "twitch-chat-client/lib";
 import type { ConnectCompatibleApp } from "twitch-webhooks";
 import { EnvPortAdapter, WebHookListener } from "twitch-webhooks";
 import type { ApiClient, HelixStream } from "twitch/lib";
+import type { Logger } from "@d-fischer/logger";
 import { USER_ID } from "../util/constants";
 import { getEnv } from "../util/env";
-import { log, LogLevel } from "../util/logger";
+import { getLogger } from "../util/logger";
 import { getTwitchOfflineEmbed, getTwitchStreamEmbed } from "../discord/discord-embed";
 import type { DiscordNotifier } from "../discord/discord-notifier";
 import {
@@ -39,6 +40,7 @@ export class TwitchWebHookManager {
     private _chatClient: ChatClient;
     private _discordNotifier: DiscordNotifier;
     private _listener: WebHookListener;
+    private _logger: Logger;
 
     constructor({
         apiClient,
@@ -57,6 +59,9 @@ export class TwitchWebHookManager {
                 minLevel: "DEBUG",
                 colors: false,
             },
+        });
+        this._logger = getLogger({
+            name: "slaurbot-twitch-webhook-manager",
         });
     }
 
@@ -83,7 +88,7 @@ export class TwitchWebHookManager {
             userId,
         });
 
-        log(LogLevel.INFO, "Initial stream status:", initialStatus);
+        this._logger.info("Initial stream status:" + initialStatus);
 
         await this._discordNotifier.notifyTestChannel({
             content: "Initial stream status: `" + initialStatus + "`",
@@ -91,7 +96,7 @@ export class TwitchWebHookManager {
 
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         await this._listener.subscribeToStreamChanges(userId, async(stream?: HelixStream) => {
-            log(LogLevel.INFO, "Stream Change:", stream);
+            this._logger.info("Stream Change:" + JSON.stringify(stream));
             const previousStatus = await getCachedTwitchStreamStatus();
             const currentStatus = getStreamStatus(stream);
             const streamStatusData = {
@@ -100,7 +105,7 @@ export class TwitchWebHookManager {
                 becameLive: wentOnline(previousStatus, currentStatus),
                 becameOffline: wentOffline(previousStatus, currentStatus),
             };
-            log(LogLevel.INFO, streamStatusData);
+            this._logger.info(JSON.stringify(streamStatusData));
             if (stream) {
                 const game = await stream.getGame();
                 const gameName = game ? game.name : "<unknown game>";
@@ -122,7 +127,7 @@ export class TwitchWebHookManager {
                         boxArtUrl: game ? game.boxArtUrl : "<unknown url>",
                     },
                 };
-                log(LogLevel.INFO, streamData);
+                this._logger.info(JSON.stringify(streamData));
                 await this._discordNotifier.notifyTestChannel({
                     content: "```\n" + JSON.stringify(streamData, null, 4) + "```",
                 });
@@ -162,7 +167,7 @@ export class TwitchWebHookManager {
         userName: string;
     }): Promise<void> {
         await this._listener.subscribeToFollowsToUser(userId, (follow) => {
-            log(LogLevel.INFO, "Follow:", follow);
+            this._logger.info("Follow:" + JSON.stringify(follow));
             this._chatClient.say(userName, `@${follow.userDisplayName} thank you for the follow!`);
         });
     }

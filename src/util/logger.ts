@@ -1,18 +1,11 @@
-// is this shadowing `LogLevel` that comes out of the twitch package?
-// eslint-disable-next-line no-shadow
-export enum LogLevel {
-    DEBUG = "DEBUG",
-    INFO  = "INFO",
-    WARN  = "WARN",
-    ERROR = "ERROR",
-    FATAL = "FATAL",
-}
+import { Logger, LogLevel } from "@d-fischer/logger";
 
-function logPrefix(level: LogLevel): string {
-    const now = new Date();
-    return `[${now.toISOString()}]    [SLAURBOT:${level}]`;
-}
-
-export function log(level: LogLevel, ...args: Array<unknown>): void {
-    console.log(logPrefix(level), ...args);
+export function getLogger({ name, }: { name: string }): Logger {
+    return new Logger({
+        name,
+        minLevel: LogLevel.DEBUG,
+        colors: true,
+        emoji: true,
+        timestamps: true,
+    });
 }

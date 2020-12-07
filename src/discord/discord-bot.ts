@@ -1,15 +1,18 @@
 import Discord from "discord.js";
 import { getEnv } from "../util/env";
-import { log, LogLevel } from "../util/logger";
+import { getLogger } from "../util/logger";
 import { DiscordNotifier } from "./discord-notifier";
 
+const logger = getLogger({
+    name: "slaurbot-discord-bot",
+});
 
 export async function createDiscordClient(): Promise<Discord.Client> {
     const client = new Discord.Client();
 
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     client.once("ready", async() => {
-        log(LogLevel.INFO, "Discord client is ready");
+        logger.info("Discord client is ready");
         const notifier = new DiscordNotifier({
             discordClient: client,
         });
@@ -20,7 +23,7 @@ export async function createDiscordClient(): Promise<Discord.Client> {
     });
 
     client.on("message", message => {
-        log(LogLevel.DEBUG, `[DISCORD MSG] CHANNEL:'${message.channel.id}' CONTENT:'${message.content}'`);
+        logger.debug(`[DISCORD MSG] CHANNEL:'${message.channel.id}' CONTENT:'${message.content}'`);
         if (message.content === "!ping") {
             void message.channel.send("pong!");
         }
@@ -32,7 +35,7 @@ export async function createDiscordClient(): Promise<Discord.Client> {
 
     const loginResult = await client.login(DISCORD_BOT_TOKEN);
     if (loginResult !== DISCORD_BOT_TOKEN) {
-        log(LogLevel.WARN, "login return value does not match DISCORD_BOT_TOKEN");
+        logger.warning("login return value does not match DISCORD_BOT_TOKEN");
     }
 
     return client;

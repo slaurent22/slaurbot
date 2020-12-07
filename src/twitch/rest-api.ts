@@ -1,6 +1,6 @@
 import got from "got";
 import { REST_API_URLS } from "../util/constants";
-import { log, LogLevel } from "../util/logger";
+import { getLogger } from "../util/logger";
 
 interface FfzRoomResponse {
     sets: Record<string, {
@@ -18,14 +18,18 @@ interface BttvRoomResponse {
     }>;
 }
 
+const logger = getLogger({
+    name: "slaurbot-rest-api",
+});
+
 export async function getTwitchBttvEmotes(): Promise<string> {
     try {
         const { emotes, } = await got(REST_API_URLS.GET.BTTV_EMOTES).json<BttvRoomResponse>();
-        log(LogLevel.DEBUG, emotes);
+        logger.debug(JSON.stringify(emotes));
         return emotes.map(({ code, }) => code).join(" ");
     }
     catch (e) {
-        log(LogLevel.DEBUG, e);
+        logger.debug(String(e));
         return "Error retrieving BTTV emotes";
     }
 }
@@ -35,7 +39,7 @@ export async function getTwitchFfzEmotes(): Promise<string> {
         const { sets, } = await got(REST_API_URLS.GET.FFZ_EMOTES).json<FfzRoomResponse>();
         const emoteNames = [] as Array<string>;
         for (const { emoticons, } of Object.values(sets)) {
-            log(LogLevel.DEBUG, emoticons.map(({ id, name, })=> ({ id, name, })));
+            logger.debug(JSON.stringify(emoticons.map(({ id, name, })=> ({ id, name, }))));
             emoticons.forEach(emoticon => {
                 emoteNames.push(emoticon.name);
             });
@@ -44,7 +48,7 @@ export async function getTwitchFfzEmotes(): Promise<string> {
 
     }
     catch (e) {
-        log(LogLevel.DEBUG, e);
+        logger.debug(e);
         return "Error retrieving FFZ emotes";
     }
 }

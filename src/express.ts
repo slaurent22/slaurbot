@@ -3,17 +3,21 @@ import fs from "fs/promises";
 import express from "express";
 import type { Express } from "express";
 import marked from "marked";
-import { log, LogLevel } from "./util/logger";
+import { getLogger } from "./util/logger";
 
 const renderedMarkdownCache = new Map<string, string>();
 
+const logger = getLogger({
+    name: "slaurbot-express",
+});
+
 async function getHTMLFromMarkdownFile(path: string): Promise<string> {
     if (renderedMarkdownCache.has(path)) {
-        log(LogLevel.DEBUG, `RENDER '${path}': returning from render cache`);
+        logger.debug(`RENDER '${path}': returning from render cache`);
         return renderedMarkdownCache.get(path) as string;
     }
     try {
-        log(LogLevel.DEBUG, `RENDER '${path}': reading file`);
+        logger.debug(`RENDER '${path}': reading file`);
         const markdownSource = String(await fs.readFile(path));
         const rendered = marked(markdownSource);
         renderedMarkdownCache.set(path, rendered);
@@ -21,7 +25,7 @@ async function getHTMLFromMarkdownFile(path: string): Promise<string> {
     }
     catch (e) {
         const msg = `Failed to render ${path}`;
-        log(LogLevel.DEBUG, msg, e);
+        logger.debug(msg + String(e));
         return msg;
     }
 }

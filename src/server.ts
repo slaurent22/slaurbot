@@ -1,13 +1,15 @@
 import nodeCleanup from "node-cleanup";
-import type { Client as DiscordClient } from "discord.js";
-import type { TwitchBotConfig } from "./twitch/slaurbot";
 import { Slaurbot } from "./twitch/slaurbot";
-import { log, LogLevel } from "./util/logger";
+import { getLogger } from "./util/logger";
 import { createExpress } from "./express";
 import { createDiscordClient } from "./discord/discord-bot";
 import { getTwitchTokens } from "./twitch/twitch-token-cache";
 
 const PORT = process.env.PORT || 5000;
+
+const logger = getLogger({
+    name: "slaurbot-server",
+});
 
 async function botServer() {
     const [
@@ -24,11 +26,11 @@ async function botServer() {
     });
 
     const app = createExpress();
-    app.listen(PORT, () => log(LogLevel.INFO, `Express app listening on ${ PORT }`));
+    app.listen(PORT, () => logger.info(`Express app listening on ${ PORT }`));
     await slaurbot.start(app);
 
     nodeCleanup(() => {
-        log(LogLevel.INFO, "Performing cleanup");
+        logger.info("Performing cleanup");
         slaurbot.destroy();
     });
 

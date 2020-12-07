@@ -2,7 +2,7 @@ import type {
     ApiClient as TwitchApiClient,
     UserIdResolvable as TwitchUserIdResolvable
 } from "twitch/lib";
-import { log, LogLevel } from "../util/logger";
+import { getLogger } from "../util/logger";
 import { createRedis } from "../util/redis";
 
 export enum TwitchStreamStatus {
@@ -12,16 +12,20 @@ export enum TwitchStreamStatus {
 
 const TWITCH_STREAM_STATUS_KEY = "twitchStreamStatus";
 
+const logger = getLogger({
+    name: "slaurebot-twitch-stream-status-cache",
+});
+
 function isValidTwitchStreamStatus(status: string|null): status is TwitchStreamStatus {
     return status === TwitchStreamStatus.OFFLINE ||
            status === TwitchStreamStatus.LIVE;
 }
 
 export async function writeTwitchStreamStatusToCache(status: TwitchStreamStatus): Promise<void> {
-    log(LogLevel.DEBUG, "writeTwitchStreamStatusToCache:", status);
+    logger.debug("writeTwitchStreamStatusToCache:" + status);
     const redis = createRedis();
     const setResult = await redis.set(TWITCH_STREAM_STATUS_KEY, status);
-    log(LogLevel.INFO, "writeStreamStatusToCache redis result:", setResult);
+    logger.info("writeStreamStatusToCache redis result:" + String(setResult));
     await redis.quit();
 }
 
@@ -29,13 +33,13 @@ export async function getCachedTwitchStreamStatus(): Promise<TwitchStreamStatus>
     const redis = createRedis();
     const status = await redis.get(TWITCH_STREAM_STATUS_KEY);
     if (!isValidTwitchStreamStatus(status)) {
-        log(LogLevel.ERROR, "twitchStreamStatus value is invalid: value:", status);
+        logger.error("twitchStreamStatus value is invalid: value:" + String(status));
         await redis.quit();
         return TwitchStreamStatus.OFFLINE;
     }
 
     await redis.quit();
-    log(LogLevel.DEBUG, "getCachedTwitchStreamStatus: return", status);
+    logger.debug("getCachedTwitchStreamStatus: return" + status);
     return status;
 }
 
@@ -48,7 +52,7 @@ export async function fetchTwitchStreamUpdateCache({
 }): Promise<TwitchStreamStatus> {
     const stream = await apiClient.helix.streams.getStreamByUserId(userId);
     const status = stream ? TwitchStreamStatus.LIVE : TwitchStreamStatus.OFFLINE;
-    log(LogLevel.DEBUG, "fetchTwitchStreamUpdateCache: stream=", stream);
+    logger.debug("fetchTwitchStreamUpdateCache stream= " + JSON.stringify(stream));
     await writeTwitchStreamStatusToCache(status);
     return status;
 
