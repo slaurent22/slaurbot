@@ -1,4 +1,5 @@
 import Discord from "discord.js";
+import type { Client as DiscordClient } from "discord.js";
 import { getEnv } from "../util/env";
 import { getLogger } from "../util/logger";
 import { DiscordNotifier } from "./discord-notifier";
@@ -7,7 +8,7 @@ const logger = getLogger({
     name: "slaurbot-discord-bot",
 });
 
-export async function createDiscordClient(): Promise<Discord.Client> {
+export async function createDiscordClientImp(resolve: ((dc: DiscordClient) => void)): Promise<void> {
     const client = new Discord.Client();
 
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
@@ -20,6 +21,8 @@ export async function createDiscordClient(): Promise<Discord.Client> {
         await notifier.notifyTestChannel({
             content: "Hello slaurent I am the Discord Notifier",
         });
+
+        resolve(client);
     });
 
     client.on("message", message => {
@@ -37,6 +40,16 @@ export async function createDiscordClient(): Promise<Discord.Client> {
     if (loginResult !== DISCORD_BOT_TOKEN) {
         logger.warning("login return value does not match DISCORD_BOT_TOKEN");
     }
+}
 
-    return client;
+export function createDiscordClient(): Promise<DiscordClient> {
+    return new Promise<Discord.Client>((resolve, reject) => {
+        try {
+            void createDiscordClientImp(resolve);
+        }
+        catch (e) {
+            logger.error("Failed to create Discord Client:" + String(e));
+            reject(e);
+        }
+    });
 }
