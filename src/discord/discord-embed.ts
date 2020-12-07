@@ -34,11 +34,18 @@ interface TwitchStreamEmbedConfig {
     thumbnailUrl: string;
 }
 
+// stick in url for cache-busting
+function randomNumber(min: number, max: number): number {
+    const r = Math.random() * (max - min) + min;
+    return Math.floor(r);
+}
+
 export function getTwitchStreamEmbed({
     title, startDate, gameName, thumbnailUrl, boxArtUrl,
 }: TwitchStreamEmbedConfig): Discord.MessageEmbed {
     const embedThumbnail = boxArtUrl ? boxArtUrl.replace("{width}", "188").replace("{height}", "250") : TWITCH_ICON_URL;
     const embedImage = thumbnailUrl.replace("{width}", "440").replace("{height}", "248");
+    const embedImageUrl = `${embedImage}?r=${randomNumber(11111, 99999)}`;
     return new Discord.MessageEmbed()
         .setColor(EMBED_COLOR)
         .setTitle(title)
@@ -48,7 +55,7 @@ export function getTwitchStreamEmbed({
         .addFields(
             { name: "Game", value: gameName, }
         )
-        .setImage(embedImage)
+        .setImage(embedImageUrl)
         .setTimestamp(startDate);
 }
 
