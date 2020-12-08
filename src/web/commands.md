@@ -21,6 +21,12 @@ Everyone may use these commands.
 | `!weekly`    | Display info about the HKR weekly seeds.
 | `!multi`     | Display a multitwitch link for when I'm running a co-op game with another streamer.
 
+## Moderators and VIPs
+Only moderators and VIPs may use these commands.
+|Command|Purpose
+|-|-|
+| `!so`          | Shout out a specific streamer.
+
 ## Moderators
 Only moderators and the broadcaster may use these commands.
 

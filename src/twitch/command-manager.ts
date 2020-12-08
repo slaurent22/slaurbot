@@ -106,6 +106,47 @@ export class TwitchCommandManager {
 
             context.say(precept);
         });
+
+        this._addCommand("!so", async(params, context) => {
+            const callingUser = context.msg.userInfo;
+            const userDisplayName = callingUser.displayName;
+            const isAllowed = callingUser.isMod || callingUser.isVip || callingUser.isBroadcaster;
+            if (!isAllowed) {
+                context.say(`@${userDisplayName} command is restricted to Mods, VIPs, and the Broadcaster`);
+                return;
+            }
+
+            if (params.length === 0) {
+                context.say(`@${userDisplayName} try shouting out a user or channel`);
+                return;
+            }
+
+            let shoutoutTarget = params[0];
+            if (shoutoutTarget.startsWith("@")) {
+                shoutoutTarget = shoutoutTarget.substr(1);
+            }
+
+            const shoutoutUser = await this._apiClient.helix.users.getUserByName(shoutoutTarget);
+            if (!shoutoutUser) {
+                context.say(`@${userDisplayName}, I could not find user '${shoutoutTarget}'`);
+                return;
+            }
+
+            let msg = `Go checkout @${shoutoutUser.displayName} over at https://twitch.tv/${shoutoutUser.name}`;
+
+            const channel = await this._apiClient.helix.channels.getChannelInfo(shoutoutUser.id);
+
+            if (channel && channel.gameName) {
+                msg += ` , they were last streaming ${channel.gameName}!`;
+            }
+            else {
+                msg += " !";
+            }
+
+            context.say(msg);
+
+
+        });
     }
 
     // https://github.com/d-fischer/twitch/blob/master/packages/easy-twitch-bot/src/Bot.ts
