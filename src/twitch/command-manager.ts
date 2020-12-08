@@ -126,7 +126,17 @@ export class TwitchCommandManager {
                 shoutoutTarget = shoutoutTarget.substr(1);
             }
 
-            const shoutoutUser = await this._apiClient.helix.users.getUserByName(shoutoutTarget);
+            let shoutoutUser;
+
+            try {
+                shoutoutUser = await this._apiClient.helix.users.getUserByName(shoutoutTarget);
+            }
+            catch (e) {
+                this._logger.error(JSON.stringify(e));
+                context.say(`@${userDisplayName}, I encountered an error looking up '${shoutoutTarget}'`);
+                return;
+            }
+
             if (!shoutoutUser) {
                 context.say(`@${userDisplayName}, I could not find user '${shoutoutTarget}'`);
                 return;
