@@ -9,6 +9,9 @@ export const MESSAGE_COMMANDS = Object.freeze({
     "!bot": "I am slaurbot. See https://slaurbot.herokuapp.com/",
     "!commands": "https://slaurbot.herokuapp.com/commands",
     "!onmi2": "\"i once tried using a toilet but broke down mentally and just started drowning myself\" - @Onmiwe",
+    "!multi": "https://www.multitwitch.tv/slaurent22/thundar001",
+    "!weekly": "The Hollow Knight racing discord prepares seeds every week for folks to play. Details (and Discord link) here: http://www.lanimals.com/",
+    "!skin": "The skin is Sapphire by LOATR. The showcase and download link are here: https://www.youtube.com/watch?v=eiavXorfO5Y",
 });
 const EN_ZOTE = Object.freeze({
     "entries": {
