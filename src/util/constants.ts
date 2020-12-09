@@ -12,7 +12,7 @@ export const MESSAGE_COMMANDS = Object.freeze({
     "!multi": "https://www.multitwitch.tv/slaurent22/thundar001",
     "!weekly": "The Hollow Knight racing discord prepares seeds every week for folks to play. Details (and Discord link) here: http://www.lanimals.com/",
     "!skin": "The skin is Sapphire by LOATR. The showcase and download link are here: https://www.youtube.com/watch?v=eiavXorfO5Y",
-    "!plando": "A plando (\"planned rando\") is a mod allowing anyone (even non-programmers!) to place items, including to custom locations. FlukeFlower was created by PimpasPimpinela and is available in the Hollow Knight Discord: https://discord.com/channels/283467363729408000/582776564958363661/785559858660900884",
+    "!plando": "A plando (\"planned rando\") is a mod allowing anyone (even non-programmers!) to place items, including to custom locations. The goal of this plando, FlukeFlower, is to deliver the Delicate Flower to Elderbug. It was created by PimpasPimpinela and is available in the Hollow Knight Discord: https://discord.com/channels/283467363729408000/582776564958363661/785559858660900884",
 });
 const EN_ZOTE = Object.freeze({
     "entries": {
