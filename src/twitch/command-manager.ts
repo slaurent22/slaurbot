@@ -25,6 +25,13 @@ function refreshed(lastUse: Date, cooldownMs: number) {
     return Number(new Date()) - Number(lastUse) > cooldownMs;
 }
 
+function durationInEnglish(duration: number): string {
+    return humanizeDuration(duration, {
+        units: ["y", "mo", "w", "d", "h", "m"],
+        round: true,
+    });
+}
+
 export class TwitchCommandManager {
     private _apiClient: ApiClient;
     private _commandPrefix: string;
@@ -64,11 +71,8 @@ export class TwitchCommandManager {
             if (follow) {
                 const followDate = follow.followDate;
                 const duration = new Date().getTime() - followDate.getTime();
-                const humanized = humanizeDuration(duration, {
-                    units: ["y", "mo", "w", "d", "h", "m"],
-                    round: true,
-                });
-                context.say(`@${context.user} You have been following for ${humanized}`);
+                const durationEnglish = durationInEnglish(duration);
+                context.say(`@${context.user} You have been following for ${durationEnglish}`);
             }
             else {
                 context.say(`@${context.user} You are not following!`);
@@ -160,7 +164,18 @@ export class TwitchCommandManager {
 
             context.say(msg);
 
+        });
 
+        this._addCommand("!uptime", async(params, context) => {
+            const stream = await this._apiClient.helix.streams.getStreamByUserName(USER_ID.SLAURENT);
+            if (!stream) {
+                context.say("Stream is offline");
+                return;
+            }
+
+            const duration = new Date().getTime() - stream.startDate.getTime();
+            const durationEnglish = durationInEnglish(duration);
+            context.say(`Stream has been live for ${durationEnglish}`);
         });
     }
 

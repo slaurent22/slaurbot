@@ -20,6 +20,7 @@ Everyone may use these commands.
 | `!skin`      | Display info about the Custom Knight skin I'm using.
 | `!weekly`    | Display info about the HKR weekly seeds.
 | `!multi`     | Display a multitwitch link for when I'm running a co-op game with another streamer.
+| `!uptime`    | Display up time of stream.
 
 ## Moderators and VIPs
 Only moderators and VIPs may use these commands.
