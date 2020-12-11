@@ -42,10 +42,15 @@ export class TwitchCommandManager {
             name: "slaurbot-twitch-command-manager",
         });
 
-        for (const [name, message ] of Object.entries(MESSAGE_COMMANDS)) {
-            this._addCommand(name, (param, context) => {
-                context.say(message);
-            });
+        for (const [name, { message, enabled, } ] of Object.entries(MESSAGE_COMMANDS)) {
+            if (enabled) {
+                this._addCommand(name, (param, context) => {
+                    context.say(message);
+                });
+            }
+            else {
+                this._logger.info(`Command '${name}' is not enabled`);
+            }
         }
 
         this._commandPrefix = "";

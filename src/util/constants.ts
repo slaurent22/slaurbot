@@ -1,18 +1,57 @@
 /* eslint-disable max-len */
 export const MESSAGE_COMMANDS = Object.freeze({
-    "!ping": "pong!",
-    "!discord": "We have a Discord! If you want to be notified when I go live, or just s**tpost, fall into the Abyss here: https://discord.gg/D5P8gNN",
-    "!twitter": "https://twitter.com/slaurent22",
-    "!oof": "oof 🤮 owie 🤮 OwOuch major 👌 OOF (╯°□°）╯︵ ┻━┻ I can't 🙏📿 bewieve 🙏📿 the yikes uwu 😂 Y I K E S 😂",
-    "!challenge": "The goal has been met! I will soon spend a long stream trying the skips on ins0mina's list: https://docs.google.com/spreadsheets/d/1s_1FUALP1IxgjFFaII9XApuHWIdtf4lv1fTOBhawkAg/edit#gid=0",
-    "!emotes": "Run !bttv to see BetterTTV emotes. Run !ffz to see FrankerFaceZ emotes.",
-    "!bot": "I am slaurbot. See https://slaurbot.herokuapp.com/",
-    "!commands": "https://slaurbot.herokuapp.com/commands",
-    "!onmi2": "\"i once tried using a toilet but broke down mentally and just started drowning myself\" - @Onmiwe",
-    "!multi": "https://www.multitwitch.tv/slaurent22/thundar001",
-    "!weekly": "The Hollow Knight racing discord prepares seeds every week for folks to play. Details (and Discord link) here: http://www.lanimals.com/",
-    "!skin": "The skin is Sapphire by LOATR. The showcase and download link are here: https://www.youtube.com/watch?v=eiavXorfO5Y",
-    "!plando": "A plando (\"planned rando\") is a mod allowing anyone (even non-programmers!) to place items, including to custom locations. The goal of this plando, FlukeFlower, is to deliver the Delicate Flower to Elderbug. It was created by PimpasPimpinela and is available in the Hollow Knight Discord: https://discord.com/channels/283467363729408000/582776564958363661/785559858660900884",
+    "!ping": {
+        message: "pong!",
+        enabled: true,
+    },
+    "!discord": {
+        message: "We have a Discord! If you want to be notified when I go live, or just s**tpost, fall into the Abyss here: https://discord.gg/D5P8gNN",
+        enabled: true,
+    },
+    "!twitter": {
+        message: "https://twitter.com/slaurent22",
+        enabled: true,
+    },
+    "!oof": {
+        message: "oof 🤮 owie 🤮 OwOuch major 👌 OOF (╯°□°）╯︵ ┻━┻ I can't 🙏📿 bewieve 🙏📿 the yikes uwu 😂 Y I K E S 😂",
+        enabled: true,
+    },
+    "!challenge": {
+        message: "The goal has been met! I will soon spend a long stream trying the skips on ins0mina's list: https://docs.google.com/spreadsheets/d/1s_1FUALP1IxgjFFaII9XApuHWIdtf4lv1fTOBhawkAg/edit#gid=0",
+        enabled: true,
+    },
+    "!emotes": {
+        message: "Run !bttv to see BetterTTV emotes. Run !ffz to see FrankerFaceZ emotes.",
+        enabled: true,
+    },
+    "!bot": {
+        message: "I am slaurbot. See https://slaurbot.herokuapp.com/",
+        enabled: true,
+    },
+    "!commands": {
+        message: "https://slaurbot.herokuapp.com/commands",
+        enabled: true,
+    },
+    "!onmi2": {
+        message: "\"i once tried using a toilet but broke down mentally and just started drowning myself\" - @Onmiwe",
+        enabled: true,
+    },
+    "!multi": {
+        message: "https://www.multitwitch.tv/slaurent22/thundar001",
+        enabled: true,
+    },
+    "!weekly": {
+        message: "The Hollow Knight racing discord prepares seeds every week for folks to play. Details (and Discord link) here: http://www.lanimals.com/",
+        enabled: true,
+    },
+    "!skin": {
+        message: "The skin is Sapphire by LOATR. The showcase and download link are here: https://www.youtube.com/watch?v=eiavXorfO5Y",
+        enabled: true,
+    },
+    "!plando": {
+        message: "A plando (\"planned rando\") is a mod allowing anyone (even non-programmers!) to place items, including to custom locations. The goal of this plando, FlukeFlower, is to deliver the Delicate Flower to Elderbug. It was created by PimpasPimpinela and is available in the Hollow Knight Discord: https://discord.com/channels/283467363729408000/582776564958363661/785559858660900884",
+        enabled: false,
+    },
 });
 const EN_ZOTE = Object.freeze({
     "entries": {
