@@ -5,12 +5,14 @@ import type { ApiClient } from "twitch/lib";
 import humanizeDuration from "humanize-duration";
 import type { Logger } from "@d-fischer/logger";
 import { getLogger } from "../util/logger";
-import { MESSAGE_COMMANDS, USER_ID, ZOTE_PRECEPTS } from "../util/constants";
+import { USER_ID, ZOTE_PRECEPTS } from "../util/constants";
+import type { DiscordReader } from "../discord/discord-reader";
 import { getTwitchBttvEmotes, getTwitchFfzEmotes } from "./rest-api";
 
 export interface TwitchCommandManagerConfig {
     apiClient: ApiClient;
     chatClient: ChatClient;
+    discordReader: DiscordReader;
 }
 
 function getRandomInt(max: number): number {
@@ -36,31 +38,28 @@ export class TwitchCommandManager {
     private _apiClient: ApiClient;
     private _commandPrefix: string;
     private _chatClient: ChatClient;
+    private _discordReader: DiscordReader;
     private _commands = new Map<string, BotCommand>();
     private _logger: Logger;
 
     constructor({
         apiClient,
         chatClient,
+        discordReader,
     }: TwitchCommandManagerConfig) {
         this._apiClient = apiClient;
         this._chatClient = chatClient;
+        this._discordReader = discordReader;
+
         this._logger = getLogger({
             name: "slaurbot-twitch-command-manager",
         });
 
-        for (const [name, { message, enabled, } ] of Object.entries(MESSAGE_COMMANDS)) {
-            if (enabled) {
-                this._addCommand(name, (param, context) => {
-                    context.say(message);
-                });
-            }
-            else {
-                this._logger.info(`Command '${name}' is not enabled`);
-            }
-        }
-
         this._commandPrefix = "";
+
+        this._addCommand("!ping", (params, context) => {
+            context.say("pong!");
+        });
 
         this._addCommand("!followage", async(params, context) => {
             const follow = await this._apiClient.kraken.users
@@ -177,10 +176,23 @@ export class TwitchCommandManager {
             const durationEnglish = durationInEnglish(duration);
             context.say(`Stream has been live for ${durationEnglish}`);
         });
+
+        this._addCommand("!refreshCommands", async(params, context) => {
+            const callingUser = context.msg.userInfo;
+            const isAllowed = callingUser.isMod || callingUser.isBroadcaster;
+            if (!isAllowed) {
+                this._logger.warn("!refreshCommands: caller not allowed. ignoring.");
+                return;
+            }
+            await this._refreshCommands();
+            context.say("Successfully refreshed commands!");
+        });
     }
 
-    // https://github.com/d-fischer/twitch/blob/master/packages/easy-twitch-bot/src/Bot.ts
-    public listen(): void {
+    public async listen(): Promise<void> {
+        await this._refreshCommands();
+
+        // https://github.com/d-fischer/twitch/blob/master/packages/easy-twitch-bot/src/Bot.ts
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         this._chatClient.onMessage(async(channel, user, message, msg) => {
             const match = this._findMatch(msg);
@@ -202,6 +214,25 @@ export class TwitchCommandManager {
         this._logger.info("Listening for commands");
     }
 
+    private async _refreshCommands() {
+        this._logger.info("Refreshing commands...");
+
+        const commands = await this._discordReader.readTwitchCommands();
+        for (const c of commands) {
+            const { command, enabled, message, } = c;
+            if (enabled) {
+                this._addCommand(command, (_params, _context) => {
+                    _context.say(message);
+                });
+            }
+            else {
+                this._removeCommand(command);
+            }
+        }
+
+        this._logger.info("Commands refreshed!");
+    }
+
     private _addCommand(
         commandName: string,
         handler: (params: string[], context: BotCommandContext) => void | Promise<void>):
@@ -209,6 +240,11 @@ export class TwitchCommandManager {
         const command = createBotCommand(commandName, handler);
         this._commands.set(commandName, command);
         this._logger.info(`Command added: ${commandName}`);
+    }
+
+    private _removeCommand(commandName: string) {
+        this._commands.delete(commandName);
+        this._logger.info(`Command removed: ${commandName}`);
     }
 
     // https://github.com/d-fischer/twitch/blob/master/packages/easy-twitch-bot/src/Bot.ts

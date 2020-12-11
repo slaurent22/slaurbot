@@ -5,6 +5,7 @@ import type { Client as DiscordClient } from "discord.js";
 import type { Logger } from "@d-fischer/logger";
 import { getLogger } from "../util/logger";
 import { DiscordNotifier } from "../discord/discord-notifier";
+import { DiscordReader } from "../discord/discord-reader";
 import { TwitchCommandManager } from "./command-manager";
 import { TwitchWebHookManager } from "./webhook-manager";
 
@@ -32,9 +33,14 @@ export class TwitchEventManager {
         this._chatClient = chatClient;
         this._discordClient = discordClient;
 
+        const discordReader = new DiscordReader({
+            discordClient: this._discordClient,
+        });
+
         this._commandManager = new TwitchCommandManager({
             apiClient: this._apiClient,
             chatClient: this._chatClient,
+            discordReader,
         });
 
         this._discordNotifier = new DiscordNotifier({
@@ -53,7 +59,7 @@ export class TwitchEventManager {
     }
 
     public async listen(app: ConnectCompatibleApp): Promise<void> {
-        this._commandManager.listen();
+        await this._commandManager.listen();
         await this._webHookManager.listen(app);
 
         const chatClient = this._chatClient;
