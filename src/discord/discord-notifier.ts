@@ -49,5 +49,10 @@ export class DiscordNotifier {
         }
     }
 
+    public async sendJSONToTestChannel<T>(obj: T): Promise<void> {
+        const content = JSON.stringify(obj, null, 4);
+        await this.notifyTestChannel({ content, });
+    }
+
 
 }

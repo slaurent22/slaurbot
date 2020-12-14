@@ -128,9 +128,7 @@ export class TwitchWebHookManager {
                     },
                 };
                 this._logger.info(JSON.stringify(streamData));
-                await this._discordNotifier.notifyTestChannel({
-                    content: "```\n" + JSON.stringify(streamData, null, 4) + "```",
-                });
+                await this._discordNotifier.sendJSONToTestChannel(streamData);
 
                 if (wentOnline(previousStatus, currentStatus)) {
                     await this._discordNotifier.notifyStreamStatusChannel({
@@ -154,9 +152,7 @@ export class TwitchWebHookManager {
                 });
             }
             await writeTwitchStreamStatusToCache(currentStatus);
-            await this._discordNotifier.notifyTestChannel({
-                content: "```\n" + JSON.stringify(streamStatusData, null, 4) + "```",
-            });
+            await this._discordNotifier.sendJSONToTestChannel(streamStatusData);
         });
     }
 
