@@ -18,7 +18,7 @@ export async function createDiscordClientImp(resolve: ((dc: DiscordClient) => vo
             discordClient: client,
         });
 
-        await notifier.notifyTestChannel({
+        await notifier.sendJSONToTestChannel({
             content: "Hello slaurent I am the Discord Notifier",
         });
 
