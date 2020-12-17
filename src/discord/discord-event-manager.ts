@@ -1,4 +1,3 @@
-import { Logger } from "@d-fischer/logger/lib";
 import type { Client as DiscordClient, Presence } from "discord.js";
 import { getLogger } from "../util/logger";
 import { DiscordNotifier } from "./discord-notifier";
