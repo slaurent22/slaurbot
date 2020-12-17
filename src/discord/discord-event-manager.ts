@@ -39,7 +39,7 @@ export class DiscordEventManager {
         });
 
         this._discordClient.on("userUpdate", (oldUser, newUser) => {
-            this._logger.info("userUpdate: " + newUser.id);
+            this._logger.debug("userUpdate: " + newUser.id);
             void this._discordNotifier.sendJSONToTestChannel({
                 userUpdate: {
                     oldUser, newUser,
@@ -48,10 +48,9 @@ export class DiscordEventManager {
         });
 
         this._discordClient.on("presenceUpdate", (oldPresence: Presence|undefined, newPresence: Presence) => {
-            this._logger.info("_onPresenceUpdate: " + newPresence.userID);
-            void this._discordNotifier.sendJSONToTestChannel({
+            this._logger.debug("_onPresenceUpdate: " + JSON.stringify({
                 presenceUpdate: { oldPresence, newPresence, },
-            });
+            }, null, 4));
         });
 
         await this._awaitReactions();
