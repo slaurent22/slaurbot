@@ -1,9 +1,12 @@
+import assert from "assert";
 import type { Client as DiscordClient, Presence } from "discord.js";
+import { DISCORD_CHANNEL_ID, DISCORD_MESSAGE_ID } from "../util/constants";
 import { getLogger } from "../util/logger";
-import { DiscordNotifier } from "./discord-notifier";
+import type { DiscordNotifier } from "./discord-notifier";
 
 interface DiscordEventManagerConfig {
     discordClient: DiscordClient;
+    discordNotifier: DiscordNotifier;
 }
 
 export class DiscordEventManager {
@@ -13,15 +16,16 @@ export class DiscordEventManager {
 
     constructor({
         discordClient,
+        discordNotifier,
     }: DiscordEventManagerConfig) {
         this._discordClient = discordClient;
-        this._discordNotifier = new DiscordNotifier({ discordClient, });
+        this._discordNotifier = discordNotifier;
         this._logger = getLogger({
             name: "slaurbot-discord-event-manager",
         });
     }
 
-    public listen(): void {
+    public async listen(): Promise<void> {
         this._logger.info("listening to events");
         this._discordClient.on("debug", msg => {
             const message = `[client debug] ${msg}`;
@@ -31,25 +35,35 @@ export class DiscordEventManager {
         this._discordClient.on("warn", msg => {
             const message = `[client warn] ${msg}`;
             this._logger.warn(message);
-            void this._discordNotifier.notifyTestChannel({ content: "`" + message + "`", });
+            void this._discordNotifier.sendJSONToTestChannel({ warn: msg, });
         });
 
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        this._discordClient.on("userUpdate", async(oldUser, newUser) => {
+        this._discordClient.on("userUpdate", (oldUser, newUser) => {
             this._logger.info("userUpdate: " + newUser.id);
-            await this._discordNotifier.sendJSONToTestChannel({
+            void this._discordNotifier.sendJSONToTestChannel({
                 userUpdate: {
                     oldUser, newUser,
                 },
             });
         });
 
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        this._discordClient.on("presenceUpdate", async(oldPresence: Presence|undefined, newPresence: Presence) => {
+        this._discordClient.on("presenceUpdate", (oldPresence: Presence|undefined, newPresence: Presence) => {
             this._logger.info("_onPresenceUpdate: " + newPresence.userID);
-            await this._discordNotifier.sendJSONToTestChannel({
+            void this._discordNotifier.sendJSONToTestChannel({
                 presenceUpdate: { oldPresence, newPresence, },
             });
         });
+
+        await this._awaitReactions();
+    }
+
+
+    // TODO: Get users in reactions, update Discord roles
+    private async _awaitReactions() {
+        const roleRequestChannel = await this._discordClient.channels.fetch(DISCORD_CHANNEL_ID.ROLE_REQUEST);
+        assert(roleRequestChannel.isText());
+        const roleReactMessage = await roleRequestChannel.messages.fetch(DISCORD_MESSAGE_ID.ROLE_REACT);
+        const reactions = roleReactMessage.reactions.cache.array();
+        await this._discordNotifier.sendJSONToTestChannel({ reactions, });
     }
 }

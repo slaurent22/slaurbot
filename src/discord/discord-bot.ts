@@ -3,6 +3,7 @@ import type { Client as DiscordClient } from "discord.js";
 import { getEnv } from "../util/env";
 import { getLogger } from "../util/logger";
 import { DiscordNotifier } from "./discord-notifier";
+import { DiscordEventManager } from "./discord-event-manager";
 
 const logger = getLogger({
     name: "slaurbot-discord-bot",
@@ -21,6 +22,13 @@ export async function createDiscordClientImp(resolve: ((dc: DiscordClient) => vo
         await notifier.sendJSONToTestChannel({
             content: "Hello slaurent I am the Discord Notifier",
         });
+
+        const eventManager = new DiscordEventManager({
+            discordClient: client,
+            discordNotifier: notifier,
+        });
+
+        await eventManager.listen();
 
         resolve(client);
     });
