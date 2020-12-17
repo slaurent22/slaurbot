@@ -15,9 +15,9 @@ interface MessageConfig {
 export class DiscordNotifier {
     private _discordClient: DiscordClient;
     private _logger: Logger;
+    private _streamingMembersChannel?: DiscordChannel;
     private _streamStatusChannel?: DiscordChannel;
     private _testChannel?: DiscordChannel;
-
 
     constructor({
         discordClient,
@@ -27,6 +27,7 @@ export class DiscordNotifier {
             name: "slaurbot-discord-notifier",
         });
 
+        this._streamingMembersChannel = this._discordClient.channels.cache.get(DISCORD_CHANNEL_ID.STREAMING_MEMBERS);
         this._streamStatusChannel = this._discordClient.channels.cache.get(DISCORD_CHANNEL_ID.STREAM_STATUS);
         this._testChannel = this._discordClient.channels.cache.get(DISCORD_CHANNEL_ID.TEST);
     }
@@ -37,6 +38,15 @@ export class DiscordNotifier {
         }
         else {
             this._logger.error("DiscordNotifier: Stream Status Channel not found");
+        }
+    }
+
+    public async notifyStreamingMembersChannel(message: MessageConfig): Promise<void> {
+        if (this._streamingMembersChannel && this._streamingMembersChannel.isText()) {
+            await this._streamingMembersChannel.send(message);
+        }
+        else {
+            this._logger.error("DiscordNotifier: Streaming Members Channel not found");
         }
     }
 

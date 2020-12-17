@@ -51,9 +51,39 @@ export class DiscordEventManager {
             this._logger.debug("_onPresenceUpdate: " + JSON.stringify({
                 presenceUpdate: { oldPresence, newPresence, },
             }, null, 4));
+
+            void this._onPresenceUpdate(oldPresence, newPresence);
         });
 
         await this._awaitReactions();
+    }
+
+    private async _onPresenceUpdate(oldPresence: Presence|undefined, newPresence: Presence) {
+        const user = newPresence.user;
+        if (!user) {
+            this._logger.error("Presence event received without user");
+            return;
+        }
+        const streamingAcitivity = newPresence.activities.find(activity => {
+            if (activity.url === null) {
+                return false;
+            }
+            return activity.type === "STREAMING" && activity.url.length > 0;
+        });
+
+        if (!streamingAcitivity) {
+            return;
+        }
+
+        if (!streamingAcitivity.url) {
+            return;
+        }
+
+        const message = {
+            content: `${user.username} is streaming at ${streamingAcitivity.url}`,
+        };
+
+        await this._discordNotifier.notifyStreamingMembersChannel(message);
     }
 
 
