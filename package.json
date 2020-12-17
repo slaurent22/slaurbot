@@ -12,7 +12,7 @@
     "lintfix": "eslint --fix ."
   },
   "author": "slaurent22",
-  "license": "ISC",
+  "license": "GPL-3.0-only",
   "engines": {
     "node": ">14"
   },
