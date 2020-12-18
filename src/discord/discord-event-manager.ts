@@ -1,5 +1,5 @@
 import assert from "assert";
-import type { Client as DiscordClient, Presence } from "discord.js";
+import type { Activity, Client as DiscordClient, Presence } from "discord.js";
 import { DISCORD_CHANNEL_ID, DISCORD_MESSAGE_ID } from "../util/constants";
 import { getLogger } from "../util/logger";
 import type { DiscordNotifier } from "./discord-notifier";
@@ -7,6 +7,25 @@ import type { DiscordNotifier } from "./discord-notifier";
 interface DiscordEventManagerConfig {
     discordClient: DiscordClient;
     discordNotifier: DiscordNotifier;
+}
+
+function getStreamingActivity(presence: Presence|undefined): Activity|null {
+    if (!presence) {
+        return null;
+    }
+
+    const streamingAcitivity = presence.activities.find(activity => {
+        if (activity.url === null) {
+            return false;
+        }
+        return activity.type === "STREAMING" && activity.url.length > 0;
+    });
+
+    if (!streamingAcitivity) {
+        return null;
+    }
+
+    return streamingAcitivity;
 }
 
 export class DiscordEventManager {
@@ -64,23 +83,25 @@ export class DiscordEventManager {
             this._logger.error("Presence event received without user");
             return;
         }
-        const streamingAcitivity = newPresence.activities.find(activity => {
-            if (activity.url === null) {
-                return false;
-            }
-            return activity.type === "STREAMING" && activity.url.length > 0;
-        });
 
-        if (!streamingAcitivity) {
+        const oldStreamingAcivity = getStreamingActivity(oldPresence);
+        const newStreamingAcivity = getStreamingActivity(newPresence);
+
+        if (oldStreamingAcivity) {
+            this._logger.info("User was already streaming");
             return;
         }
 
-        if (!streamingAcitivity.url) {
+        if (!newStreamingAcivity) {
+            return;
+        }
+
+        if (!newStreamingAcivity.url) {
             return;
         }
 
         const message = {
-            content: `${user.username} is streaming at ${streamingAcitivity.url}`,
+            content: `${user.username} is streaming at ${newStreamingAcivity.url}`,
         };
 
         await this._discordNotifier.notifyStreamingMembersChannel(message);
