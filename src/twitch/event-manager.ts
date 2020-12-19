@@ -1,6 +1,7 @@
 import type { ChatClient } from "twitch-chat-client/lib";
 import type { ConnectCompatibleApp } from "twitch-webhooks/lib";
 import type { ApiClient } from "twitch/lib";
+import { PubSubClient } from "twitch-pubsub-client";
 import type { Client as DiscordClient } from "discord.js";
 import type { Logger } from "@d-fischer/logger";
 import { getLogger } from "../util/logger";
@@ -8,6 +9,7 @@ import { DiscordNotifier } from "../discord/discord-notifier";
 import { DiscordReader } from "../discord/discord-reader";
 import { TwitchCommandManager } from "./command-manager";
 import { TwitchWebHookManager } from "./webhook-manager";
+import { getEnv } from "../util/env";
 
 export interface TwitchEventManagerConfig {
     apiClient: ApiClient;
@@ -22,6 +24,7 @@ export class TwitchEventManager {
     private _discordClient: DiscordClient;
     private _discordNotifier: DiscordNotifier;
     private _logger: Logger;
+    private _pubSubClient: PubSubClient;
     private _webHookManager: TwitchWebHookManager;
 
     constructor({
@@ -32,6 +35,7 @@ export class TwitchEventManager {
         this._apiClient = apiClient;
         this._chatClient = chatClient;
         this._discordClient = discordClient;
+        this._pubSubClient = new PubSubClient();
 
         const discordReader = new DiscordReader({
             discordClient: this._discordClient,
@@ -63,6 +67,8 @@ export class TwitchEventManager {
         await this._webHookManager.listen(app);
 
         const chatClient = this._chatClient;
+        const pubSubClient = this._pubSubClient;
+        const pubSubUserId = await this._pubSubClient.registerUserListener(this._apiClient);
 
         chatClient.onSub((channel, user, subInfo, msg) => {
             this._logger.debug("onSub: " + JSON.stringify({
@@ -105,6 +111,32 @@ export class TwitchEventManager {
 
             // eslint-disable-next-line max-len
             chatClient.say(channel, `@${raidInfo.displayName} just raided the channel with ${raidInfo.viewerCount} viewers!`);
+        });
+
+        const {
+            TWITCH_CHANNEL_NAME,
+        } = getEnv();
+
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        await pubSubClient.onBits(pubSubUserId, async(message) => {
+            if (message.isAnonymous) {
+                chatClient.say(TWITCH_CHANNEL_NAME, `Anonymous just cheered ${message.bits}! Thank you slaureLove`);
+                return;
+            }
+
+            if (!message.userId) {
+                chatClient.say(TWITCH_CHANNEL_NAME, `Unknown user just cheered ${message.bits}! Thank you slaureLove`);
+                return;
+            }
+
+            const user = await this._apiClient.helix.users.getUserById(message.userId);
+            if (!user) {
+                chatClient.say(TWITCH_CHANNEL_NAME, `Unknown user just cheered ${message.bits}! Thank you slaureLove`);
+                return;
+            }
+
+            // eslint-disable-next-line max-len
+            chatClient.say(TWITCH_CHANNEL_NAME, `@${user.displayName} just cheered ${message.bits}! That brings their total to ${message.totalBits}! Thank you slaureLove`);
         });
     }
 

@@ -26,10 +26,11 @@
     "ioredis": "^4.19.2",
     "marked": "^1.2.5",
     "node-cleanup": "^2.1.2",
-    "twitch": "^4.3.5",
-    "twitch-auth": "^4.3.5",
-    "twitch-chat-client": "^4.3.5",
-    "twitch-webhooks": "^4.3.5"
+    "twitch": "^4.3.6",
+    "twitch-auth": "^4.3.6",
+    "twitch-chat-client": "^4.3.6",
+    "twitch-pubsub-client": "^4.3.6",
+    "twitch-webhooks": "^4.3.6"
   },
   "devDependencies": {
     "@types/express": "^4.17.9",
