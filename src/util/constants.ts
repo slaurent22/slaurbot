@@ -362,3 +362,7 @@ export const DISCORD_ROLE_ID = Object.freeze({
 export const DISCORD_MESSAGE_ID = Object.freeze({
     ROLE_REACT: "781328995173662720",
 });
+
+export const DISCORD_USER_ID = Object.freeze({
+    SLAURENT: "422061714687787020",
+});

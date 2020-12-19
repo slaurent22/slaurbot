@@ -1,6 +1,6 @@
 import assert from "assert";
 import type { Activity, Client as DiscordClient, Presence } from "discord.js";
-import { DISCORD_CHANNEL_ID, DISCORD_MESSAGE_ID } from "../util/constants";
+import { DISCORD_CHANNEL_ID, DISCORD_MESSAGE_ID, DISCORD_USER_ID } from "../util/constants";
 import { getLogger } from "../util/logger";
 import type { DiscordNotifier } from "./discord-notifier";
 
@@ -81,6 +81,11 @@ export class DiscordEventManager {
         const user = newPresence.user;
         if (!user) {
             this._logger.error("Presence event received without user");
+            return;
+        }
+
+        if (user.id === DISCORD_USER_ID.SLAURENT) {
+            this._logger.info("Ignoring presence update from slaurent");
             return;
         }
 
