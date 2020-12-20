@@ -8,7 +8,16 @@ export interface TokenData {
 }
 
 function parseNullableInt(str: string|null): number|null {
-    return str === null ? str : parseInt(str, 10);
+    if (str === null) {
+        return null;
+    }
+
+    const parsed = parseInt(str, 10);
+    if (isNaN(parsed)) {
+        return null;
+    }
+
+    return parsed;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
