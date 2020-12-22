@@ -3,7 +3,7 @@ import type { ConnectCompatibleApp } from "twitch-webhooks";
 import { EnvPortAdapter, WebHookListener } from "twitch-webhooks";
 import type { ApiClient, HelixStream } from "twitch/lib";
 import type { Logger } from "@d-fischer/logger";
-import { USER_ID } from "../util/constants";
+import { TWITCH_USER_ID } from "../util/constants";
 import { getEnv } from "../util/env";
 import { getLogger } from "../util/logger";
 import { getTwitchOfflineEmbed, getTwitchStreamEmbed } from "../discord/discord-embed";
@@ -69,7 +69,7 @@ export class TwitchWebHookManager {
         const {
             TWITCH_CHANNEL_NAME: userName,
         } = getEnv();
-        const userId = USER_ID.SLAURENT;
+        const userId = TWITCH_USER_ID.SLAURENT;
 
         this._listener.applyMiddleware(app);
         await Promise.all([

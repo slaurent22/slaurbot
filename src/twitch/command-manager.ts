@@ -5,7 +5,7 @@ import type { ApiClient } from "twitch/lib";
 import humanizeDuration from "humanize-duration";
 import type { Logger } from "@d-fischer/logger";
 import { getLogger } from "../util/logger";
-import { USER_ID, ZOTE_PRECEPTS } from "../util/constants";
+import { TWITCH_USER_ID, ZOTE_PRECEPTS } from "../util/constants";
 import type { DiscordReader } from "../discord/discord-reader";
 import { getTwitchBttvEmotes, getTwitchFfzEmotes } from "./rest-api";
 
@@ -79,7 +79,7 @@ export class TwitchCommandManager {
         });
 
         this._addCommand("TPFufun", (params, context) => {
-            const edThoone = context.msg.userInfo.userId === USER_ID.EDTHOONE;
+            const edThoone = context.msg.userInfo.userId === TWITCH_USER_ID.EDTHOONE;
 
             if (edThoone) {
                 context.say("TPFufun");
@@ -166,7 +166,7 @@ export class TwitchCommandManager {
         });
 
         this._addCommand("!uptime", async(params, context) => {
-            const stream = await this._apiClient.helix.streams.getStreamByUserName(USER_ID.SLAURENT);
+            const stream = await this._apiClient.helix.streams.getStreamByUserName(TWITCH_USER_ID.SLAURENT);
             if (!stream) {
                 context.say("Stream is offline");
                 return;

@@ -335,7 +335,7 @@ for (const entry of EN_ZOTE.entries.entry) {
     }
 }
 
-export const USER_ID = Object.freeze({
+export const TWITCH_USER_ID = Object.freeze({
     EDTHOONE: "450323894",
     SLAURENT: "441357250",
 });
