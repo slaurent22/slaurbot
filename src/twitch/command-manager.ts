@@ -7,7 +7,7 @@ import type { Logger } from "@d-fischer/logger";
 import { getLogger } from "../util/logger";
 import { TWITCH_USER_ID, ZOTE_PRECEPTS } from "../util/constants";
 import type { DiscordReader } from "../discord/discord-reader";
-import { getTwitchBttvEmotes, getTwitchFfzEmotes } from "./rest-api";
+import { getPretzelNowPlaying, getTwitchBttvEmotes, getTwitchFfzEmotes } from "./rest-api";
 
 export interface TwitchCommandManagerConfig {
     apiClient: ApiClient;
@@ -92,6 +92,10 @@ export class TwitchCommandManager {
 
         this._addCommand("!ffz", async(params, context) => {
             context.say(await getTwitchFfzEmotes());
+        });
+
+        this._addCommand("!song", async(params, context) => {
+            context.say(await getPretzelNowPlaying());
         });
 
         this._addCommand("!precept", (params, context) => {

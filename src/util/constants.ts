@@ -344,6 +344,7 @@ export const REST_API_URLS = Object.freeze({
     GET: {
         BTTV_EMOTES: "https://api.betterttv.net/2/channels/slaurent22",
         FFZ_EMOTES: "https://api.frankerfacez.com/v1/room/slaurent22",
+        PRETZEL_NOW_PLAYING: `https://api.pretzel.tv/playing/twitch/${TWITCH_USER_ID.SLAURENT}`,
     },
 });
 

@@ -29,7 +29,7 @@ export async function getTwitchBttvEmotes(): Promise<string> {
         return emotes.map(({ code, }) => code).join(" ");
     }
     catch (e) {
-        logger.debug(String(e));
+        logger.error(String(e));
         return "Error retrieving BTTV emotes";
     }
 }
@@ -48,7 +48,19 @@ export async function getTwitchFfzEmotes(): Promise<string> {
 
     }
     catch (e) {
-        logger.debug(e);
+        logger.error(String(e));
         return "Error retrieving FFZ emotes";
+    }
+}
+
+export async function getPretzelNowPlaying(): Promise<string> {
+    try {
+        const response = await got(REST_API_URLS.GET.PRETZEL_NOW_PLAYING);
+        logger.info("response: " + response.body);
+        logger.info("rawBody: " + String(response.rawBody));
+        return response.body;
+    }
+    catch (e) {
+        return "Error retrieving current song";
     }
 }
