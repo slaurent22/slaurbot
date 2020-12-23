@@ -7,7 +7,7 @@ import type { Logger } from "@d-fischer/logger";
 import { getLogger } from "../util/logger";
 import { TWITCH_USER_ID, ZOTE_PRECEPTS } from "../util/constants";
 import type { DiscordReader } from "../discord/discord-reader";
-import { getPretzelNowPlaying, getTwitchBttvEmotes, getTwitchFfzEmotes } from "./rest-api";
+import { getPretzelNowPlaying, getTwitchBttvEmotes, getTwitchFfzEmotes } from "../util/rest-api";
 
 export interface TwitchCommandManagerConfig {
     apiClient: ApiClient;

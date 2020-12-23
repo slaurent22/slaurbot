@@ -4,11 +4,11 @@ import { ChatClient, LogLevel } from "twitch-chat-client";
 import { ApiClient } from "twitch";
 import type { ConnectCompatibleApp } from "twitch-webhooks/lib";
 import type { Client as DiscordClient } from "discord.js";
-import { getLogger } from "../util/logger";
-import { getEnv } from "../util/env";
-import { TwitchEventManager } from "./event-manager";
-import type { TokenData } from "./twitch-token-cache";
-import { writeTwitchTokens } from "./twitch-token-cache";
+import { getLogger } from "./util/logger";
+import { getEnv } from "./util/env";
+import { TwitchEventManager } from "./twitch/twitch-event-manager";
+import type { TokenData } from "./twitch/twitch-token-cache";
+import { writeTwitchTokens } from "./twitch/twitch-token-cache";
 
 export interface TwitchBotConfig {
     apiClient: ApiClient;

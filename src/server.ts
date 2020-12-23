@@ -1,5 +1,5 @@
 import nodeCleanup from "node-cleanup";
-import { Slaurbot } from "./twitch/slaurbot";
+import { Slaurbot } from "./slaurbot";
 import { getLogger } from "./util/logger";
 import { createExpress } from "./express";
 import { createDiscordClient } from "./discord/discord-bot";

@@ -8,8 +8,8 @@ import { getLogger } from "../util/logger";
 import { DiscordNotifier } from "../discord/discord-notifier";
 import { DiscordReader } from "../discord/discord-reader";
 import { getEnv } from "../util/env";
-import { TwitchCommandManager } from "./command-manager";
-import { TwitchWebHookManager } from "./webhook-manager";
+import { TwitchCommandManager } from "./twitch-command-manager";
+import { TwitchWebHookManager } from "./twitch-webhook-manager";
 
 export interface TwitchEventManagerConfig {
     apiClient: ApiClient;
