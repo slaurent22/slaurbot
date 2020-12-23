@@ -1,6 +1,4 @@
-import type { BotCommand, BotCommandMatch } from "easy-twitch-bot";
-import { BotCommandContext, createBotCommand } from "easy-twitch-bot";
-import type { ChatClient, PrivateMessage } from "twitch-chat-client";
+import type { ChatClient } from "twitch-chat-client";
 import type { ApiClient } from "twitch/lib";
 import humanizeDuration from "humanize-duration";
 import type { Logger } from "@d-fischer/logger";
@@ -8,6 +6,7 @@ import { getLogger } from "../util/logger";
 import { TWITCH_USER_ID, ZOTE_PRECEPTS } from "../util/constants";
 import type { DiscordReader } from "../discord/discord-reader";
 import { getPretzelNowPlaying, getTwitchBttvEmotes, getTwitchFfzEmotes } from "../util/rest-api";
+import { SimpleTwitchBot } from "./simple-twitch-bot";
 
 export interface TwitchCommandManagerConfig {
     apiClient: ApiClient;
@@ -36,11 +35,10 @@ function durationInEnglish(duration: number): string {
 
 export class TwitchCommandManager {
     private _apiClient: ApiClient;
-    private _commandPrefix: string;
     private _chatClient: ChatClient;
     private _discordReader: DiscordReader;
-    private _commands = new Map<string, BotCommand>();
     private _logger: Logger;
+    private _simpleTwitchBot;
 
     constructor({
         apiClient,
@@ -55,13 +53,25 @@ export class TwitchCommandManager {
             name: "slaurbot-twitch-command-manager",
         });
 
-        this._commandPrefix = "";
+        this._simpleTwitchBot = new SimpleTwitchBot({
+            chatClient: this._chatClient,
+        });
 
-        this._addCommand("!ping", (params, context) => {
+        this.initCommands();
+    }
+
+    public async listen(): Promise<void> {
+        await this._refreshMessageCommandsFromDataStore();
+        this._simpleTwitchBot.listen();
+    }
+
+    private initCommands(): void {
+
+        this._simpleTwitchBot.addCommand("!ping", (params, context) => {
             context.say("pong!");
         });
 
-        this._addCommand("!followage", async(params, context) => {
+        this._simpleTwitchBot.addCommand("!followage", async(params, context) => {
             const follow = await this._apiClient.kraken.users
                 .getFollowedChannel(
                     context.msg.userInfo.userId as string,
@@ -78,7 +88,7 @@ export class TwitchCommandManager {
             }
         });
 
-        this._addCommand("TPFufun", (params, context) => {
+        this._simpleTwitchBot.addCommand("TPFufun", (params, context) => {
             const edThoone = context.msg.userInfo.userId === TWITCH_USER_ID.EDTHOONE;
 
             if (edThoone) {
@@ -86,19 +96,19 @@ export class TwitchCommandManager {
             }
         });
 
-        this._addCommand("!bttv", async(params, context) => {
+        this._simpleTwitchBot.addCommand("!bttv", async(params, context) => {
             context.say(await getTwitchBttvEmotes());
         });
 
-        this._addCommand("!ffz", async(params, context) => {
+        this._simpleTwitchBot.addCommand("!ffz", async(params, context) => {
             context.say(await getTwitchFfzEmotes());
         });
 
-        this._addCommand("!song", async(params, context) => {
+        this._simpleTwitchBot.addCommand("!song", async(params, context) => {
             context.say(await getPretzelNowPlaying());
         });
 
-        this._addCommand("!precept", (params, context) => {
+        this._simpleTwitchBot.addCommand("!precept", (params, context) => {
             if (!refreshed(LAST_USED.precept, 3000)) {
                 this._logger.info("!precept is on cooldown. Ignoring.");
                 return;
@@ -119,7 +129,7 @@ export class TwitchCommandManager {
             context.say(precept);
         });
 
-        this._addCommand("!so", async(params, context) => {
+        this._simpleTwitchBot.addCommand("!so", async(params, context) => {
             const callingUser = context.msg.userInfo;
             const userDisplayName = callingUser.displayName;
             const isAllowed = callingUser.isMod || callingUser.isVip || callingUser.isBroadcaster;
@@ -169,7 +179,7 @@ export class TwitchCommandManager {
 
         });
 
-        this._addCommand("!uptime", async(params, context) => {
+        this._simpleTwitchBot.addCommand("!uptime", async(params, context) => {
             const stream = await this._apiClient.helix.streams.getStreamByUserName(TWITCH_USER_ID.SLAURENT);
             if (!stream) {
                 context.say("Stream is offline");
@@ -181,88 +191,34 @@ export class TwitchCommandManager {
             context.say(`Stream has been live for ${durationEnglish}`);
         });
 
-        this._addCommand("!refreshCommands", async(params, context) => {
+        this._simpleTwitchBot.addCommand("!refreshCommands", async(params, context) => {
             const callingUser = context.msg.userInfo;
             const isAllowed = callingUser.isMod || callingUser.isBroadcaster;
             if (!isAllowed) {
                 this._logger.warn("!refreshCommands: caller not allowed. ignoring.");
                 return;
             }
-            await this._refreshCommands();
+            await this._refreshMessageCommandsFromDataStore();
             context.say("Successfully refreshed commands!");
         });
     }
 
-    public async listen(): Promise<void> {
-        await this._refreshCommands();
-
-        // https://github.com/d-fischer/twitch/blob/master/packages/easy-twitch-bot/src/Bot.ts
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        this._chatClient.onMessage(async(channel, user, message, msg) => {
-            const match = this._findMatch(msg);
-            if (match === null) {
-                return;
-            }
-            const commandContext = new BotCommandContext(this._chatClient, msg);
-            try {
-                this._logger.info("Executing command:" + match.command.name);
-                await match.command.execute(match.params, commandContext);
-            }
-            catch (e) {
-                const errMsg = `${match.command.name} command failed`;
-                this._logger.error(`${errMsg}:` + String(e));
-                commandContext.say(errMsg);
-            }
-        });
-
-        this._logger.info("Listening for commands");
-    }
-
-    private async _refreshCommands() {
+    private async _refreshMessageCommandsFromDataStore() {
         this._logger.info("Refreshing commands...");
 
         const commands = await this._discordReader.readTwitchCommands();
         for (const c of commands) {
             const { command, enabled, message, } = c;
             if (enabled) {
-                this._addCommand(command, (_params, _context) => {
+                this._simpleTwitchBot.addCommand(command, (_params, _context) => {
                     _context.say(message);
                 });
             }
             else {
-                this._removeCommand(command);
+                this._simpleTwitchBot.removeCommand(command);
             }
         }
 
         this._logger.info("Commands refreshed!");
-    }
-
-    private _addCommand(
-        commandName: string,
-        handler: (params: string[], context: BotCommandContext) => void | Promise<void>):
-    void {
-        const command = createBotCommand(commandName, handler);
-        this._commands.set(commandName, command);
-        this._logger.info(`Command added: ${commandName}`);
-    }
-
-    private _removeCommand(commandName: string) {
-        this._commands.delete(commandName);
-        this._logger.info(`Command removed: ${commandName}`);
-    }
-
-    // https://github.com/d-fischer/twitch/blob/master/packages/easy-twitch-bot/src/Bot.ts
-    private _findMatch(msg: PrivateMessage): BotCommandMatch | null {
-        const line = msg.params.message.trim().replace(/  +/g, " ");
-        for (const command of this._commands.values()) {
-            const params = command.match(line, this._commandPrefix);
-            if (params !== null) {
-                return {
-                    command,
-                    params,
-                };
-            }
-        }
-        return null;
     }
 }
