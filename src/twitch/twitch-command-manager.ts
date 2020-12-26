@@ -18,14 +18,6 @@ function getRandomInt(max: number): number {
     return Math.floor(Math.random() * Math.floor(max));
 }
 
-const LAST_USED = {
-    precept: new Date(),
-};
-
-function refreshed(lastUse: Date, cooldownMs: number) {
-    return Number(new Date()) - Number(lastUse) > cooldownMs;
-}
-
 function durationInEnglish(duration: number): string {
     return humanizeDuration(duration, {
         units: ["y", "mo", "w", "d", "h", "m"],
@@ -109,11 +101,6 @@ export class TwitchCommandManager {
         });
 
         this._simpleTwitchBot.addCommand("!precept", (params, context) => {
-            if (!refreshed(LAST_USED.precept, 3000)) {
-                this._logger.info("!precept is on cooldown. Ignoring.");
-                return;
-            }
-            LAST_USED.precept = new Date();
             this._logger.info("!precept params:" + [params].join(" "));
             let preceptNum = parseInt(params[0], 10);
             let precept = ZOTE_PRECEPTS.get(preceptNum);
@@ -127,17 +114,13 @@ export class TwitchCommandManager {
             precept = precept.replace(/<page>/g, " ");
 
             context.say(precept);
+        }, {
+            cooldown: 3000,
         });
 
         this._simpleTwitchBot.addCommand("!so", async(params, context) => {
             const callingUser = context.msg.userInfo;
             const userDisplayName = callingUser.displayName;
-            const isAllowed = callingUser.isMod || callingUser.isVip || callingUser.isBroadcaster;
-            if (!isAllowed) {
-                context.say(`@${userDisplayName} command is restricted to Mods, VIPs, and the Broadcaster`);
-                return;
-            }
-
             if (params.length === 0) {
                 context.say(`@${userDisplayName} try shouting out a user or channel`);
                 return;
@@ -149,7 +132,6 @@ export class TwitchCommandManager {
             }
 
             let shoutoutUser;
-
             try {
                 shoutoutUser = await this._apiClient.helix.users.getUserByName(shoutoutTarget);
             }
@@ -177,6 +159,15 @@ export class TwitchCommandManager {
 
             context.say(msg);
 
+        }, {
+            cooldown: 1000,
+            permissions: {
+                broadcaster: true,
+                founder: false,
+                mod: true,
+                subscriber: false,
+                vip: true,
+            },
         });
 
         this._simpleTwitchBot.addCommand("!uptime", async(params, context) => {
@@ -192,14 +183,16 @@ export class TwitchCommandManager {
         });
 
         this._simpleTwitchBot.addCommand("!refreshCommands", async(params, context) => {
-            const callingUser = context.msg.userInfo;
-            const isAllowed = callingUser.isMod || callingUser.isBroadcaster;
-            if (!isAllowed) {
-                this._logger.warn("!refreshCommands: caller not allowed. ignoring.");
-                return;
-            }
             await this._refreshMessageCommandsFromDataStore();
             context.say("Successfully refreshed commands!");
+        }, {
+            permissions: {
+                broadcaster: true,
+                founder: false,
+                mod: true,
+                subscriber: false,
+                vip: false,
+            },
         });
     }
 

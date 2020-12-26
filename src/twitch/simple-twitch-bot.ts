@@ -10,10 +10,31 @@ export interface SimpleTwitchBotConfig {
 
 export type CommandHandler = (params: string[], context: BotCommandContext) => void | Promise<void>;
 
+export interface CommandPermissions {
+    broadcaster: boolean;
+    founder: boolean;
+    mod: boolean;
+    subscriber: boolean;
+    vip: boolean;
+}
+
+export interface CommandOptions {
+    cooldown?: number;
+    permissions?: CommandPermissions;
+}
+
+function refreshed(lastUse: Date|undefined, cooldownMs: number) {
+    if (!lastUse) {
+        return true;
+    }
+    return Number(new Date()) - Number(lastUse) > cooldownMs;
+}
+
 export class SimpleTwitchBot {
     private _chatClient: ChatClient;
     private _commandPrefix = "";
     private _commands = new Map<string, BotCommand>();
+    private _commandLastUsed = new Map<string, Date>();
     private _logger: Logger;
 
     constructor({
@@ -26,8 +47,9 @@ export class SimpleTwitchBot {
         });
     }
 
-    public addCommand(commandName: string, handler: CommandHandler): void {
-        const command = createBotCommand(commandName, handler);
+    public addCommand(commandName: string, handler: CommandHandler, options?: CommandOptions): void {
+        const metaHandler = this._createMetaHandler(commandName, handler, options);
+        const command = createBotCommand(commandName, metaHandler);
         this._commands.set(commandName, command);
         this._logger.info(`Command added: ${commandName}`);
     }
@@ -58,6 +80,45 @@ export class SimpleTwitchBot {
         });
 
         this._logger.info("Listening for commands");
+    }
+
+    private _createMetaHandler(commandName: string, handler: CommandHandler, options?: CommandOptions): CommandHandler {
+        return (params: string[], context: BotCommandContext) => {
+            if (!options) {
+                return handler(params, context);
+            }
+            const user = context.msg.userInfo;
+            const userDisplayName = user.displayName;
+            if (options.permissions) {
+                const allowedOptions = [
+                    options.permissions.broadcaster && user.isBroadcaster,
+                    options.permissions.founder     && user.isFounder,
+                    options.permissions.mod         && user.isMod,
+                    options.permissions.subscriber  && user.isSubscriber,
+                    options.permissions.vip         && user.isVip
+                ];
+                this._logger.debug("allowed options: " + allowedOptions.join(" "));
+
+                const allowed = allowedOptions.some(option => option);
+                this._logger.info("allowed = " + String(allowed));
+
+                if (!allowed) {
+                    context.say(`@${userDisplayName} you are not allowed to use ${commandName}`);
+                    return;
+                }
+            }
+            if (options.cooldown) {
+                const commandLastUsed = this._commandLastUsed.get(commandName);
+                const isRefreshed = refreshed(commandLastUsed, options.cooldown);
+                if (!isRefreshed) {
+                    context.say(`@${userDisplayName}, ${commandName} is still on cooldown`);
+                    return;
+                }
+                this._commandLastUsed.set(commandName, new Date());
+            }
+
+            return handler(params, context);
+        };
     }
 
     // https://github.com/d-fischer/twitch/blob/master/packages/easy-twitch-bot/src/Bot.ts
