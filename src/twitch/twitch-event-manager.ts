@@ -136,7 +136,6 @@ export class TwitchEventManager {
             TWITCH_CHANNEL_NAME,
         } = getEnv();
 
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
         await pubSubClient.onBits(pubSubUserId, async(message) => {
             if (message.isAnonymous) {
                 // eslint-disable-next-line max-len

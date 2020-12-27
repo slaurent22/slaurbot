@@ -358,6 +358,9 @@ export const DISCORD_CHANNEL_ID = Object.freeze({
 
 export const DISCORD_ROLE_ID = Object.freeze({
     ADMIN: "763581147141505024",
+    HE_HIM: "781328202144284712",
+    SHE_HER: "781328238379008080",
+    THEY_THEM: "781328277771386960",
 });
 
 export const DISCORD_MESSAGE_ID = Object.freeze({
@@ -367,3 +370,9 @@ export const DISCORD_MESSAGE_ID = Object.freeze({
 export const DISCORD_USER_ID = Object.freeze({
     SLAURENT: "422061714687787020",
 });
+
+export const DISCORD_ROLE_REACT_MAP = new Map<string, string>([
+    ["⚧", DISCORD_ROLE_ID.THEY_THEM],
+    ["♀️", DISCORD_ROLE_ID.SHE_HER],
+    ["♂️", DISCORD_ROLE_ID.HE_HIM]
+]) as Readonly<Map<string, string>>;

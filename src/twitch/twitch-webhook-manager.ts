@@ -94,7 +94,6 @@ export class TwitchWebHookManager {
             content: "Initial stream status: `" + initialStatus + "`",
         });
 
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
         await this._listener.subscribeToStreamChanges(userId, async(stream?: HelixStream) => {
             this._logger.info("Stream Change:" + JSON.stringify(stream));
             const previousStatus = await getCachedTwitchStreamStatus();

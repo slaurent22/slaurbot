@@ -37,6 +37,7 @@
         "@typescript-eslint/no-implied-eval": "error",
         "@typescript-eslint/no-invalid-this": "error",
         "@typescript-eslint/no-loop-func": "error",
+        "@typescript-eslint/no-misused-promises": "off",
         "@typescript-eslint/no-shadow": "error",
         "@typescript-eslint/no-throw-literal": "error",
         "@typescript-eslint/no-unused-expressions": "error",

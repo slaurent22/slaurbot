@@ -1,6 +1,13 @@
 import assert from "assert";
-import type { Activity, Client as DiscordClient, Presence } from "discord.js";
-import { DISCORD_CHANNEL_ID, DISCORD_MESSAGE_ID, DISCORD_USER_ID } from "../util/constants";
+import type {
+    Activity,
+    Client as DiscordClient,
+    Guild,
+    MessageReaction,
+    Presence,
+    User as DiscordUser
+} from "discord.js";
+import { DISCORD_CHANNEL_ID, DISCORD_MESSAGE_ID, DISCORD_ROLE_ID, DISCORD_ROLE_REACT_MAP, DISCORD_USER_ID } from "../util/constants";
 import { getLogger } from "../util/logger";
 import type { DiscordNotifier } from "./discord-notifier";
 
@@ -31,6 +38,7 @@ function getStreamingActivity(presence: Presence|undefined): Activity|null {
 export class DiscordEventManager {
     private _discordClient: DiscordClient;
     private _discordNotifier: DiscordNotifier;
+    private _guild: Guild;
     private _logger;
 
     constructor({
@@ -42,6 +50,9 @@ export class DiscordEventManager {
         this._logger = getLogger({
             name: "slaurbot-discord-event-manager",
         });
+
+        const guilds = this._discordClient.guilds.cache.array();
+        this._guild = guilds[0];
     }
 
     public async listen(): Promise<void> {
@@ -112,13 +123,44 @@ export class DiscordEventManager {
         await this._discordNotifier.notifyStreamingMembersChannel(message);
     }
 
-
-    // TODO: Get users in reactions, update Discord roles
     private async _awaitReactions() {
         const roleRequestChannel = await this._discordClient.channels.fetch(DISCORD_CHANNEL_ID.ROLE_REQUEST);
         assert(roleRequestChannel.isText());
         const roleReactMessage = await roleRequestChannel.messages.fetch(DISCORD_MESSAGE_ID.ROLE_REACT);
-        const reactions = roleReactMessage.reactions.cache.array();
-        await this._discordNotifier.sendJSONToTestChannel({ reactions, });
+
+        const collector = roleReactMessage.createReactionCollector(() => true, {
+            dispose: true,
+        });
+
+        collector.on("collect", this._onReactAdd.bind(this));
+        collector.on("dispose", this._onReactRemove.bind(this));
+        collector.on("remove", this._onReactRemove.bind(this));
+        collector.on("end", () => {
+            this._logger.warn("Reaction Collector received 'end' event");
+        });
+    }
+
+    private async _onReactAdd(reaction: MessageReaction, user: DiscordUser) {
+        this._logger.info(`ReactAdd: ${reaction.emoji.name} from ${user.tag}`);
+        const role = DISCORD_ROLE_REACT_MAP.get(reaction.emoji.name);
+        if (!role) {
+            this._logger.warn("No role for this reaction");
+            return;
+        }
+        const guildMember = await this._guild.members.fetch(user);
+        await guildMember.roles.add(role);
+        this._logger.info(`Added role ${role} for ${user.tag}`);
+    }
+
+    private async _onReactRemove(reaction: MessageReaction, user: DiscordUser) {
+        this._logger.info(`ReactRemove: ${reaction.emoji.name} from ${user.tag}`);
+        const role = DISCORD_ROLE_REACT_MAP.get(reaction.emoji.name);
+        if (!role) {
+            this._logger.warn("No role for this reaction");
+            return;
+        }
+        const guildMember = await this._guild.members.fetch(user);
+        await guildMember.roles.remove(role);
+        this._logger.info(`Removed role ${role} for ${user.tag}`);
     }
 }

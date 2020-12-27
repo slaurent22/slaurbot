@@ -12,7 +12,6 @@ const logger = getLogger({
 export async function createDiscordClientImp(resolve: ((dc: DiscordClient) => void)): Promise<void> {
     const client = new Discord.Client();
 
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     client.once("ready", async() => {
         logger.info("Discord client is ready");
         const notifier = new DiscordNotifier({

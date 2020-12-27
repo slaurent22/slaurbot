@@ -61,7 +61,6 @@ export class SimpleTwitchBot {
 
     public listen(): void {
         // https://github.com/d-fischer/twitch/blob/master/packages/easy-twitch-bot/src/Bot.ts
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
         this._chatClient.onMessage(async(channel, user, message, msg) => {
             const match = this._findMatch(msg);
             if (match === null) {
