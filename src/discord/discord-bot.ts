@@ -39,6 +39,10 @@ export async function createDiscordClientImp(resolve: ((dc: DiscordClient) => vo
         }
     });
 
+    client.on("messageUpdate", (oldMessage, newMessage) => {
+        logger.debug(`[DISCORD MSG UPDATE] CHANNEL:'${newMessage.channel.id}' CONTENT:'${String(newMessage.content)}'`);
+    });
+
     const {
         DISCORD_BOT_TOKEN,
     } = getEnv();
