@@ -7,7 +7,12 @@ import type {
     Presence,
     User as DiscordUser
 } from "discord.js";
-import { DISCORD_CHANNEL_ID, DISCORD_MESSAGE_ID, DISCORD_ROLE_ID, DISCORD_ROLE_REACT_MAP, DISCORD_USER_ID } from "../util/constants";
+import {
+    DISCORD_CHANNEL_ID,
+    DISCORD_MESSAGE_ID,
+    DISCORD_ROLE_REACT_MAP,
+    DISCORD_USER_ID
+} from "../util/constants";
 import { getLogger } from "../util/logger";
 import type { DiscordNotifier } from "./discord-notifier";
 
@@ -77,13 +82,7 @@ export class DiscordEventManager {
             });
         });
 
-        this._discordClient.on("presenceUpdate", (oldPresence: Presence|undefined, newPresence: Presence) => {
-            this._logger.debug("_onPresenceUpdate: " + JSON.stringify({
-                presenceUpdate: { oldPresence, newPresence, },
-            }, null, 4));
-
-            void this._onPresenceUpdate(oldPresence, newPresence);
-        });
+        this._discordClient.on("presenceUpdate", this._onPresenceUpdate.bind(this));
 
         await this._awaitReactions();
     }
@@ -94,6 +93,8 @@ export class DiscordEventManager {
             this._logger.error("Presence event received without user");
             return;
         }
+
+        this._logger.info(`presence update for user id: ${user.id}`);
 
         if (user.id === DISCORD_USER_ID.SLAURENT) {
             this._logger.info("Ignoring presence update from slaurent");
