@@ -30,7 +30,8 @@
     "twitch-auth": "^4.3.6",
     "twitch-chat-client": "^4.3.6",
     "twitch-pubsub-client": "^4.3.6",
-    "twitch-webhooks": "^4.3.6"
+    "twitch-webhooks": "^4.3.6",
+    "uwuifier": "^2.0.2"
   },
   "devDependencies": {
     "@types/express": "^4.17.9",

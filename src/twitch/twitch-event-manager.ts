@@ -4,6 +4,7 @@ import type { ApiClient } from "twitch/lib";
 import { PubSubClient } from "twitch-pubsub-client";
 import type { Client as DiscordClient } from "discord.js";
 import type { Logger } from "@d-fischer/logger";
+import { Uwuifier } from "uwuifier";
 import { getLogger } from "../util/logger";
 import { DiscordNotifier } from "../discord/discord-notifier";
 import { DiscordReader } from "../discord/discord-reader";
@@ -25,6 +26,7 @@ export class TwitchEventManager {
     private _discordNotifier: DiscordNotifier;
     private _logger: Logger;
     private _pubSubClient: PubSubClient;
+    private _uwuifier: Uwuifier;
     private _webHookManager: TwitchWebHookManager;
 
     constructor({
@@ -60,6 +62,9 @@ export class TwitchEventManager {
             chatClient: this._chatClient,
             discordNotifier: this._discordNotifier,
         });
+
+        this._uwuifier = new Uwuifier();
+        this._addUwu();
     }
 
     public async listen(app: ConnectCompatibleApp): Promise<void> {
@@ -161,4 +166,28 @@ export class TwitchEventManager {
         });
     }
 
+    private _addUwu() {
+        const {
+            UWU_PERCENT,
+        } = getEnv();
+
+        // this list from https://github.com/Schotsl/Uwuifier-node/blob/master/src/index.ts#L17,
+        // with some of the more cursed elements removed
+        this._uwuifier.actions = [
+            "*blushes*",
+            "*sweats*",
+            "*runs away*",
+            "*walks away*",
+            "*looks at you*",
+            "*huggles tightly*",
+            "*boops your nose*"
+        ];
+
+        this._chatClient.onMessage((channel, user, message) => {
+            if (Math.random() * 100 < UWU_PERCENT && message.length > 15) {
+                const response = this._uwuifier.uwuifySentence(message);
+                this._chatClient.say(channel, response);
+            }
+        });
+    }
 }
