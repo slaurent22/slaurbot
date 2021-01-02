@@ -2,8 +2,10 @@ import Discord from "discord.js";
 import type { Client as DiscordClient } from "discord.js";
 import { getEnv } from "../util/env";
 import { getLogger } from "../util/logger";
+import { DISCORD_AUTODELETE_CHANNEL_CONFIG, DISCORD_AUTODELETE_CHECK_INTERVAL } from "../util/constants";
 import { DiscordNotifier } from "./discord-notifier";
 import { DiscordEventManager } from "./discord-event-manager";
+import { DicordChannelAutodeleter } from "./discord-channel-autodeleter";
 
 const logger = getLogger({
     name: "slaurbot-discord-bot",
@@ -28,6 +30,16 @@ export async function createDiscordClientImp(resolve: ((dc: DiscordClient) => vo
         });
 
         await eventManager.listen();
+
+        const autodeleteConfig = {
+            channelConfig: DISCORD_AUTODELETE_CHANNEL_CONFIG,
+            checkInterval: DISCORD_AUTODELETE_CHECK_INTERVAL,
+            discordClient: client,
+            discordNotifier: notifier,
+        };
+
+        const autodeleter = new DicordChannelAutodeleter(autodeleteConfig);
+        autodeleter.init();
 
         resolve(client);
     });

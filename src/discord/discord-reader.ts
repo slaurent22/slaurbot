@@ -1,10 +1,6 @@
 import assert from "assert";
-import type {
-    Client as DiscordClient,
-    DMChannel,
-    NewsChannel,
-    TextChannel
-} from "discord.js";
+import type { Client as DiscordClient } from "discord.js";
+import type { DiscordMessageChannel } from "../util/constants";
 import { DISCORD_CHANNEL_ID } from "../util/constants";
 
 interface DiscordReaderConfig {
@@ -19,7 +15,7 @@ interface Command {
 
 export class DiscordReader {
     private _discordClient: DiscordClient;
-    private _twitchCommandsStoreChannel: TextChannel | DMChannel | NewsChannel;
+    private _twitchCommandsStoreChannel: DiscordMessageChannel;
 
     constructor({
         discordClient,

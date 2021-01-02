@@ -1,3 +1,7 @@
+import type { DMChannel, NewsChannel, TextChannel } from "discord.js";
+
+export type DiscordMessageChannel = TextChannel | DMChannel | NewsChannel;
+
 /* eslint-disable max-len */
 const EN_ZOTE = Object.freeze({
     "entries": {
@@ -376,3 +380,12 @@ export const DISCORD_ROLE_REACT_MAP = new Map<string, string>([
     ["♀️", DISCORD_ROLE_ID.SHE_HER],
     ["♂️", DISCORD_ROLE_ID.HE_HIM]
 ]) as Readonly<Map<string, string>>;
+
+const MS_IN_ONE_DAY = 86400000;
+
+export const DISCORD_AUTODELETE_CHANNEL_CONFIG = new Map<string, number>([
+    [DISCORD_CHANNEL_ID.TEST, MS_IN_ONE_DAY],
+    [DISCORD_CHANNEL_ID.STREAMING_MEMBERS, 2 * MS_IN_ONE_DAY]
+]);
+
+export const DISCORD_AUTODELETE_CHECK_INTERVAL = 30000;
