@@ -2,6 +2,7 @@ import assert from "assert";
 import type { Client as DiscordClient } from "discord.js";
 import type { Logger } from "@d-fischer/logger";
 import humanizeDuration from "humanize-duration";
+import { RateLimiterMemory, RateLimiterQueue } from "rate-limiter-flexible";
 import { getLogger } from "../util/logger";
 import type { DiscordMessageChannel } from "../util/constants";
 import type { DiscordNotifier } from "./discord-notifier";
@@ -13,24 +14,33 @@ interface DiscordChannelAutodeleterConfig {
     discordNotifier: DiscordNotifier;
 }
 
+function createRateLimiterQueue(): RateLimiterQueue {
+    const limiterFlexible = new RateLimiterMemory({
+        points: 2,
+        duration: 1, // Per one second
+    });
+
+    return new RateLimiterQueue(limiterFlexible, {
+        maxQueueSize: 200,
+    });
+}
+
 export class DicordChannelAutodeleter {
     private _channelConfig: Map<string, number>;
     private _channelMap = new Map<string, DiscordMessageChannel>();
     private _checkInterval: number;
     private _discordClient: DiscordClient;
-    private _discordNotifier: DiscordNotifier;
     private _logger: Logger;
+    private _queue: RateLimiterQueue;
 
     constructor({
         channelConfig,
         checkInterval,
         discordClient,
-        discordNotifier,
     }: DiscordChannelAutodeleterConfig) {
         this._channelConfig = channelConfig;
         this._checkInterval = checkInterval;
         this._discordClient = discordClient;
-        this._discordNotifier = discordNotifier;
 
         this._logger = getLogger({
             name: "slaurbot-discord-channel-autodeleter",
@@ -43,6 +53,8 @@ export class DicordChannelAutodeleter {
             assert(channel.isText(), "Channel is not text!");
             this._channelMap.set(channelId, channel);
         }
+
+        this._queue = createRateLimiterQueue();
     }
 
     public init(): void {
@@ -75,11 +87,16 @@ export class DicordChannelAutodeleter {
                     return false;
                 }
 
-                this._logger.info(`[channel:${channelId}] deleting ${message.id}`);
+                this._logger.info(`[channel:${channelId}] QUEUEING DELETE: ${message.id}`);
+                await this._queue.removeTokens(1).then(async() => {
+                    this._logger.info(`[channel:${channelId}] DELETING: ${message.id}`);
 
-                await message.delete({
-                    reason: `slaurbot autodeleter due to age greater than: ${humanizeDuration(maxAge)}`,
+                    await message.delete({
+                        reason: `slaurbot autodeleter due to age greater than: ${humanizeDuration(maxAge)}`,
+                    });
                 });
+
+
 
                 return true;
             }));
