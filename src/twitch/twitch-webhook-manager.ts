@@ -41,6 +41,7 @@ export class TwitchWebHookManager {
     private _discordNotifier: DiscordNotifier;
     private _listener: WebHookListener;
     private _logger: Logger;
+    private _thankedFollowers = new Set<string>();
 
     constructor({
         apiClient,
@@ -163,7 +164,12 @@ export class TwitchWebHookManager {
     }): Promise<void> {
         await this._listener.subscribeToFollowsToUser(userId, (follow) => {
             this._logger.info("Follow:" + JSON.stringify(follow));
+            if (this._thankedFollowers.has(follow.userId)) {
+                this._logger.warn("User has already been thanked; returning.");
+                return;
+            }
             this._chatClient.say(userName, `@${follow.userDisplayName} thank you for the follow!`);
+            this._thankedFollowers.add(follow.userId);
         });
     }
 }
