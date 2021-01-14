@@ -43,10 +43,14 @@ export class TwitchEventManager {
             discordClient: this._discordClient,
         });
 
+        this._uwuifier = new Uwuifier();
+        this._configureUwuifier();
+
         this._commandManager = new TwitchCommandManager({
             apiClient: this._apiClient,
             chatClient: this._chatClient,
             discordReader,
+            uwuifier: this._uwuifier,
         });
 
         this._discordNotifier = new DiscordNotifier({
@@ -62,12 +66,11 @@ export class TwitchEventManager {
             chatClient: this._chatClient,
             discordNotifier: this._discordNotifier,
         });
-
-        this._uwuifier = new Uwuifier();
-        this._addUwu();
     }
 
     public async listen(app: ConnectCompatibleApp): Promise<void> {
+        this._initChatActions();
+
         await this._commandManager.listen();
         await this._webHookManager.listen(app);
 
@@ -166,11 +169,7 @@ export class TwitchEventManager {
         });
     }
 
-    private _addUwu() {
-        const {
-            UWU_PERCENT,
-        } = getEnv();
-
+    private _configureUwuifier() {
         // this list from https://github.com/Schotsl/Uwuifier-node/blob/master/src/index.ts#L17,
         // with some of the more cursed elements removed
         this._uwuifier.actions = [
@@ -182,7 +181,12 @@ export class TwitchEventManager {
             "*huggles tightly*",
             "*boops your nose*"
         ];
+    }
 
+    private _initChatActions() {
+        const {
+            UWU_PERCENT,
+        } = getEnv();
         this._chatClient.onMessage((channel, user, message) => {
             if (Math.random() * 100 < UWU_PERCENT && message.length > 15) {
                 const response = this._uwuifier.uwuifySentence(message);

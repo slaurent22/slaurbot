@@ -2,6 +2,7 @@ import type { ChatClient } from "twitch-chat-client";
 import type { ApiClient } from "twitch/lib";
 import humanizeDuration from "humanize-duration";
 import type { Logger } from "@d-fischer/logger";
+import type { Uwuifier } from "uwuifier";
 import { getLogger } from "../util/logger";
 import { TWITCH_USER_ID, ZOTE_PRECEPTS } from "../util/constants";
 import type { DiscordReader } from "../discord/discord-reader";
@@ -12,6 +13,7 @@ export interface TwitchCommandManagerConfig {
     apiClient: ApiClient;
     chatClient: ChatClient;
     discordReader: DiscordReader;
+    uwuifier: Uwuifier;
 }
 
 function getRandomInt(max: number): number {
@@ -31,15 +33,18 @@ export class TwitchCommandManager {
     private _discordReader: DiscordReader;
     private _logger: Logger;
     private _simpleTwitchBot;
+    private _uwuifier: Uwuifier;
 
     constructor({
         apiClient,
         chatClient,
         discordReader,
+        uwuifier,
     }: TwitchCommandManagerConfig) {
         this._apiClient = apiClient;
         this._chatClient = chatClient;
         this._discordReader = discordReader;
+        this._uwuifier = uwuifier;
 
         this._logger = getLogger({
             name: "slaurbot-twitch-command-manager",
@@ -101,7 +106,7 @@ export class TwitchCommandManager {
         });
 
         this._simpleTwitchBot.addCommand("!precept", (params, context) => {
-            this._logger.info("!precept params:" + [params].join(" "));
+            this._logger.info("!precept params:" + params.join(" "));
             let preceptNum = parseInt(params[0], 10);
             let precept = ZOTE_PRECEPTS.get(preceptNum);
             if (isNaN(preceptNum) || !precept) {
@@ -194,6 +199,22 @@ export class TwitchCommandManager {
                 vip: false,
             },
         });
+
+        this._simpleTwitchBot.addCommand("!uwuify", (params, context) => {
+            if (params.length === 0) {
+                const user = context.msg.userInfo;
+                const userDisplayName = user.displayName;
+                context.say(`@${userDisplayName} give me something t-to uwuify, siwwy *looks at you*`);
+                return;
+            }
+            const sentence = params.join(" ");
+            this._logger.info("!uwuify sentence:" + sentence);
+            const response = this._uwuifier.uwuifySentence(sentence);
+            context.say(response);
+        }, {
+            cooldown: 3000,
+        });
+
     }
 
     private async _refreshMessageCommandsFromDataStore() {
