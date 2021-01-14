@@ -4,7 +4,7 @@ import humanizeDuration from "humanize-duration";
 import type { Logger } from "@d-fischer/logger";
 import type { Uwuifier } from "uwuifier";
 import { getLogger } from "../util/logger";
-import { TWITCH_USER_ID, ZOTE_PRECEPTS } from "../util/constants";
+import { TWITCH_CHARACTER_LIMIT, TWITCH_USER_ID, ZOTE_PRECEPTS } from "../util/constants";
 import type { DiscordReader } from "../discord/discord-reader";
 import { getPretzelNowPlaying, getTwitchBttvEmotes, getTwitchFfzEmotes } from "../util/rest-api";
 import { SimpleTwitchBot } from "./simple-twitch-bot";
@@ -201,15 +201,22 @@ export class TwitchCommandManager {
         });
 
         this._simpleTwitchBot.addCommand("!uwuify", (params, context) => {
+            const user = context.msg.userInfo;
+            const userDisplayName = user.displayName;
             if (params.length === 0) {
-                const user = context.msg.userInfo;
-                const userDisplayName = user.displayName;
                 context.say(`@${userDisplayName} give me something t-to uwuify, siwwy *looks at you*`);
                 return;
             }
             const sentence = params.join(" ");
             this._logger.info("!uwuify sentence:" + sentence);
-            const response = this._uwuifier.uwuifySentence(sentence);
+            let response = this._uwuifier.uwuifySentence(sentence);
+            this._logger.info("!uwuify result:" + response);
+            this._logger.info("!uwuify result length:" + String(response.length));
+            if (response.length > TWITCH_CHARACTER_LIMIT) {
+                // eslint-disable-next-line max-len
+                context.say(`@${userDisplayName} the uwuified result exceeds the Twitch character limit of ${TWITCH_CHARACTER_LIMIT}; I'll post as much as I can.`);
+                response = response.slice(0, TWITCH_CHARACTER_LIMIT - 1);
+            }
             context.say(response);
         }, {
             cooldown: 3000,

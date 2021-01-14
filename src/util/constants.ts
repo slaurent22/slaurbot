@@ -344,6 +344,8 @@ export const TWITCH_USER_ID = Object.freeze({
     SLAURENT: "441357250",
 });
 
+export const TWITCH_CHARACTER_LIMIT = 500;
+
 export const REST_API_URLS = Object.freeze({
     GET: {
         BTTV_EMOTES: "https://api.betterttv.net/2/channels/slaurent22",
