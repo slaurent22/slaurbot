@@ -346,6 +346,8 @@ export const TWITCH_USER_ID = Object.freeze({
 
 export const TWITCH_CHARACTER_LIMIT = 500;
 
+export const TWITCH_STREAM_TITLE_DIRECTIVE_NOPING = "[slaurbot:noping]";
+
 export const REST_API_URLS = Object.freeze({
     GET: {
         BTTV_EMOTES: "https://api.betterttv.net/2/channels/slaurent22",
