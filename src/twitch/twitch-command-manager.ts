@@ -33,7 +33,7 @@ export class TwitchCommandManager {
     private _chatClient: ChatClient;
     private _discordReader: DiscordReader;
     private _logger: Logger;
-    private _simpleTwitchBot;
+    private _simpleTwitchBot: SimpleTwitchBot;
     private _uwuifier: Uwuifier;
 
     constructor({
@@ -213,17 +213,25 @@ export class TwitchCommandManager {
                 context.say(`@${userDisplayName} give me something t-to uwuify, siwwy *looks at you*`);
                 return;
             }
-            const sentence = params.join(" ");
+            const sentence = params.join(" ").trim();
             this._logger.info("!uwuify sentence:" + sentence);
-            let response = this._uwuifier.uwuifySentence(sentence);
+            let response = this._uwuifier.uwuifySentence(sentence).trim();
             this._logger.info("!uwuify result:" + response);
             this._logger.info("!uwuify result length:" + String(response.length));
+
             if (response.length > TWITCH_CHARACTER_LIMIT) {
                 // eslint-disable-next-line max-len
                 context.say(`@${userDisplayName} the uwuified result exceeds the Twitch character limit of ${TWITCH_CHARACTER_LIMIT}; I'll post as much as I can.`);
                 response = response.slice(0, TWITCH_CHARACTER_LIMIT - 1);
             }
-            context.say(response);
+
+            const isSame = sentence === response;
+            if (isSame) {
+                context.say("uwuified was same as original, sowwy");
+            }
+            else {
+                context.say(response);
+            }
         }, {
             cooldown: 3000,
         });

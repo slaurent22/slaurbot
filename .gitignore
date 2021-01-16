@@ -8,3 +8,4 @@ src/test/discord-test.ts
 discord-cache.json
 src/test/ext.d.ts
 src/test/index-test.ts
+.vscode/
