@@ -6,6 +6,7 @@ import { getLogger } from "../util/logger";
 
 export interface SimpleTwitchBotConfig {
     chatClient: ChatClient;
+    commandPrefix: string;
 }
 
 export type CommandHandler = (params: string[], context: BotCommandContext) => void | Promise<void>;
@@ -32,15 +33,17 @@ function refreshed(lastUse: Date|undefined, cooldownMs: number) {
 
 export class SimpleTwitchBot {
     private _chatClient: ChatClient;
-    private _commandPrefix = "";
+    private _commandPrefix: string;
     private _commands = new Map<string, BotCommand>();
     private _commandLastUsed = new Map<string, Date>();
     private _logger: Logger;
 
     constructor({
         chatClient,
+        commandPrefix,
     }: SimpleTwitchBotConfig) {
         this._chatClient = chatClient;
+        this._commandPrefix = commandPrefix;
 
         this._logger = getLogger({
             name: "simple-twitch-bot",

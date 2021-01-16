@@ -7,6 +7,7 @@ import { getLogger } from "../util/logger";
 import { TWITCH_CHARACTER_LIMIT, TWITCH_USER_ID, ZOTE_PRECEPTS } from "../util/constants";
 import type { DiscordReader } from "../discord/discord-reader";
 import { getPretzelNowPlaying, getTwitchBttvEmotes, getTwitchFfzEmotes } from "../util/rest-api";
+import { getEnv } from "../util/env";
 import { SimpleTwitchBot } from "./simple-twitch-bot";
 
 export interface TwitchCommandManagerConfig {
@@ -50,8 +51,13 @@ export class TwitchCommandManager {
             name: "slaurbot-twitch-command-manager",
         });
 
+        const {
+            COMMAND_PREFIX,
+        } = getEnv();
+
         this._simpleTwitchBot = new SimpleTwitchBot({
             chatClient: this._chatClient,
+            commandPrefix: COMMAND_PREFIX,
         });
 
         this.initCommands();
