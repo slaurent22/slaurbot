@@ -198,6 +198,8 @@ export class TwitchCommandManager {
             const duration = new Date().getTime() - stream.startDate.getTime();
             const durationEnglish = durationInEnglish(duration);
             context.say(`Stream has been live for ${durationEnglish}`);
+        }, {
+            cooldown: 1000,
         });
 
         this._simpleTwitchBot.addCommand("!refreshCommands", async(params, context) => {
