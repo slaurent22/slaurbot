@@ -9,6 +9,7 @@ import type { DiscordReader } from "../discord/discord-reader";
 import { getPretzelNowPlaying, getTwitchBttvEmotes, getTwitchFfzEmotes } from "../util/rest-api";
 import { getEnv } from "../util/env";
 import { SimpleTwitchBot } from "./simple-twitch-bot";
+import { getCachedTwitchStreamStatus } from "./twitch-stream-status-cache";
 
 export interface TwitchCommandManagerConfig {
     apiClient: ApiClient;
@@ -182,9 +183,15 @@ export class TwitchCommandManager {
         });
 
         this._simpleTwitchBot.addCommand("!uptime", async(params, context) => {
+            const cachedStatus = await getCachedTwitchStreamStatus();
+            if (cachedStatus === "OFFLINE") {
+                context.say("Stream is offline");
+                return;
+            }
+
             const stream = await this._apiClient.helix.streams.getStreamByUserName(TWITCH_USER_ID.SLAURENT);
             if (!stream) {
-                context.say("Stream is offline");
+                context.say("Stream is live, but I failed to fetch stream data :(");
                 return;
             }
 
