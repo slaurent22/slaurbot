@@ -18,6 +18,8 @@ export interface TwitchEventManagerConfig {
     discordClient: DiscordClient;
 }
 
+const MIN_MESSAGE_LENGTH_TO_TRIGGER_UWUIFIER = 15;
+
 export class TwitchEventManager {
     private _apiClient: ApiClient;
     private _chatClient: ChatClient;
@@ -69,7 +71,7 @@ export class TwitchEventManager {
     }
 
     public async listen(app: ConnectCompatibleApp): Promise<void> {
-        this._initChatActions();
+        this._initRandomUwuification();
 
         await this._commandManager.listen();
         await this._webHookManager.listen(app);
@@ -183,13 +185,29 @@ export class TwitchEventManager {
         ];
     }
 
-    private _initChatActions() {
+    private _initRandomUwuification() {
         const {
             UWU_PERCENT,
         } = getEnv();
-        this._chatClient.onMessage((channel, user, message) => {
-            if (Math.random() * 100 < UWU_PERCENT && message.length > 15) {
-                const response = this._uwuifier.uwuifySentence(message);
+        this._chatClient.onMessage((channel, user, _message) => {
+            if (Math.random() * 100 > UWU_PERCENT) {
+                return;
+            }
+
+            const message = _message.trim();
+            this._logger.info(`[uwuify] has chosen: ${message}`);
+
+            if (message.length < MIN_MESSAGE_LENGTH_TO_TRIGGER_UWUIFIER) {
+                this._logger.info("[uwuify] message is too short, dropping");
+                return;
+            }
+
+            if (Math.random() * 100 < UWU_PERCENT) {
+                const response = this._uwuifier.uwuifySentence(message).trim();
+                if (message === response) {
+                    this._logger.info("[uwuify] message === response, dropping");
+                    return;
+                }
                 this._chatClient.say(channel, response);
             }
         });
