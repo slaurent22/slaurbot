@@ -268,6 +268,11 @@ export class TwitchCommandManager {
             if (enabled) {
                 this._simpleTwitchBot.addCommand(command, (_params, _context) => {
                     _context.say(message);
+                }, {
+                    cooldown: {
+                        time: 4000,
+                        reply: false,
+                    },
                 });
             }
             else {
