@@ -3,6 +3,7 @@ import type { BotCommand, BotCommandMatch } from "easy-twitch-bot";
 import { BotCommandContext, createBotCommand } from "easy-twitch-bot";
 import type { Logger } from "@d-fischer/logger";
 import { getLogger } from "../util/logger";
+import { refreshed } from "../util/time-util";
 
 export interface SimpleTwitchBotConfig {
     chatClient: ChatClient;
@@ -20,15 +21,11 @@ export interface CommandPermissions {
 }
 
 export interface CommandOptions {
-    cooldown?: number;
+    cooldown?: {
+        time: number;
+        reply: boolean;
+    };
     permissions?: CommandPermissions;
-}
-
-function refreshed(lastUse: Date|undefined, cooldownMs: number) {
-    if (!lastUse) {
-        return true;
-    }
-    return Number(new Date()) - Number(lastUse) > cooldownMs;
 }
 
 export class SimpleTwitchBot {
@@ -111,9 +108,11 @@ export class SimpleTwitchBot {
             }
             if (options.cooldown) {
                 const commandLastUsed = this._commandLastUsed.get(commandName);
-                const isRefreshed = refreshed(commandLastUsed, options.cooldown);
+                const isRefreshed = refreshed(commandLastUsed, options.cooldown.time);
                 if (!isRefreshed) {
-                    context.say(`@${userDisplayName}, ${commandName} is still on cooldown`);
+                    if (options.cooldown.reply) {
+                        context.say(`@${userDisplayName}, ${commandName} is still on cooldown`);
+                    }
                     return;
                 }
                 this._commandLastUsed.set(commandName, new Date());

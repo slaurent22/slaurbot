@@ -127,7 +127,10 @@ export class TwitchCommandManager {
 
             context.say(precept);
         }, {
-            cooldown: 3000,
+            cooldown: {
+                time: 3000,
+                reply: true,
+            },
         });
 
         this._simpleTwitchBot.addCommand("!so", async(params, context) => {
@@ -172,7 +175,10 @@ export class TwitchCommandManager {
             context.say(msg);
 
         }, {
-            cooldown: 1000,
+            cooldown: {
+                time: 1000,
+                reply: true,
+            },
             permissions: {
                 broadcaster: true,
                 founder: false,
@@ -199,7 +205,10 @@ export class TwitchCommandManager {
             const durationEnglish = durationInEnglish(duration);
             context.say(`Stream has been live for ${durationEnglish}`);
         }, {
-            cooldown: 1000,
+            cooldown: {
+                time: 1000,
+                reply: false,
+            },
         });
 
         this._simpleTwitchBot.addCommand("!refreshCommands", async(params, context) => {
@@ -242,7 +251,10 @@ export class TwitchCommandManager {
                 context.say(response);
             }
         }, {
-            cooldown: 3000,
+            cooldown: {
+                time: 3000,
+                reply: true,
+            },
         });
 
     }
