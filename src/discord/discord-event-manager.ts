@@ -10,10 +10,13 @@ import type {
 import {
     DISCORD_CHANNEL_ID,
     DISCORD_MESSAGE_ID,
+    DISCORD_ROLE_ID,
     DISCORD_ROLE_REACT_MAP,
-    DISCORD_USER_ID
+    DISCORD_USER_ID,
+    STREAMING_MEMBERS_COOLDOWN
 } from "../util/constants";
 import { getLogger } from "../util/logger";
+import { refreshed } from "../util/time-util";
 import type { DiscordNotifier } from "./discord-notifier";
 
 interface DiscordEventManagerConfig {
@@ -45,6 +48,8 @@ export class DiscordEventManager {
     private _discordNotifier: DiscordNotifier;
     private _guild: Guild;
     private _logger;
+    // TODO: This cooldown breaks if the bot reboots between presence updates. Use redis cache.
+    private _membersStreamingCooldown = new Map<string, Date>();
 
     constructor({
         discordClient,
@@ -109,19 +114,31 @@ export class DiscordEventManager {
             return;
         }
 
-        if (!newStreamingAcivity) {
+        if (!newStreamingAcivity || !newStreamingAcivity.url) {
+            this._logger.info("User is no longer streaming");
             return;
         }
 
-        if (!newStreamingAcivity.url) {
+        const previousMesageDate = this._membersStreamingCooldown.get(user.id);
+        if (previousMesageDate && !refreshed(previousMesageDate, STREAMING_MEMBERS_COOLDOWN)) {
+            await this._discordNotifier.sendJSONToTestChannel({
+                note: `Ignoring streaming update from ${user.id} due to cooldown`,
+                previousMesageDate,
+            });
+            await this._discordNotifier.notifyTestChannel({
+                content: `<@&${DISCORD_ROLE_ID.ADMIN}>`,
+            });
             return;
         }
+
+        const guildMember = await this._guild.members.fetch(user);
 
         const message = {
-            content: `${user.username} is streaming at ${newStreamingAcivity.url}`,
+            content: `${guildMember.displayName} is streaming at ${newStreamingAcivity.url}`,
         };
 
         await this._discordNotifier.notifyStreamingMembersChannel(message);
+        this._membersStreamingCooldown.set(user.id, new Date());
     }
 
     private async _awaitReactions() {
