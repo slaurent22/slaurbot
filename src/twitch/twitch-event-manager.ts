@@ -202,14 +202,12 @@ export class TwitchEventManager {
                 return;
             }
 
-            if (Math.random() * 100 < UWU_PERCENT) {
-                const response = this._uwuifier.uwuifySentence(message).trim();
-                if (message === response) {
-                    this._logger.info("[uwuify] message === response, dropping");
-                    return;
-                }
-                this._chatClient.say(channel, response);
+            const response = this._uwuifier.uwuifySentence(message).trim();
+            if (message === response) {
+                this._logger.info("[uwuify] message === response, dropping");
+                return;
             }
+            this._chatClient.say(channel, response);
         });
     }
 }
