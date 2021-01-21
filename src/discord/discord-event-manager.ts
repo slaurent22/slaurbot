@@ -7,10 +7,10 @@ import type {
     Presence,
     User as DiscordUser
 } from "discord.js";
+import humanizeDuration from "humanize-duration";
 import {
     DISCORD_CHANNEL_ID,
     DISCORD_MESSAGE_ID,
-    DISCORD_ROLE_ID,
     DISCORD_ROLE_REACT_MAP,
     DISCORD_USER_ID,
     STREAMING_MEMBERS_COOLDOWN
@@ -80,11 +80,6 @@ export class DiscordEventManager {
 
         this._discordClient.on("userUpdate", (oldUser, newUser) => {
             this._logger.debug("userUpdate: " + newUser.id);
-            void this._discordNotifier.sendJSONToTestChannel({
-                userUpdate: {
-                    oldUser, newUser,
-                },
-            });
         });
 
         this._discordClient.on("presenceUpdate", this._onPresenceUpdate.bind(this));
@@ -95,14 +90,14 @@ export class DiscordEventManager {
     private async _onPresenceUpdate(oldPresence: Presence|undefined, newPresence: Presence) {
         const user = newPresence.user;
         if (!user) {
-            this._logger.error("Presence event received without user");
+            this._logger.error("[presence] presenceUpdate event received without newPresence.user");
             return;
         }
 
-        this._logger.info(`presence update for user id: ${user.id}`);
+        this._logger.info(`[presence] presenceUpdate user: ${user.tag}`);
 
         if (user.id === DISCORD_USER_ID.SLAURENT) {
-            this._logger.info("Ignoring presence update from slaurent");
+            this._logger.info("[presence] ignoring presence update from slaurent");
             return;
         }
 
@@ -110,23 +105,22 @@ export class DiscordEventManager {
         const newStreamingAcivity = getStreamingActivity(newPresence);
 
         if (oldStreamingAcivity) {
-            this._logger.info("User was already streaming");
+            this._logger.info(`[presence] ${user.tag} was already streaming`);
             return;
         }
 
         if (!newStreamingAcivity || !newStreamingAcivity.url) {
-            this._logger.info("User is no longer streaming");
+            this._logger.info(`[presence] ${user.tag} is no longer streaming`);
             return;
         }
 
         const previousMesageDate = this._membersStreamingCooldown.get(user.id);
         if (previousMesageDate && !refreshed(previousMesageDate, STREAMING_MEMBERS_COOLDOWN)) {
-            await this._discordNotifier.sendJSONToTestChannel({
-                note: `Ignoring streaming update from ${user.id} due to cooldown`,
-                previousMesageDate,
-            });
+            // eslint-disable-next-line max-len
+            this._logger.info(`[presence] ${user.tag} was already broadcasted to #streaming-members within the past ${humanizeDuration(STREAMING_MEMBERS_COOLDOWN)}`);
             await this._discordNotifier.notifyTestChannel({
-                content: `<@&${DISCORD_ROLE_ID.ADMIN}>`,
+                // eslint-disable-next-line max-len
+                content: `Ignoring streaming update from ${user.id} due to cooldown (last triggered ${String(previousMesageDate)})`,
             });
             return;
         }
