@@ -1,11 +1,7 @@
 node_modules
 dist/
+src/localtest/
 .env*
 tokens.json
-src/test/redis-test.ts
-src/test/bot-test.ts
-src/test/discord-test.ts
 discord-cache.json
-src/test/ext.d.ts
-src/test/index-test.ts
 .vscode/
