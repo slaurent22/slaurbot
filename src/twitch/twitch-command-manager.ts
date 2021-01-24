@@ -228,7 +228,7 @@ export class TwitchCommandManager {
             const user = context.msg.userInfo;
             const userDisplayName = user.displayName;
             if (params.length === 0) {
-                context.say(`@${userDisplayName} give me something t-to uwuify, siwwy *looks at you*`);
+                context.say(`@${userDisplayName} give me some text, for example: "!uwuify I love slaurbot" `);
                 return;
             }
             const sentence = params.join(" ").trim();
@@ -242,17 +242,10 @@ export class TwitchCommandManager {
                 context.say(`@${userDisplayName} the uwuified result exceeds the Twitch character limit of ${TWITCH_CHARACTER_LIMIT}; I'll post as much as I can.`);
                 response = response.slice(0, TWITCH_CHARACTER_LIMIT - 1);
             }
-
-            const isSame = sentence === response;
-            if (isSame) {
-                context.say("uwuified was same as original, sowwy");
-            }
-            else {
-                context.say(response);
-            }
+            context.say(response);
         }, {
             cooldown: {
-                time: 3000,
+                time: 4000,
                 reply: true,
             },
         });
