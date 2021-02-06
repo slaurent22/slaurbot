@@ -11,6 +11,7 @@ import humanizeDuration from "humanize-duration";
 import {
     DISCORD_CHANNEL_ID,
     DISCORD_MESSAGE_ID,
+    DISCORD_ROLE_ID,
     DISCORD_ROLE_REACT_MAP,
     DISCORD_USER_ID,
     STREAMING_MEMBERS_COOLDOWN
@@ -110,9 +111,12 @@ export class DiscordEventManager {
         }
 
         if (!newStreamingAcivity || !newStreamingAcivity.url) {
-            this._logger.info(`[presence] ${user.tag} is no longer streaming`);
+            this._logger.info(`[presence] ${user.tag} is not streaming`);
+            await this._removeRoleFromUser(DISCORD_ROLE_ID.STREAMING, user);
             return;
         }
+
+        await this._addRoleToUser(DISCORD_ROLE_ID.STREAMING, user);
 
         const previousMesageDate = this._membersStreamingCooldown.get(user.id);
         if (previousMesageDate && !refreshed(previousMesageDate, STREAMING_MEMBERS_COOLDOWN)) {
@@ -159,9 +163,7 @@ export class DiscordEventManager {
             this._logger.warn("No role for this reaction");
             return;
         }
-        const guildMember = await this._guild.members.fetch(user);
-        await guildMember.roles.add(role);
-        this._logger.info(`Added role ${role} for ${user.tag}`);
+        return this._addRoleToUser(role, user);
     }
 
     private async _onReactRemove(reaction: MessageReaction, user: DiscordUser) {
@@ -171,8 +173,30 @@ export class DiscordEventManager {
             this._logger.warn("No role for this reaction");
             return;
         }
-        const guildMember = await this._guild.members.fetch(user);
-        await guildMember.roles.remove(role);
-        this._logger.info(`Removed role ${role} for ${user.tag}`);
+        return this._removeRoleFromUser(role, user);
+    }
+
+    private async _addRoleToUser(role: string, user: DiscordUser) {
+        try {
+            const guildMember = await this._guild.members.fetch(user);
+            await guildMember.roles.add(role);
+            this._logger.info(`Added role ${role} for ${user.tag}`);
+        }
+        catch (e) {
+            this._logger.error(`Adding role ${role} for ${user.tag} FAILED`);
+            this._logger.error(e);
+        }
+    }
+
+    private async _removeRoleFromUser(role: string, user: DiscordUser) {
+        try {
+            const guildMember = await this._guild.members.fetch(user);
+            await guildMember.roles.remove(role);
+            this._logger.info(`Removed role ${role} for ${user.tag}`);
+        }
+        catch (e) {
+            this._logger.error(`Removing role ${role} for ${user.tag} FAILED`);
+            this._logger.error(e);
+        }
     }
 }
