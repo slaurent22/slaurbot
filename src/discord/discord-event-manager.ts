@@ -1,3 +1,4 @@
+import { Logger } from "@d-fischer/logger/lib";
 import assert from "assert";
 import type {
     Activity,
@@ -105,14 +106,29 @@ export class DiscordEventManager {
         const oldStreamingAcivity = getStreamingActivity(oldPresence);
         const newStreamingAcivity = getStreamingActivity(newPresence);
 
-        if (oldStreamingAcivity) {
-            this._logger.info(`[presence] ${user.tag} was already streaming`);
+        // still not streaming
+        if (!oldStreamingAcivity && !newStreamingAcivity) {
+            // no need to log this case
             return;
         }
 
-        if (!newStreamingAcivity || !newStreamingAcivity.url) {
-            this._logger.info(`[presence] ${user.tag} is not streaming`);
+        // still streaming
+        if (oldStreamingAcivity && newStreamingAcivity) {
+            this._logger.info(`[presence] ${user.id} ${user.tag} is still streaming`);
+            return;
+        }
+
+        // stopped streaming
+        if (oldStreamingAcivity && !newStreamingAcivity) {
+            this._logger.info(`[presence] ${user.id} ${user.tag} is no longer streaming`);
             await this._removeRoleFromUser(DISCORD_ROLE_ID.STREAMING, user);
+            return;
+        }
+
+        assert(newStreamingAcivity, `[presence] ${user.id} if newStreamingAcivity is null, logic is broken`);
+
+        if (!newStreamingAcivity.url) {
+            this._logger.info(`[presence] ${user.id} ${user.tag} is streaming, but without a url`);
             return;
         }
 
