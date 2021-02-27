@@ -128,8 +128,8 @@ export class TwitchCommandManager {
             context.say(precept);
         }, {
             cooldown: {
-                time: 3000,
-                reply: true,
+                time: 10000,
+                reply: false,
             },
         });
 
