@@ -202,6 +202,11 @@ export class TwitchEventManager {
                 return;
             }
 
+            if (message.startsWith("!")) {
+                this._logger.info("[uwuify] message starts with '!', dropping");
+                return;
+            }
+
             const response = this._uwuifier.uwuifySentence(message).trim();
             if (message === response) {
                 this._logger.info("[uwuify] message === response, dropping");
