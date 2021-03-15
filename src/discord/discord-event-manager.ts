@@ -1,4 +1,3 @@
-import { Logger } from "@d-fischer/logger/lib";
 import assert from "assert";
 import type {
     Activity,
