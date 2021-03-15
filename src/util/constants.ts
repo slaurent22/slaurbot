@@ -370,6 +370,7 @@ export const DISCORD_ROLE_ID = Object.freeze({
     SHE_HER: "781328238379008080",
     THEY_THEM: "781328277771386960",
     STREAMING: "807079754766221313",
+    STREAM_PING: "821068103454687283",
 });
 
 export const DISCORD_MESSAGE_ID = Object.freeze({
@@ -383,7 +384,8 @@ export const DISCORD_USER_ID = Object.freeze({
 export const DISCORD_ROLE_REACT_MAP = new Map<string, string>([
     ["⚧", DISCORD_ROLE_ID.THEY_THEM],
     ["♀️", DISCORD_ROLE_ID.SHE_HER],
-    ["♂️", DISCORD_ROLE_ID.HE_HIM]
+    ["♂️", DISCORD_ROLE_ID.HE_HIM],
+    ["🎺", DISCORD_ROLE_ID.STREAM_PING]
 ]) as Readonly<Map<string, string>>;
 
 

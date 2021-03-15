@@ -3,7 +3,7 @@ import type { ConnectCompatibleApp } from "twitch-webhooks";
 import { EnvPortAdapter, WebHookListener } from "twitch-webhooks";
 import type { ApiClient, HelixStream } from "twitch/lib";
 import type { Logger } from "@d-fischer/logger";
-import { TWITCH_STREAM_TITLE_DIRECTIVE_NOPING, TWITCH_USER_ID } from "../util/constants";
+import { DISCORD_ROLE_ID, TWITCH_STREAM_TITLE_DIRECTIVE_NOPING, TWITCH_USER_ID } from "../util/constants";
 import { getEnv } from "../util/env";
 import { getLogger } from "../util/logger";
 import { getTwitchOfflineEmbed, getTwitchStreamEmbed } from "../discord/discord-embed";
@@ -144,8 +144,9 @@ export class TwitchWebHookManager {
                     });
                 }
                 else if (wentOnline(previousStatus, currentStatus)) {
+                    const pingRole = DISCORD_ROLE_ID.STREAM_PING;
                     await this._discordNotifier.notifyStreamStatusChannel({
-                        content: `@everyone ${userName} went live!`,
+                        content: `<@&${pingRole}> ${userName} went live!`,
                         embed: getTwitchStreamEmbed({
                             title: stream.title,
                             gameName,
