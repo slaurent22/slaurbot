@@ -70,3 +70,42 @@ export function getTwitchOfflineEmbed({
         .setFooter("Stream went offline")
         .setTimestamp(startDate);
 }
+
+export function getGuildMemberStreamingEmbed(
+    guildMember: Discord.GuildMember,
+    streamingActivity: Discord.Activity): Discord.MessageEmbed {
+
+    const displayName = guildMember.displayName;
+    const details = streamingActivity.details;
+    const url = streamingActivity.url;
+    const state = streamingActivity.state;
+
+    const largeImageUrl = streamingActivity.assets?.largeImageURL();
+    const smallImageURL = streamingActivity.assets?.smallImageURL();
+
+    const embed = new Discord.MessageEmbed()
+        .setTimestamp(new Date())
+        .setAuthor(displayName);
+
+    if (details) {
+        embed.setTitle(details);
+    }
+
+    if (url) {
+        embed.setURL(url);
+    }
+
+    if (largeImageUrl) {
+        embed.setImage(largeImageUrl);
+    }
+
+    if (smallImageURL) {
+        embed.setThumbnail(smallImageURL);
+    }
+
+    if (state) {
+        embed.setFooter(state);
+    }
+
+    return embed;
+}

@@ -7,6 +7,7 @@ import type {
     Presence,
     User as DiscordUser
 } from "discord.js";
+import Discord from "discord.js";
 import humanizeDuration from "humanize-duration";
 import {
     DISCORD_CHANNEL_ID,
@@ -18,6 +19,7 @@ import {
 } from "../util/constants";
 import { getLogger } from "../util/logger";
 import { refreshed } from "../util/time-util";
+import { getGuildMemberStreamingEmbed } from "./discord-embed";
 import type { DiscordNotifier } from "./discord-notifier";
 
 interface DiscordEventManagerConfig {
@@ -145,9 +147,14 @@ export class DiscordEventManager {
         }
 
         const guildMember = await this._guild.members.fetch(user);
+        const embed = getGuildMemberStreamingEmbed(guildMember, newStreamingAcivity);
+        const displayName = guildMember.displayName;
+        const details = newStreamingAcivity.details;
+        const detailsDisplay = details ? ` **${details}**` : "";
 
         const message = {
-            content: `${guildMember.displayName} is streaming at ${newStreamingAcivity.url}`,
+            content: `${displayName} is streaming${detailsDisplay}`,
+            embed,
         };
 
         await this._discordNotifier.notifyStreamingMembersChannel(message);
