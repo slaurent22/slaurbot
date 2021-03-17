@@ -40,12 +40,16 @@ function randomNumber(min: number, max: number): number {
     return Math.floor(r);
 }
 
+function getEmbedImageUrl(imageUrl: string): string {
+    return `${imageUrl}?r=${randomNumber(11111, 99999)}`;
+}
+
 export function getTwitchStreamEmbed({
     title, startDate, gameName, thumbnailUrl, boxArtUrl,
 }: TwitchStreamEmbedConfig): Discord.MessageEmbed {
     const embedThumbnail = boxArtUrl ? boxArtUrl.replace("{width}", "188").replace("{height}", "250") : TWITCH_ICON_URL;
     const embedImage = thumbnailUrl.replace("{width}", "440").replace("{height}", "248");
-    const embedImageUrl = `${embedImage}?r=${randomNumber(11111, 99999)}`;
+    const embedImageUrl = getEmbedImageUrl(embedImage);
     return new Discord.MessageEmbed()
         .setColor(EMBED_COLOR)
         .setTitle(title)
@@ -96,11 +100,11 @@ export function getGuildMemberStreamingEmbed(
     }
 
     if (largeImageUrl) {
-        embed.setImage(largeImageUrl);
+        embed.setImage(getEmbedImageUrl(largeImageUrl));
     }
 
     if (smallImageURL) {
-        embed.setThumbnail(smallImageURL);
+        embed.setThumbnail(getEmbedImageUrl(smallImageURL));
     }
 
     if (state) {
