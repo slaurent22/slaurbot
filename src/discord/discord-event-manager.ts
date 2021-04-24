@@ -7,7 +7,6 @@ import type {
     Presence,
     User as DiscordUser
 } from "discord.js";
-import Discord from "discord.js";
 import humanizeDuration from "humanize-duration";
 import {
     DISCORD_CHANNEL_ID,

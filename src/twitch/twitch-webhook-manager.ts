@@ -107,6 +107,7 @@ export class TwitchWebHookManager {
             };
             this._logger.info(JSON.stringify(streamStatusData));
             if (stream) {
+                const channel = await this._apiClient.kraken.channels.getChannel(stream.userId);
                 const game = await stream.getGame();
                 const gameName = game ? game.name : "<unknown game>";
                 const streamData = {
@@ -126,6 +127,7 @@ export class TwitchWebHookManager {
                         name: gameName,
                         boxArtUrl: game ? game.boxArtUrl : "<unknown url>",
                     },
+                    channel,
                 };
                 this._logger.info(JSON.stringify(streamData));
                 await this._discordNotifier.sendJSONToTestChannel(streamData);
@@ -140,6 +142,7 @@ export class TwitchWebHookManager {
                             startDate: stream.startDate,
                             thumbnailUrl: stream.thumbnailUrl,
                             boxArtUrl: null,
+                            logo: channel.logo,
                         }),
                     });
                 }
@@ -153,6 +156,7 @@ export class TwitchWebHookManager {
                             startDate: stream.startDate,
                             thumbnailUrl: stream.thumbnailUrl,
                             boxArtUrl: game ? game.boxArtUrl : null,
+                            logo: channel.logo,
                         }),
                     });
                 }
