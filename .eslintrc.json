@@ -44,6 +44,11 @@
         "@typescript-eslint/no-unused-vars": ["error"],
         "@typescript-eslint/no-use-before-define": "error",
         "@typescript-eslint/quotes": ["error","double"],
+        "@typescript-eslint/restrict-template-expressions": ["error", {
+            "allowNumber": true,
+            "allowBoolean": true,
+            "allowNullish": true
+          }],
         "@typescript-eslint/semi": ["error","always"],
         "@typescript-eslint/space-before-function-paren": ["error", "never"],
         "@typescript-eslint/space-infix-ops": "error",

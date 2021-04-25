@@ -95,7 +95,7 @@ export class TwitchWebHookManager {
             content: "Initial stream status: `" + initialStatus + "`",
         });
 
-        await this._listener.subscribeToStreamChanges(userId, async(stream?: HelixStream) => {
+        const subscription = await this._listener.subscribeToStreamChanges(userId, async(stream?: HelixStream) => {
             this._logger.info("Stream Change:" + JSON.stringify(stream));
             const previousStatus = await getCachedTwitchStreamStatus();
             const currentStatus = getStreamStatus(stream);
@@ -172,6 +172,20 @@ export class TwitchWebHookManager {
             await writeTwitchStreamStatusToCache(currentStatus);
             await this._discordNotifier.sendJSONToTestChannel(streamStatusData);
         });
+
+        const {
+            id,
+            verified,
+        } = subscription;
+
+        this._logger.info(`[${id}] [verified:${verified}]`);
+
+        await this._discordNotifier.notifyTestChannel({
+            content: verified ?
+                "stream subscription is verified!" :
+                `<@&${DISCORD_ROLE_ID.ADMIN}> stream subscription is unverified`,
+        });
+
     }
 
     private async _subscribeToFollowsToUser({
