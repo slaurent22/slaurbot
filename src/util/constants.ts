@@ -356,6 +356,8 @@ export const REST_API_URLS = Object.freeze({
     },
 });
 
+export const DISCORD_CHARACTER_LIMIT = 2000;
+
 export const DISCORD_CHANNEL_ID = Object.freeze({
     TEST: "781393866200842242",
     STREAM_STATUS: "784103728994189332",

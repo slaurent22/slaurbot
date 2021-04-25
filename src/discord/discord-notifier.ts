@@ -1,6 +1,9 @@
 import type { Logger } from "@d-fischer/logger";
 import type { Client as DiscordClient, Channel as DiscordChannel, MessageEmbed } from "discord.js";
-import { DISCORD_CHANNEL_ID } from "../util/constants";
+import {
+    DISCORD_CHANNEL_ID,
+    DISCORD_CHARACTER_LIMIT
+} from "../util/constants";
 import { getLogger } from "../util/logger";
 
 interface DiscordNotifierConfig {
@@ -60,7 +63,7 @@ export class DiscordNotifier {
     }
 
     public async sendJSONToTestChannel<T>(obj: T): Promise<void> {
-        const stringified = JSON.stringify(obj, null, 4);
+        const stringified = JSON.stringify(obj, null, 2).substr(0, DISCORD_CHARACTER_LIMIT - 8);
         const content = "```\n" + stringified + "\n```";
         await this.notifyTestChannel({ content, });
     }
