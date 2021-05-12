@@ -149,7 +149,7 @@ export class TwitchWebHookManager {
                 else if (wentOnline(previousStatus, currentStatus)) {
                     const pingRole = DISCORD_ROLE_ID.STREAM_PING;
                     await this._discordNotifier.notifyStreamStatusChannel({
-                        content: `<@&${pingRole}> ${userName} went live!`,
+                        content: `<@&${pingRole}> ${userName} is streaming ${gameName}!`,
                         embed: getTwitchStreamEmbed({
                             title: stream.title,
                             gameName,

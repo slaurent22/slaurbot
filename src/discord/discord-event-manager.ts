@@ -148,11 +148,11 @@ export class DiscordEventManager {
         const guildMember = await this._guild.members.fetch(user);
         const embed = getGuildMemberStreamingEmbed(guildMember, newStreamingAcivity);
         const displayName = guildMember.displayName;
-        const details = newStreamingAcivity.details;
-        const detailsDisplay = details ? ` **${details}**` : "";
+        const state = newStreamingAcivity.state;
+        const stateDisplay = state ? ` **${state}**` : "";
 
         const message = {
-            content: `${displayName} is streaming${detailsDisplay}`,
+            content: `${displayName} is streaming${stateDisplay}`,
             embed,
         };
 

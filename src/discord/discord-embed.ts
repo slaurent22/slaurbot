@@ -46,7 +46,6 @@ function getEmbedImageUrl(imageUrl: string): string {
 
 export function getTwitchStreamEmbed({
     boxArtUrl,
-    gameName,
     logo,
     startDate,
     thumbnailUrl,
@@ -62,9 +61,6 @@ export function getTwitchStreamEmbed({
         .setURL(TWITCH_URL)
         .setAuthor(EMBED_AUTHOR, logo, TWITCH_URL)
         .setThumbnail(embedThumbnail)
-        .addFields(
-            { name: "Game", value: gameName, }
-        )
         .setImage(embedImageUrl)
         .setTimestamp(startDate);
 }
