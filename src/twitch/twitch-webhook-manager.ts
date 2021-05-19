@@ -1,5 +1,5 @@
 import type { ChatClient } from "twitch-chat-client/lib";
-import type { ConnectCompatibleApp } from "twitch-webhooks";
+import type { ConnectCompatibleApp, Subscription } from "twitch-webhooks";
 import { EnvPortAdapter, WebHookListener } from "twitch-webhooks";
 import type { ApiClient, HelixStream } from "twitch/lib";
 import type { Logger } from "@d-fischer/logger";
@@ -174,23 +174,7 @@ export class TwitchWebHookManager {
             await this._discordNotifier.sendJSONToTestChannel(streamStatusData);
         });
 
-        const VERIFICATION_TIMEOUT_SECONDS = 60;
-        setTimeout(async() => {
-            const {
-                id,
-                verified,
-            } = subscription;
-
-            this._logger.info(`[${id}] stream subscription verified:${verified}`);
-
-            await this._discordNotifier.notifyTestChannel({
-                content: verified ?
-                    // eslint-disable-next-line max-len
-                    `<@&${DISCORD_ROLE_ID.ADMIN}> stream subscription is **VERIFIED** after ${VERIFICATION_TIMEOUT_SECONDS} seconds` :
-                    // eslint-disable-next-line max-len
-                    `<@&${DISCORD_ROLE_ID.ADMIN}> **WARNING**: stream subscription is **UNVERIFIED** after ${VERIFICATION_TIMEOUT_SECONDS} seconds`,
-            });
-        }, 1000 * VERIFICATION_TIMEOUT_SECONDS);
+        this._verifySubscription(subscription);
     }
 
     private async _subscribeToFollowsToUser({
@@ -199,7 +183,7 @@ export class TwitchWebHookManager {
         userId: string;
         userName: string;
     }): Promise<void> {
-        await this._listener.subscribeToFollowsToUser(userId, (follow) => {
+        const subscription = await this._listener.subscribeToFollowsToUser(userId, (follow) => {
             this._logger.info("Follow:" + JSON.stringify(follow));
             if (this._thankedFollowers.has(follow.userId)) {
                 this._logger.warn("User has already been thanked; returning.");
@@ -208,5 +192,27 @@ export class TwitchWebHookManager {
             this._chatClient.say(userName, `@${follow.userDisplayName} thank you for the follow!`);
             this._thankedFollowers.add(follow.userId);
         });
+
+        this._verifySubscription(subscription);
+    }
+
+    private _verifySubscription(subscription: Subscription) {
+        const VERIFICATION_TIMEOUT_SECONDS = 60;
+        setTimeout(async() => {
+            const {
+                id,
+                verified,
+            } = subscription;
+
+            this._logger.info(`[${id}] subscription verified:${verified}`);
+
+            const content = verified ?
+                `[${id}] **INFO** subscription is verified after ${VERIFICATION_TIMEOUT_SECONDS} seconds` :
+                `[${id}] **WARNING**: subscription is **UNVERIFIED** after ${VERIFICATION_TIMEOUT_SECONDS} seconds`;
+
+            await this._discordNotifier.notifyTestChannel({
+                content,
+            });
+        }, 1000 * VERIFICATION_TIMEOUT_SECONDS);
     }
 }
