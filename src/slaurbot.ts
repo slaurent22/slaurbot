@@ -1,6 +1,6 @@
 import type { AuthProvider } from "twitch-auth";
 import { RefreshableAuthProvider, StaticAuthProvider } from "twitch-auth";
-import { ChatClient, LogLevel } from "twitch-chat-client";
+import { ChatClient } from "twitch-chat-client";
 import { ApiClient } from "twitch";
 import type { ConnectCompatibleApp } from "twitch-webhooks/lib";
 import type { Client as DiscordClient } from "discord.js";
