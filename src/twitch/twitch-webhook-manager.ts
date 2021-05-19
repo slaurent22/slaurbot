@@ -51,13 +51,14 @@ export class TwitchWebHookManager {
         this._apiClient = apiClient;
         this._chatClient = chatClient;
         this._discordNotifier = discordNotifier;
+        const { LOG_LEVEL, } = getEnv();
         this._listener = new WebHookListener(this._apiClient, new EnvPortAdapter({
             hostName: "slaurbot.herokuapp.com",
         }), {
             logger: {
                 name: "twitch-webhook-listener",
                 timestamps: true,
-                minLevel: "DEBUG",
+                minLevel: LOG_LEVEL,
                 colors: false,
             },
         });

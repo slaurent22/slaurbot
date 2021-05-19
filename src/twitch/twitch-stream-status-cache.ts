@@ -13,7 +13,7 @@ export enum TwitchStreamStatus {
 const TWITCH_STREAM_STATUS_KEY = "twitchStreamStatus";
 
 const logger = getLogger({
-    name: "slaurebot-twitch-stream-status-cache",
+    name: "slaurbot-twitch-stream-status-cache",
 });
 
 function isValidTwitchStreamStatus(status: string|null): status is TwitchStreamStatus {
@@ -58,5 +58,3 @@ export async function fetchTwitchStreamUpdateCache({
 
 
 }
-
-

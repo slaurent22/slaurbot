@@ -90,9 +90,9 @@ export class DiscordChannelDataStore {
         const messageCollection = await messages.fetch({}, false, true);
         return messageCollection.mapValues(message => {
             const { content, } = message;
-            this._logger.info(`msg content: ${content}`);
+            this._logger.debug(`msg content: ${content}`);
             const parsedContent = parseMessageContent(this._dbSpec, content);
-            this._logger.info(`parsed: ${parsedContent.join(" ")}`);
+            this._logger.debug(`parsed: ${parsedContent.join(" ")}`);
             return parsedContent;
         });
     }

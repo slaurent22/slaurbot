@@ -46,7 +46,7 @@ export async function createDiscordClientImp(resolve: ((dc: DiscordClient) => vo
 
     client.on("message", message => {
         // eslint-disable-next-line max-len
-        logger.debug(`[DISCORD MSG] USER:'${message.author.id}' CHANNEL:'${message.channel.id}' CONTENT:'${message.content}'`);
+        logger.info(`[DISCORD MSG] USER:'${message.author.id}' CHANNEL:'${message.channel.id}' CONTENT:'${message.content}'`);
         if (message.content === "!ping") {
             void message.channel.send("pong!");
         }
@@ -55,7 +55,7 @@ export async function createDiscordClientImp(resolve: ((dc: DiscordClient) => vo
     client.on("messageUpdate", (oldMessage, newMessage) => {
         const userId = newMessage.author ? newMessage.author.id : "unknown";
         // eslint-disable-next-line max-len
-        logger.debug(`[DISCORD MSG UPDATE] USER:'${userId}' CHANNEL:'${newMessage.channel.id}' CONTENT:'${String(newMessage.content)}'`);
+        logger.info(`[DISCORD MSG UPDATE] USER:'${userId}' CHANNEL:'${newMessage.channel.id}' CONTENT:'${String(newMessage.content)}'`);
     });
 
     const {

@@ -96,7 +96,7 @@ export class DiscordEventManager {
             return;
         }
 
-        this._logger.info(`[presence] presenceUpdate user: ${user.tag}`);
+        this._logger.debug(`[presence] presenceUpdate user: ${user.tag}`);
 
         if (user.id === DISCORD_USER_ID.SLAURENT) {
             this._logger.info("[presence] ignoring presence update from slaurent");
@@ -137,7 +137,7 @@ export class DiscordEventManager {
         const previousMesageDate = this._membersStreamingCooldown.get(user.id);
         if (previousMesageDate && !refreshed(previousMesageDate, STREAMING_MEMBERS_COOLDOWN)) {
             // eslint-disable-next-line max-len
-            this._logger.info(`[presence] ${user.tag} was already broadcasted to #streaming-members within the past ${humanizeDuration(STREAMING_MEMBERS_COOLDOWN)}`);
+            this._logger.warn(`[presence] ${user.tag} was already broadcasted to #streaming-members within the past ${humanizeDuration(STREAMING_MEMBERS_COOLDOWN)}`);
             await this._discordNotifier.notifyTestChannel({
                 // eslint-disable-next-line max-len
                 content: `Ignoring streaming update from ${user.id} due to cooldown (last triggered ${String(previousMesageDate)})`,

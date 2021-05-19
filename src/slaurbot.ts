@@ -47,7 +47,7 @@ export function createBotConfig(tokenData: TokenData): TwitchBotConfig {
 
     const apiClient = new ApiClient({
         authProvider,
-        logLevel: LogLevel.DEBUG,
+        logLevel: env.LOG_LEVEL,
     });
 
     const chatClient = new ChatClient(authProvider, {
@@ -55,7 +55,7 @@ export function createBotConfig(tokenData: TokenData): TwitchBotConfig {
         logger: {
             name: "twitch-chat-client",
             timestamps: true,
-            minLevel: "DEBUG",
+            minLevel: env.LOG_LEVEL,
             colors: false,
         },
     });
