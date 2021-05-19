@@ -173,19 +173,23 @@ export class TwitchWebHookManager {
             await this._discordNotifier.sendJSONToTestChannel(streamStatusData);
         });
 
-        const {
-            id,
-            verified,
-        } = subscription;
+        const VERIFICATION_TIMEOUT_SECONDS = 60;
+        setTimeout(async() => {
+            const {
+                id,
+                verified,
+            } = subscription;
 
-        this._logger.info(`[${id}] [verified:${verified}]`);
+            this._logger.info(`[${id}] stream subscription verified:${verified}`);
 
-        await this._discordNotifier.notifyTestChannel({
-            content: verified ?
-                "stream subscription is verified!" :
-                `<@&${DISCORD_ROLE_ID.ADMIN}> stream subscription is unverified`,
-        });
-
+            await this._discordNotifier.notifyTestChannel({
+                content: verified ?
+                    // eslint-disable-next-line max-len
+                    `<@&${DISCORD_ROLE_ID.ADMIN}> stream subscription is **VERIFIED** after ${VERIFICATION_TIMEOUT_SECONDS} seconds` :
+                    // eslint-disable-next-line max-len
+                    `<@&${DISCORD_ROLE_ID.ADMIN}> **WARNING**: stream subscription is **UNVERIFIED** after ${VERIFICATION_TIMEOUT_SECONDS} seconds`,
+            });
+        }, 1000 * VERIFICATION_TIMEOUT_SECONDS);
     }
 
     private async _subscribeToFollowsToUser({
