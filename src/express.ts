@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 import fs from "fs/promises";
+import path from "path";
 import express from "express";
 import type { Express } from "express";
 import marked from "marked";
@@ -11,27 +12,34 @@ const logger = getLogger({
     name: "slaurbot-express",
 });
 
-async function getHTMLFromMarkdownFile(path: string): Promise<string> {
-    if (renderedMarkdownCache.has(path)) {
-        logger.debug(`RENDER '${path}': returning from render cache`);
-        return renderedMarkdownCache.get(path) as string;
+async function getHTMLFromMarkdownFile(filePath: string): Promise<string> {
+    if (renderedMarkdownCache.has(filePath)) {
+        logger.debug(`RENDER '${filePath}': returning from render cache`);
+        return renderedMarkdownCache.get(filePath) as string;
     }
     try {
-        logger.debug(`RENDER '${path}': reading file`);
-        const markdownSource = String(await fs.readFile(path));
+        logger.debug(`RENDER '${filePath}': reading file`);
+        const markdownSource = String(await fs.readFile(filePath));
         const rendered = marked(markdownSource);
-        renderedMarkdownCache.set(path, rendered);
+        renderedMarkdownCache.set(filePath, rendered);
         return rendered;
     }
     catch (e) {
-        const msg = `Failed to render ${path}`;
+        const msg = `Failed to render ${filePath}`;
         logger.debug(msg + String(e));
         return msg;
     }
 }
 
+function redirectDistFile(app: Express, filename: string): Express {
+    return app
+        .get(`/${filename}`, (req, res) => {
+            res.sendFile(path.join(__dirname, `/../src/hk-split-maker-dist/${filename}`));
+        });
+}
+
 export function createExpress(): Express {
-    return express()
+    const app = express()
         .get("/", async(req, res) => {
             const result = await getHTMLFromMarkdownFile("./src/web/index.md");
             res.send(result);
@@ -39,5 +47,14 @@ export function createExpress(): Express {
         .get("/commands", async(req, res) => {
             const result = await getHTMLFromMarkdownFile("./src/web/commands.md");
             res.send(result);
+        })
+        .get("/hk-split-maker", (req, res) => {
+            res.sendFile(path.join(__dirname, "/../src/hk-split-maker-dist/index.html"));
         });
+
+    redirectDistFile(app, "890.bundle.js");
+    redirectDistFile(app, "index.bundle.js");
+    redirectDistFile(app, "index.bundle.js.LICENSE.txt");
+
+    return app;
 }
