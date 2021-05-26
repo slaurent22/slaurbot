@@ -1,18 +1,13 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 import fs from "fs/promises";
-import path from "path";
 import express from "express";
 import type { Express } from "express";
 import marked from "marked";
-import { getLogger } from "./util/logger";
+import type { Logger } from "@d-fischer/logger";
 
 const renderedMarkdownCache = new Map<string, string>();
 
-const logger = getLogger({
-    name: "slaurbot-express",
-});
-
-async function getHTMLFromMarkdownFile(filePath: string): Promise<string> {
+async function getHTMLFromMarkdownFile(filePath: string, logger: Logger): Promise<string> {
     if (renderedMarkdownCache.has(filePath)) {
         logger.debug(`RENDER '${filePath}': returning from render cache`);
         return renderedMarkdownCache.get(filePath) as string;
@@ -31,30 +26,17 @@ async function getHTMLFromMarkdownFile(filePath: string): Promise<string> {
     }
 }
 
-function redirectDistFile(app: Express, filename: string): Express {
-    return app
-        .get(`/${filename}`, (req, res) => {
-            res.sendFile(path.join(__dirname, `/../src/hk-split-maker-dist/${filename}`));
-        });
-}
-
-export function createExpress(): Express {
+export function createExpress(logger: Logger): Express {
     const app = express()
         .get("/", async(req, res) => {
-            const result = await getHTMLFromMarkdownFile("./src/web/index.md");
+            const result = await getHTMLFromMarkdownFile("./src/web/index.md", logger);
             res.send(result);
         })
         .get("/commands", async(req, res) => {
-            const result = await getHTMLFromMarkdownFile("./src/web/commands.md");
+            const result = await getHTMLFromMarkdownFile("./src/web/commands.md", logger);
             res.send(result);
         })
-        .get("/hk-split-maker", (req, res) => {
-            res.sendFile(path.join(__dirname, "/../src/hk-split-maker-dist/index.html"));
-        });
-
-    redirectDistFile(app, "890.bundle.js");
-    redirectDistFile(app, "index.bundle.js");
-    redirectDistFile(app, "index.bundle.js.LICENSE.txt");
+        .use("/hk-split-maker/", express.static("./src/hk-split-maker-dist"));
 
     return app;
 }

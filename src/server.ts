@@ -25,7 +25,9 @@ async function botServer() {
         tokenData: twitchTokens,
     });
 
-    const app = createExpress();
+    const app = createExpress(getLogger({
+        name: "slaurbot-express",
+    }));
     app.listen(PORT, () => logger.info(`Express app listening on ${ PORT }`));
     await slaurbot.start(app);
 
