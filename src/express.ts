@@ -36,7 +36,9 @@ export function createExpress(logger: Logger): Express {
             const result = await getHTMLFromMarkdownFile("./src/web/commands.md", logger);
             res.send(result);
         })
-        .use("/hk-split-maker/", express.static("./src/hk-split-maker-dist"));
+        .get(/^\/hk-split-maker*/, (req, res) => {
+            res.redirect(301, "https://hksplitmaker.com/");
+        });
 
     return app;
 }
