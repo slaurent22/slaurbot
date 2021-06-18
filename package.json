@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@d-fischer/logger": "^2.1.1",
+    "deepequal": "0.0.1",
     "discord.js": "^12.5.1",
     "easy-twitch-bot": "^4.3.5",
     "express": "^4.17.1",

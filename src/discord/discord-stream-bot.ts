@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-member-accessibility */
 
 import assert from "assert";
+import deepequal from "deepequal";
 import Discord from "discord.js";
 import type {
     Activity,
@@ -14,7 +15,7 @@ import type { Logger } from "@d-fischer/logger/lib";
 import { getLogger } from "../util/logger";
 import { refreshed } from "../util/time-util";
 import { PersistedMap } from "../util/persisted-map";
-import { getGuildMemberStreamingEmbed } from "./discord-embed";
+import { getGuildMemberStreamingEmbed, pickFromActivity } from "./discord-embed";
 
 interface MessageConfig {
     content: string;
@@ -46,6 +47,12 @@ function getStreamingActivity(presence: Presence | undefined): Activity | null {
     }
 
     return streamingAcitivity;
+}
+
+function shouldUpdateStreamingMessage(oldActivity: Activity, newActivity: Activity): boolean {
+    const oldInfo = pickFromActivity(oldActivity);
+    const newInfo = pickFromActivity(newActivity);
+    return deepequal(oldInfo, newInfo, true);
 }
 
 /**
@@ -255,7 +262,11 @@ export class DiscordStreamBot {
 
         // still streaming
         if (oldStreamingAcivity && newStreamingAcivity) {
-            this.#logger.info(`[presence] ${user.id} ${user.tag} is still streaming`);
+            const shouldUpdate = shouldUpdateStreamingMessage(oldStreamingAcivity, newStreamingAcivity);
+            this.#logger.info(`[presence] ${user.id} ${user.tag} is still streaming; shouldUpdate=${shouldUpdate}`);
+            if (shouldUpdate) {
+                await this.#streamingMessagesUpsert(user, newStreamingAcivity);
+            }
             await this.#streamingMessagesUpsert(user, newStreamingAcivity);
             return;
         }

@@ -1,3 +1,4 @@
+import type { Activity } from "discord.js";
 import Discord from "discord.js";
 
 // eslint-disable-next-line max-len
@@ -65,6 +66,25 @@ export function getTwitchStreamEmbed({
         .setTimestamp(startDate);
 }
 
+export function pickFromActivity(streamingActivity: Activity): {
+    details: string | null;
+    url: string | null;
+    state: string | null;
+    largeImageUrl: string | null | undefined;
+    smallImageURL: string | null | undefined;
+} {
+    const details = streamingActivity.details;
+    const url = streamingActivity.url;
+    const state = streamingActivity.state;
+
+    const largeImageUrl = streamingActivity.assets?.largeImageURL();
+    const smallImageURL = streamingActivity.assets?.smallImageURL();
+
+    return {
+        details, url, state, largeImageUrl, smallImageURL,
+    };
+}
+
 interface TwitchOfflineEmbedConfig {
     startDate: Date;
 }
@@ -82,12 +102,9 @@ export function getGuildMemberStreamingEmbed(
     streamingActivity: Discord.Activity): Discord.MessageEmbed {
 
     const displayName = guildMember.displayName;
-    const details = streamingActivity.details;
-    const url = streamingActivity.url;
-    const state = streamingActivity.state;
-
-    const largeImageUrl = streamingActivity.assets?.largeImageURL();
-    const smallImageURL = streamingActivity.assets?.smallImageURL();
+    const {
+        details, url, state, largeImageUrl, smallImageURL,
+    } = pickFromActivity(streamingActivity);
 
     const embed = new Discord.MessageEmbed()
         .setTimestamp(new Date())
