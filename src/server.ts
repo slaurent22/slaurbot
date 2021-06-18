@@ -35,7 +35,7 @@ async function botServer() {
     await slaurbot.start(app);
 
     nodeCleanup(() => {
-        logger.info("Performing cleanup");
+        logger.info("slaurbot: Performing cleanup");
         slaurbot.destroy();
     });
 
@@ -53,7 +53,12 @@ async function discordStreamBots() {
         streamingRoleId: DISCORD_ROLE_ID.STREAMING,
     });
 
-    await Promise.allSettled([
+    nodeCleanup(() => {
+        logger.info("discordStreamBots: Performing cleanup");
+        slaurcord.destroy();
+    });
+
+    await Promise.all([
         slaurcord.login()
         // hksrDiscord.login() :eyes_emoji:
     ]);

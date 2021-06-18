@@ -8,11 +8,12 @@ import type {
     Guild,
     Presence,
     User as DiscordUser
-    , MessageEmbed } from "discord.js";
+    , MessageEmbed, DMChannel, NewsChannel, TextChannel } from "discord.js";
 import humanizeDuration from "humanize-duration";
 import type { Logger } from "@d-fischer/logger/lib";
 import { getLogger } from "../util/logger";
 import { refreshed } from "../util/time-util";
+import { PersistedMap } from "../util/persisted-map";
 import { getGuildMemberStreamingEmbed } from "./discord-embed";
 
 interface MessageConfig {
@@ -57,10 +58,11 @@ export class DiscordStreamBot {
     #cooldownInterval: number;
     #guild?: Guild;
     #logger: Logger;
+    #name: string;
     #membersStreamingCooldown = new Map<string, Date>();
-    #streamingMembersChannel?: Discord.Channel;
+    #streamingMembersChannel?: TextChannel | DMChannel | NewsChannel;
     #streamingMembersChannelId?: string;
-    #streamingMessages = new Map<string, Discord.Message>();
+    #streamingMessages?: PersistedMap<string, Discord.Message | undefined>;
     #streamingRoleId?: string;
 
     constructor({
@@ -73,11 +75,22 @@ export class DiscordStreamBot {
         this.#botToken = botToken;
         this.#cooldownInterval = cooldownInterval;
         this.#logger = getLogger({ name, });
+        this.#name = name;
         this.#streamingMembersChannelId = streamingMembersChannelId;
         this.#streamingRoleId = streamingRoleId;
 
         this.#client = new Discord.Client();
         this.#client.once("ready", this.#onReady.bind(this));
+
+        // this.#membersStreamingCooldown = new PersistedMap<string, Date>({
+        //     name: `${name}-cooldownmap`,
+        //     entries: [],
+        //     keyParse: k=> k,
+        //     valueParse: v => new Date(v),
+        //     keySerialize: k => k,
+        //     valueSerialize: v => String(v),
+        // });
+        // void this.#membersStreamingCooldown.read();
     }
 
     public async login(): Promise<void> {
@@ -90,14 +103,65 @@ export class DiscordStreamBot {
         }
     }
 
-    #onReady() {
+    public destroy() {
+        // no-op
+    }
+
+    async #onReady() {
         this.#logger.info("Discord client is ready");
         this.#client.on("presenceUpdate", this.#onPresenceUpdate.bind(this));
         const guilds = this.#client.guilds.cache.array();
         this.#guild = guilds[0];
         if (this.#streamingMembersChannelId) {
-            this.#streamingMembersChannel = this.#client.channels.cache.get(this.#streamingMembersChannelId);
+            const channel = this.#client.channels.cache.get(this.#streamingMembersChannelId);
+            if (!channel?.isText()) {
+                this.#logger.error(`[channel:${this.#streamingMembersChannelId}] Failed to find text channel`);
+                return;
+            }
+            this.#streamingMembersChannel = channel;
         }
+
+        if (!this.#streamingMembersChannel) {
+            return;
+        }
+
+        await this.#readStreamingMembersChannel();
+        this.#streamingMessages = new PersistedMap({
+            name: `${this.#name}-streaming-messages`,
+            entries: [],
+            keyParse: k => k,
+            valueParse: v => this.#cachedMessageById(v),
+            keySerialize: k => k,
+            valueSerialize: v => v?.id ?? "undefined",
+        });
+        const initMap = await this.#streamingMessages.read();
+        if (initMap) {
+            for (const [userId, message] of initMap.entries()) {
+                this.#logger.info(`[user:${userId}] ${message?.content}`);
+            }
+        }
+    }
+
+    #cachedMessageById(id: string): Discord.Message | undefined {
+        if (!this.#streamingMembersChannel) {
+            return undefined;
+        }
+        const messageManager = this.#streamingMembersChannel.messages;
+        return messageManager.cache.get(id);
+    }
+
+    async #readStreamingMembersChannel() {
+        if (!this.#streamingMembersChannel) {
+            return;
+        }
+        let size = this.#streamingMembersChannel.messages.cache.size;
+        this.#logger.info(`message cache has ${size} messages`);
+
+        const messageManager = this.#streamingMembersChannel.messages;
+        await messageManager.fetch({ limit: 100, });
+
+        size = this.#streamingMembersChannel.messages.cache.size;
+        this.#logger.info(`message cache has ${size} messages`);
     }
 
     async #addRoleToUser(user: DiscordUser) {
@@ -135,12 +199,15 @@ export class DiscordStreamBot {
     }
 
     async #notifyStreamingMembersChannel(message: MessageConfig, userId: string): Promise<void> {
+        if (!this.#streamingMessages) {
+            return;
+        }
         if (this.#streamingMessages.has(userId)) {
             await this.#deleteStreamingMembersChannelMesssage(userId);
         }
         if (this.#streamingMembersChannel && this.#streamingMembersChannel.isText()) {
-            const discordMessage = await this.#streamingMembersChannel.send(message);
-            this.#streamingMessages.set(userId, discordMessage);
+            this.#streamingMessages.set(userId, await this.#streamingMembersChannel.send(message));
+            await this.#streamingMessages.flush();
         }
         else {
             this.#logger.error("DiscordNotifier: Streaming Members Channel not found");
@@ -148,10 +215,14 @@ export class DiscordStreamBot {
     }
 
     async #deleteStreamingMembersChannelMesssage(userId: string) {
+        if (!this.#streamingMessages) {
+            return;
+        }
         const message = this.#streamingMessages.get(userId);
         if (!message) {
             return;
         }
+        this.#logger.debug(`[user:${userId} message:${message.id}] deleting message`);
         await message.delete({
             reason: "user stopped streaming",
         });
