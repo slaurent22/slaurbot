@@ -60,6 +60,7 @@ export class DiscordStreamBot {
     #membersStreamingCooldown = new Map<string, Date>();
     #streamingMembersChannel?: Discord.Channel;
     #streamingMembersChannelId?: string;
+    #streamingMessages = new Map<string, Discord.Message>();
     #streamingRoleId?: string;
 
     constructor({
@@ -133,13 +134,27 @@ export class DiscordStreamBot {
         }
     }
 
-    async #notifyStreamingMembersChannel(message: MessageConfig): Promise<void> {
+    async #notifyStreamingMembersChannel(message: MessageConfig, userId: string): Promise<void> {
+        if (this.#streamingMessages.has(userId)) {
+            await this.#deleteStreamingMembersChannelMesssage(userId);
+        }
         if (this.#streamingMembersChannel && this.#streamingMembersChannel.isText()) {
-            await this.#streamingMembersChannel.send(message);
+            const discordMessage = await this.#streamingMembersChannel.send(message);
+            this.#streamingMessages.set(userId, discordMessage);
         }
         else {
             this.#logger.error("DiscordNotifier: Streaming Members Channel not found");
         }
+    }
+
+    async #deleteStreamingMembersChannelMesssage(userId: string) {
+        const message = this.#streamingMessages.get(userId);
+        if (!message) {
+            return;
+        }
+        await message.delete({
+            reason: "user stopped streaming",
+        });
     }
 
     async #onPresenceUpdate(oldPresence: Presence | undefined, newPresence: Presence) {
@@ -169,7 +184,10 @@ export class DiscordStreamBot {
         // stopped streaming
         if (oldStreamingAcivity && !newStreamingAcivity) {
             this.#logger.info(`[presence] ${user.id} ${user.tag} is no longer streaming`);
-            await this.#removeRoleFromUser(user);
+            await Promise.all([
+                this.#removeRoleFromUser(user),
+                this.#deleteStreamingMembersChannelMesssage(user.id)
+            ]);
             return;
         }
 
@@ -184,9 +202,8 @@ export class DiscordStreamBot {
 
         const previousMesageDate = this.#membersStreamingCooldown.get(user.id);
         if (previousMesageDate && !refreshed(previousMesageDate, this.#cooldownInterval)) {
-            // eslint-disable-next-line max-len
             this.#logger.warn(
-                `[presence] ${user.tag} was already broadcasted to #streaming-members ` +
+                `[presence] skipping message: ${user.tag} was already broadcasted to streaming members channel ` +
                 `within the past ${humanizeDuration(this.#cooldownInterval)}`);
             return;
         }
@@ -203,7 +220,7 @@ export class DiscordStreamBot {
             embed,
         };
 
-        await this.#notifyStreamingMembersChannel(message);
+        await this.#notifyStreamingMembersChannel(message, user.id);
         this.#membersStreamingCooldown.set(user.id, new Date());
     }
 
