@@ -199,19 +199,26 @@ export class DiscordStreamBot {
     }
 
     async #notifyStreamingMembersChannel(message: MessageConfig, userId: string): Promise<void> {
-        if (!this.#streamingMessages) {
+        if (!this.#streamingMessages || !this.#streamingMembersChannel) {
             return;
         }
-        if (this.#streamingMessages.has(userId)) {
-            await this.#deleteStreamingMembersChannelMesssage(userId);
+
+        const existingMessage = this.#streamingMessages.get(userId);
+        if (existingMessage?.editable) {
+            this.#logger.info(`[message:${existingMessage.id}] editing message`);
+            const newMessage = await existingMessage.edit(message);
+            this.#streamingMessages.set(userId, newMessage);
+            return;
         }
-        if (this.#streamingMembersChannel && this.#streamingMembersChannel.isText()) {
-            this.#streamingMessages.set(userId, await this.#streamingMembersChannel.send(message));
-            await this.#streamingMessages.flush();
+        if (existingMessage && !existingMessage.editable) {
+            this.#logger.info(`[message:${existingMessage.id}] deleting message`);
+            await existingMessage.delete({
+                reason: "message was not editable. reeplacing with new message",
+            });
         }
-        else {
-            this.#logger.error("DiscordNotifier: Streaming Members Channel not found");
-        }
+
+        this.#streamingMessages.set(userId, await this.#streamingMembersChannel.send(message));
+        await this.#streamingMessages.flush();
     }
 
     async #deleteStreamingMembersChannelMesssage(userId: string) {
@@ -249,6 +256,7 @@ export class DiscordStreamBot {
         // still streaming
         if (oldStreamingAcivity && newStreamingAcivity) {
             this.#logger.info(`[presence] ${user.id} ${user.tag} is still streaming`);
+            await this.#streamingMessagesUpsert(user, newStreamingAcivity);
             return;
         }
 
@@ -279,6 +287,10 @@ export class DiscordStreamBot {
             return;
         }
 
+        await this.#streamingMessagesUpsert(user, newStreamingAcivity);
+    }
+
+    async #streamingMessagesUpsert(user: Discord.User, newStreamingAcivity: Discord.Activity) {
         assert(this.#guild);
         const guildMember = await this.#guild.members.fetch(user);
         const embed = getGuildMemberStreamingEmbed(guildMember, newStreamingAcivity);
@@ -290,7 +302,6 @@ export class DiscordStreamBot {
             content: `${displayName} is streaming${stateDisplay}`,
             embed,
         };
-
         await this.#notifyStreamingMembersChannel(message, user.id);
         this.#membersStreamingCooldown.set(user.id, new Date());
     }
