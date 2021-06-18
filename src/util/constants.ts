@@ -390,7 +390,6 @@ export const DISCORD_ROLE_REACT_MAP = new Map<string, string>([
     ["🎺", DISCORD_ROLE_ID.STREAM_PING]
 ]) as Readonly<Map<string, string>>;
 
-
 const MS_PER_HOUR = 60 * 60 * 1000;
 const MS_PER_DAY = 24 * MS_PER_HOUR;
 
@@ -402,4 +401,4 @@ export const DISCORD_AUTODELETE_CHANNEL_CONFIG = new Map<string, number>([
 
 export const DISCORD_AUTODELETE_CHECK_INTERVAL = 5 * MS_PER_HOUR;
 
-export const STREAMING_MEMBERS_COOLDOWN = 4 * MS_PER_HOUR;
+export const STREAMING_MEMBERS_COOLDOWN = 30 * 1000;
