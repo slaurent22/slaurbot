@@ -222,6 +222,7 @@ export class DiscordStreamBot {
             await existingMessage.delete({
                 reason: "message was not editable. reeplacing with new message",
             });
+            this.#streamingMessages.delete(userId);
         }
 
         this.#streamingMessages.set(userId, await this.#streamingMembersChannel.send(message));
@@ -240,6 +241,8 @@ export class DiscordStreamBot {
         await message.delete({
             reason: "user stopped streaming",
         });
+        this.#streamingMessages.delete(userId);
+        await this.#streamingMessages.flush();
     }
 
     async #onPresenceUpdate(oldPresence: Presence | undefined, newPresence: Presence) {
