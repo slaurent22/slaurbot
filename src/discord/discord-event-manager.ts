@@ -1,24 +1,16 @@
 import assert from "assert";
 import type {
-    Activity,
     Client as DiscordClient,
     Guild,
     MessageReaction,
-    Presence,
     User as DiscordUser
 } from "discord.js";
-import humanizeDuration from "humanize-duration";
 import {
     DISCORD_CHANNEL_ID,
     DISCORD_MESSAGE_ID,
-    DISCORD_ROLE_ID,
-    DISCORD_ROLE_REACT_MAP,
-    DISCORD_USER_ID,
-    STREAMING_MEMBERS_COOLDOWN
+    DISCORD_ROLE_REACT_MAP
 } from "../util/constants";
 import { getLogger } from "../util/logger";
-import { refreshed } from "../util/time-util";
-import { getGuildMemberStreamingEmbed } from "./discord-embed";
 import type { DiscordNotifier } from "./discord-notifier";
 
 interface DiscordEventManagerConfig {
@@ -26,32 +18,11 @@ interface DiscordEventManagerConfig {
     discordNotifier: DiscordNotifier;
 }
 
-function getStreamingActivity(presence: Presence|undefined): Activity|null {
-    if (!presence) {
-        return null;
-    }
-
-    const streamingAcitivity = presence.activities.find(activity => {
-        if (activity.url === null) {
-            return false;
-        }
-        return activity.type === "STREAMING" && activity.url.length > 0;
-    });
-
-    if (!streamingAcitivity) {
-        return null;
-    }
-
-    return streamingAcitivity;
-}
-
 export class DiscordEventManager {
     private _discordClient: DiscordClient;
     private _discordNotifier: DiscordNotifier;
     private _guild: Guild;
     private _logger;
-    // TODO: This cooldown breaks if the bot reboots between presence updates. Use redis cache.
-    private _membersStreamingCooldown = new Map<string, Date>();
 
     constructor({
         discordClient,
@@ -84,80 +55,7 @@ export class DiscordEventManager {
             this._logger.debug("userUpdate: " + newUser.id);
         });
 
-        this._discordClient.on("presenceUpdate", this._onPresenceUpdate.bind(this));
-
         await this._awaitReactions();
-    }
-
-    private async _onPresenceUpdate(oldPresence: Presence|undefined, newPresence: Presence) {
-        const user = newPresence.user;
-        if (!user) {
-            this._logger.error("[presence] presenceUpdate event received without newPresence.user");
-            return;
-        }
-
-        this._logger.debug(`[presence] presenceUpdate user: ${user.tag}`);
-
-        if (user.id === DISCORD_USER_ID.SLAURENT) {
-            this._logger.info("[presence] ignoring presence update from slaurent");
-            return;
-        }
-
-        const oldStreamingAcivity = getStreamingActivity(oldPresence);
-        const newStreamingAcivity = getStreamingActivity(newPresence);
-
-        // still not streaming
-        if (!oldStreamingAcivity && !newStreamingAcivity) {
-            // no need to log this case
-            return;
-        }
-
-        // still streaming
-        if (oldStreamingAcivity && newStreamingAcivity) {
-            this._logger.info(`[presence] ${user.id} ${user.tag} is still streaming`);
-            return;
-        }
-
-        // stopped streaming
-        if (oldStreamingAcivity && !newStreamingAcivity) {
-            this._logger.info(`[presence] ${user.id} ${user.tag} is no longer streaming`);
-            await this._removeRoleFromUser(DISCORD_ROLE_ID.STREAMING, user);
-            return;
-        }
-
-        assert(newStreamingAcivity, `[presence] ${user.id} if newStreamingAcivity is null, logic is broken`);
-
-        if (!newStreamingAcivity.url) {
-            this._logger.info(`[presence] ${user.id} ${user.tag} is streaming, but without a url`);
-            return;
-        }
-
-        await this._addRoleToUser(DISCORD_ROLE_ID.STREAMING, user);
-
-        const previousMesageDate = this._membersStreamingCooldown.get(user.id);
-        if (previousMesageDate && !refreshed(previousMesageDate, STREAMING_MEMBERS_COOLDOWN)) {
-            // eslint-disable-next-line max-len
-            this._logger.warn(`[presence] ${user.tag} was already broadcasted to #streaming-members within the past ${humanizeDuration(STREAMING_MEMBERS_COOLDOWN)}`);
-            await this._discordNotifier.notifyTestChannel({
-                // eslint-disable-next-line max-len
-                content: `Ignoring streaming update from ${user.id} due to cooldown (last triggered ${String(previousMesageDate)})`,
-            });
-            return;
-        }
-
-        const guildMember = await this._guild.members.fetch(user);
-        const embed = getGuildMemberStreamingEmbed(guildMember, newStreamingAcivity);
-        const displayName = guildMember.displayName;
-        const state = newStreamingAcivity.state;
-        const stateDisplay = state ? ` **${state}**` : "";
-
-        const message = {
-            content: `${displayName} is streaming${stateDisplay}`,
-            embed,
-        };
-
-        await this._discordNotifier.notifyStreamingMembersChannel(message);
-        this._membersStreamingCooldown.set(user.id, new Date());
     }
 
     private async _awaitReactions() {

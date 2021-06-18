@@ -26,7 +26,7 @@ export function getTestEmbed({ logo, }: { logo: string }): Discord.MessageEmbed 
 }
 
 interface TwitchStreamEmbedConfig {
-    boxArtUrl: string|null;
+    boxArtUrl: string | null;
     gameName: string;
     logo: string;
     startDate: Date;

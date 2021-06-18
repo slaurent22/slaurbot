@@ -4,6 +4,9 @@ import { getLogger } from "./util/logger";
 import { createExpress } from "./express";
 import { createDiscordClient } from "./discord/discord-bot";
 import { getTwitchTokens } from "./twitch/twitch-token-cache";
+import { DiscordStreamBot } from "./discord/discord-stream-bot";
+import { DISCORD_CHANNEL_ID, DISCORD_ROLE_ID, STREAMING_MEMBERS_COOLDOWN } from "./util/constants";
+import { getEnv } from "./util/env";
 
 const PORT = process.env.PORT || 5000;
 
@@ -38,5 +41,23 @@ async function botServer() {
 
 }
 
-// webServer();
+async function discordStreamBots() {
+    const {
+        DISCORD_BOT_TOKEN,
+    } = getEnv();
+    const slaurcord = new DiscordStreamBot({
+        botToken: DISCORD_BOT_TOKEN,
+        cooldownInterval: STREAMING_MEMBERS_COOLDOWN,
+        name: "streambot-slaurcord",
+        streamingMembersChannelId: DISCORD_CHANNEL_ID.STREAMING_MEMBERS,
+        streamingRoleId: DISCORD_ROLE_ID.STREAMING,
+    });
+
+    await Promise.allSettled([
+        slaurcord.login()
+        // hksrDiscord.login() :eyes_emoji:
+    ]);
+}
+
+void discordStreamBots();
 void botServer();

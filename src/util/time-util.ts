@@ -1,4 +1,4 @@
-export function refreshed(lastUse: Date|undefined, cooldownMs: number): boolean {
+export function refreshed(lastUse: Date | undefined, cooldownMs: number): boolean {
     if (!lastUse) {
         return true;
     }

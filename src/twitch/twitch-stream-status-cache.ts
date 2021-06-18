@@ -16,7 +16,7 @@ const logger = getLogger({
     name: "slaurbot-twitch-stream-status-cache",
 });
 
-function isValidTwitchStreamStatus(status: string|null): status is TwitchStreamStatus {
+function isValidTwitchStreamStatus(status: string | null): status is TwitchStreamStatus {
     return status === TwitchStreamStatus.OFFLINE ||
            status === TwitchStreamStatus.LIVE;
 }

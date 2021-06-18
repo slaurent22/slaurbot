@@ -21,7 +21,7 @@ export interface TwitchWebHookManagerConfig {
     discordNotifier: DiscordNotifier;
 }
 
-function getStreamStatus(stream: HelixStream|undefined): TwitchStreamStatus {
+function getStreamStatus(stream: HelixStream | undefined): TwitchStreamStatus {
     return stream ? TwitchStreamStatus.LIVE : TwitchStreamStatus.OFFLINE;
 }
 

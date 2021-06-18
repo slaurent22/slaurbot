@@ -4,10 +4,10 @@ import { createRedis } from "../util/redis";
 export interface TokenData {
     "accessToken": string;
     "refreshToken": string;
-    "expiryTimestamp": number|null;
+    "expiryTimestamp": number | null;
 }
 
-function parseNullableInt(str: string|null): number|null {
+function parseNullableInt(str: string | null): number | null {
     if (str === null) {
         return null;
     }
