@@ -270,7 +270,6 @@ export class DiscordStreamBot {
             if (shouldUpdate) {
                 await this.#streamingMessagesUpsert(user, newStreamingAcivity);
             }
-            await this.#streamingMessagesUpsert(user, newStreamingAcivity);
             return;
         }
 
