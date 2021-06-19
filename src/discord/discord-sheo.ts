@@ -104,8 +104,6 @@ export class DiscordSheo {
             this.#streamingMembersChannel = channel;
         }
 
-        assert(this.#streamingMembersChannel);
-
         await this.#readStreamingMembersChannel();
         this.#streamingMessages = new PersistedMap({
             name: `${this.#name}-streaming-messages`,
