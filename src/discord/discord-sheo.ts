@@ -276,6 +276,7 @@ export class DiscordSheo {
             const letThrough = this.#filter(newStreamingAcivity);
             this.#logger.info(`[presence] ${user.id} ${user.tag} is still streaming; letThrough=${letThrough}`);
             if (letThrough) {
+                await this.#addRoleToUser(guildMember);
                 const shouldUpdate = shouldUpdateStreamingMessage(oldStreamingAcivity, newStreamingAcivity);
                 this.#logger.info(`[presence] ${user.id} ${user.tag} is still streaming; shouldUpdate=${shouldUpdate}`);
                 if (shouldUpdate) {
@@ -304,6 +305,10 @@ export class DiscordSheo {
         }
 
         await this.#addRoleToUser(guildMember);
+
+        if (!this.#streamingMembersChannel) {
+            return;
+        }
 
         const previousMesageDate = this.#membersStreamingCooldown.get(user.id);
         if (previousMesageDate && !refreshed(previousMesageDate, this.#cooldownInterval)) {
