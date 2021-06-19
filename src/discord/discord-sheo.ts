@@ -13,7 +13,10 @@ import type {
     NewsChannel,
     Presence,
     TextChannel,
-    User
+    User,
+    GuildMember } from "discord.js";
+import {
+    DiscordAPIError
 } from "discord.js";
 import humanizeDuration from "humanize-duration";
 import { getLogger } from "../util/logger";
@@ -104,6 +107,10 @@ export class DiscordSheo {
             this.#streamingMembersChannel = channel;
         }
 
+        if (!this.#streamingMembersChannel) {
+            return;
+        }
+
         await this.#readStreamingMembersChannel();
         this.#streamingMessages = new PersistedMap({
             name: `${this.#name}-streaming-messages`,
@@ -137,6 +144,23 @@ export class DiscordSheo {
         return messageManager.cache.get(id);
     }
 
+    async #getGuildMember(user: User): Promise<GuildMember | null> {
+        let guildMember: GuildMember | null = null;
+        try {
+            guildMember = await this.#guild.members.fetch(user);
+        }
+        catch (e) {
+            if (e instanceof DiscordAPIError && e.message.includes("Unknown Member")) {
+                // current implementation is jank; supress this kind of error
+                this.#logger.warn(`[user:${user.id}] unknown`);
+                return null;
+            }
+            throw e;
+        }
+        return guildMember;
+    }
+
+
     async #readStreamingMembersChannel() {
         if (!this.#streamingMembersChannel) {
             return;
@@ -155,7 +179,10 @@ export class DiscordSheo {
         }
         const role = this.#streamingRoleId;
         try {
-            const guildMember = await this.#guild.members.fetch(user);
+            const guildMember = await this.#getGuildMember(user);
+            if (!guildMember) {
+                return;
+            }
             await guildMember.roles.add(role);
             this.#logger.info(`Added role ${role} for ${user.tag}`);
         }
@@ -171,7 +198,10 @@ export class DiscordSheo {
         }
         const role = this.#streamingRoleId;
         try {
-            const guildMember = await this.#guild.members.fetch(user);
+            const guildMember = await this.#getGuildMember(user);
+            if (!guildMember) {
+                return;
+            }
             await guildMember.roles.remove(role);
             this.#logger.info(`Removed role ${role} for ${user.tag}`);
         }
@@ -280,7 +310,10 @@ export class DiscordSheo {
     }
 
     async #streamingMessagesUpsert(user: User, newStreamingAcivity: Activity) {
-        const guildMember = await this.#guild.members.fetch(user);
+        const guildMember = await this.#getGuildMember(user);
+        if (!guildMember) {
+            return;
+        }
         const embed = getGuildMemberStreamingEmbed(guildMember, newStreamingAcivity);
         const displayName = guildMember.displayName;
         const state = newStreamingAcivity.state;

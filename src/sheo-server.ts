@@ -3,7 +3,6 @@ import { createSheo } from "./sheo";
 
 async function main() {
     dotenv.config();
-    console.log(process.env);
     await createSheo();
 }
 
