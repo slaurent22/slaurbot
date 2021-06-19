@@ -54,7 +54,7 @@ async function discordStreamBots() {
 
     DISCORD_SHEO_CONFIG.set(DISCORD_GUILD_ID.SLAURCORD, {
         cooldownInterval: STREAMING_MEMBERS_COOLDOWN,
-        name: "slaurcord",
+        name: "streambot-slaurcord",
         streamingMembersChannelId: DISCORD_CHANNEL_ID.STREAMING_MEMBERS,
         streamingRoleId: DISCORD_ROLE_ID.STREAMING,
     });
