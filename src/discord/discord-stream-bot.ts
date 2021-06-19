@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/explicit-member-accessibility */
 
+import type { Presence } from "discord.js";
 import Discord from "discord.js";
 import type { Logger } from "@d-fischer/logger/lib";
 import { getLogger } from "../util/logger";
@@ -52,7 +53,28 @@ export class DiscordStreamBot {
 
     async #onReady() {
         this.#logger.info("Discord client is ready");
+        this.#client.on("presenceUpdate", this.#onPresenceUpdate.bind(this));
         await Promise.all([...this.#config.entries()].map(([g, c]) => this.#readyGuild(g, c)));
+    }
+
+    async #onPresenceUpdate(oldPresence: Presence | undefined, newPresence: Presence) {
+        const user = newPresence.user;
+        if (!user) {
+            this.#logger.error("[presence] presenceUpdate event received without newPresence.user");
+            return;
+        }
+
+        this.#logger.trace(`[presence] presenceUpdate user: ${user.tag}`);
+
+        await Promise.all([...this.#sheos.values()].map(async sheo => {
+            const guildMember = await sheo.getGuildMember(user);
+            if (!guildMember) {
+                return;
+            }
+            await sheo.presenceUpdate(oldPresence, newPresence, {
+                guildMember,
+            });
+        }));
     }
 
     async #readyGuild(guildId: string, config: DiscordStreamBotConfig) {

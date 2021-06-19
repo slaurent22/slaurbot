@@ -97,7 +97,6 @@ export class DiscordSheo {
     }
 
     public async initialize() {
-        this.#client.on("presenceUpdate", this.#onPresenceUpdate.bind(this));
         if (this.#streamingMembersChannelId) {
             const channel = this.#client.channels.cache.get(this.#streamingMembersChannelId);
             if (!channel?.isText()) {
@@ -144,15 +143,13 @@ export class DiscordSheo {
         return messageManager.cache.get(id);
     }
 
-    async #getGuildMember(user: User): Promise<GuildMember | null> {
+    async getGuildMember(user: User): Promise<GuildMember | null> {
         let guildMember: GuildMember | null = null;
         try {
             guildMember = await this.#guild.members.fetch(user);
         }
         catch (e) {
             if (e instanceof DiscordAPIError && e.message.includes("Unknown Member")) {
-                // current implementation is jank; supress this kind of error
-                this.#logger.warn(`[user:${user.id}] unknown`);
                 return null;
             }
             throw e;
@@ -173,40 +170,32 @@ export class DiscordSheo {
         this.#logger.info(`read ${size} messages from streaming members channel`);
     }
 
-    async #addRoleToUser(user: User) {
+    async #addRoleToUser(guildMember: GuildMember) {
         if (!this.#streamingRoleId) {
             return;
         }
         const role = this.#streamingRoleId;
         try {
-            const guildMember = await this.#getGuildMember(user);
-            if (!guildMember) {
-                return;
-            }
             await guildMember.roles.add(role);
-            this.#logger.info(`Added role ${role} for ${user.tag}`);
+            this.#logger.info(`Added role ${role} for ${guildMember.displayName}`);
         }
         catch (e) {
-            this.#logger.error(`Adding role ${role} for ${user.tag} FAILED`);
+            this.#logger.error(`Adding role ${role} for ${guildMember.displayName} FAILED`);
             this.#logger.error(e);
         }
     }
 
-    async #removeRoleFromUser(user: User) {
+    async #removeRoleFromUser(guildMember: GuildMember) {
         if (!this.#streamingRoleId) {
             return;
         }
         const role = this.#streamingRoleId;
         try {
-            const guildMember = await this.#getGuildMember(user);
-            if (!guildMember) {
-                return;
-            }
             await guildMember.roles.remove(role);
-            this.#logger.info(`Removed role ${role} for ${user.tag}`);
+            this.#logger.info(`Removed role ${role} for ${guildMember.displayName}`);
         }
         catch (e) {
-            this.#logger.error(`Removing role ${role} for ${user.tag} FAILED`);
+            this.#logger.error(`Removing role ${role} for ${guildMember.displayName} FAILED`);
             this.#logger.error(e);
         }
     }
@@ -251,14 +240,11 @@ export class DiscordSheo {
         await this.#streamingMessages.flush();
     }
 
-    async #onPresenceUpdate(oldPresence: Presence | undefined, newPresence: Presence) {
-        const user = newPresence.user;
-        if (!user) {
-            this.#logger.error("[presence] presenceUpdate event received without newPresence.user");
-            return;
-        }
-
-        this.#logger.debug(`[presence] presenceUpdate user: ${user.tag}`);
+    async presenceUpdate(oldPresence: Presence | undefined, newPresence: Presence, {
+        guildMember,
+    }: {guildMember: GuildMember}) {
+        const user = guildMember.user;
+        this.#logger.trace(`[presence] presenceUpdate user: ${guildMember.user.tag}`);
 
         const oldStreamingAcivity = getStreamingActivity(oldPresence);
         const newStreamingAcivity = getStreamingActivity(newPresence);
@@ -274,7 +260,7 @@ export class DiscordSheo {
             const shouldUpdate = shouldUpdateStreamingMessage(oldStreamingAcivity, newStreamingAcivity);
             this.#logger.info(`[presence] ${user.id} ${user.tag} is still streaming; shouldUpdate=${shouldUpdate}`);
             if (shouldUpdate) {
-                await this.#streamingMessagesUpsert(user, newStreamingAcivity);
+                await this.#streamingMessagesUpsert(guildMember, newStreamingAcivity);
             }
             return;
         }
@@ -283,7 +269,7 @@ export class DiscordSheo {
         if (oldStreamingAcivity && !newStreamingAcivity) {
             this.#logger.info(`[presence] ${user.id} ${user.tag} is no longer streaming`);
             await Promise.all([
-                this.#removeRoleFromUser(user),
+                this.#removeRoleFromUser(guildMember),
                 this.#deleteStreamingMembersChannelMesssage(user.id)
             ]);
             return;
@@ -296,7 +282,7 @@ export class DiscordSheo {
             return;
         }
 
-        await this.#addRoleToUser(user);
+        await this.#addRoleToUser(guildMember);
 
         const previousMesageDate = this.#membersStreamingCooldown.get(user.id);
         if (previousMesageDate && !refreshed(previousMesageDate, this.#cooldownInterval)) {
@@ -306,14 +292,10 @@ export class DiscordSheo {
             return;
         }
 
-        await this.#streamingMessagesUpsert(user, newStreamingAcivity);
+        await this.#streamingMessagesUpsert(guildMember, newStreamingAcivity);
     }
 
-    async #streamingMessagesUpsert(user: User, newStreamingAcivity: Activity) {
-        const guildMember = await this.#getGuildMember(user);
-        if (!guildMember) {
-            return;
-        }
+    async #streamingMessagesUpsert(guildMember: GuildMember, newStreamingAcivity: Activity) {
         const embed = getGuildMemberStreamingEmbed(guildMember, newStreamingAcivity);
         const displayName = guildMember.displayName;
         const state = newStreamingAcivity.state;
@@ -323,7 +305,7 @@ export class DiscordSheo {
             content: `${displayName} is streaming${stateDisplay}`,
             embed,
         };
-        await this.#notifyStreamingMembersChannel(message, user.id);
-        this.#membersStreamingCooldown.set(user.id, new Date());
+        await this.#notifyStreamingMembersChannel(message, guildMember.user.id);
+        this.#membersStreamingCooldown.set(guildMember.user.id, new Date());
     }
 }
