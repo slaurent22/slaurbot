@@ -61,7 +61,7 @@ function getStreamingActivity(presence: Presence | undefined): Activity | null {
 function shouldUpdateStreamingMessage(oldActivity: Activity, newActivity: Activity): boolean {
     const oldInfo = pickFromActivity(oldActivity);
     const newInfo = pickFromActivity(newActivity);
-    return deepequal(oldInfo, newInfo, true);
+    return !deepequal(oldInfo, newInfo, true);
 }
 
 export class DiscordSheo {
@@ -286,6 +286,7 @@ export class DiscordSheo {
                 this.#logger.info(`[presence] ${user.id} ${user.tag} removing`);
                 await remove();
             }
+            return;
         }
 
         assert(newStreamingAcivity, `[presence] ${user.id} if newStreamingAcivity is null, logic is broken`);
