@@ -266,14 +266,25 @@ export class DiscordSheo {
 
         // stopped streaming
         if (oldStreamingAcivity && !newStreamingAcivity) {
-            this.#logger.info(`[presence] ${user.id} ${user.tag} is no longer streaming`);
-            await remove();
+            const oldAllowable = this.#filter(oldStreamingAcivity);
+            this.#logger.info(`[presence] ${user.id} ${user.tag} is no longer streaming; oldAllowable=${oldAllowable}`);
+            if (oldAllowable) {
+                // only need to remove if we had added in the first place
+                await remove();
+            }
+
             return;
         }
 
         // still streaming
         if (oldStreamingAcivity && newStreamingAcivity) {
+            const oldAllowable = this.#filter(oldStreamingAcivity);
             const letThrough = this.#filter(newStreamingAcivity);
+            if (!oldAllowable && !letThrough) {
+                // no need to add or remove anything
+                this.#logger.debug(`[presence] ${user.id} ${user.tag} - doing nothing`);
+                return;
+            }
             this.#logger.info(`[presence] ${user.id} ${user.tag} is still streaming; letThrough=${letThrough}`);
             if (letThrough) {
                 await this.#addRoleToUser(guildMember);
@@ -290,6 +301,7 @@ export class DiscordSheo {
             return;
         }
 
+        // started streaming
         assert(newStreamingAcivity, `[presence] ${user.id} if newStreamingAcivity is null, logic is broken`);
 
         if (!newStreamingAcivity.url) {
@@ -300,7 +312,7 @@ export class DiscordSheo {
 
         const letThrough = this.#filter(newStreamingAcivity);
         if (!letThrough) {
-            this.#logger.info(`[presence] ${user.id} ${user.tag}: activity filtered out`);
+            this.#logger.debug(`[presence] ${user.id} ${user.tag}: not allowable`);
             return;
         }
 
