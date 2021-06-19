@@ -4,8 +4,9 @@ import { getLogger } from "./util/logger";
 import { createExpress } from "./express";
 import { createDiscordClient } from "./discord/discord-bot";
 import { getTwitchTokens } from "./twitch/twitch-token-cache";
+import type { DiscordStreamBotConfig } from "./discord/discord-stream-bot";
 import { DiscordStreamBot } from "./discord/discord-stream-bot";
-import { DISCORD_CHANNEL_ID, DISCORD_ROLE_ID, STREAMING_MEMBERS_COOLDOWN } from "./util/constants";
+import { DISCORD_CHANNEL_ID, DISCORD_GUILD_ID, DISCORD_ROLE_ID, STREAMING_MEMBERS_COOLDOWN } from "./util/constants";
 import { getEnv } from "./util/env";
 
 const PORT = process.env.PORT || 5000;
@@ -43,25 +44,36 @@ async function botServer() {
 
 async function discordStreamBots() {
     const {
-        DISCORD_BOT_TOKEN,
+        DISCORD_SHEO_TOKEN,
     } = getEnv();
-    const slaurcord = new DiscordStreamBot({
-        botToken: DISCORD_BOT_TOKEN,
+
+    // authorize servers at
+    // https://discord.com/oauth2/authorize?client_id=855784088983568384&scope=bot
+
+    const DISCORD_SHEO_CONFIG = new Map<string, DiscordStreamBotConfig>();
+
+    DISCORD_SHEO_CONFIG.set(DISCORD_GUILD_ID.SLAURCORD, {
         cooldownInterval: STREAMING_MEMBERS_COOLDOWN,
-        name: "streambot-slaurcord",
+        name: "slaurcord",
         streamingMembersChannelId: DISCORD_CHANNEL_ID.STREAMING_MEMBERS,
         streamingRoleId: DISCORD_ROLE_ID.STREAMING,
     });
 
-    nodeCleanup(() => {
-        logger.info("discordStreamBots: Performing cleanup");
-        slaurcord.destroy();
+    DISCORD_SHEO_CONFIG.set(DISCORD_GUILD_ID.SLAURTEST, {
+        cooldownInterval: 0,
+        name: "slaurtest",
+        streamingMembersChannelId: "855786635995774987",
+        streamingRoleId: "855785447501070357",
     });
 
-    await Promise.all([
-        slaurcord.login()
-        // hksrDiscord.login() :eyes_emoji:
-    ]);
+    const sheo = new DiscordStreamBot(DISCORD_SHEO_TOKEN, DISCORD_SHEO_CONFIG);
+
+    nodeCleanup(() => {
+        logger.info("discordStreamBots: Performing cleanup");
+        sheo.destroy();
+    });
+
+    await sheo.login();
 }
 
 void discordStreamBots();

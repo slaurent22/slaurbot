@@ -110,7 +110,7 @@ export class PersistedMap<K, V> {
     async flush() {
         this.#logger.info("flushing to redis cache");
         const record = serialize(this.#map, this.#ks, this.#vs);
-        this.#logger.debug(JSON.stringify({ record, }, null, 4));
+        this.#logger.debug(JSON.stringify({ record, }));
         const status = await this.#redis.hmset(this.#name, { record, });
         if (status !== "OK") {
             this.#logger.error(status);
