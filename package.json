@@ -10,7 +10,8 @@
     "start": "heroku local web",
     "express": "node dist/express-server.js",
     "lint": "eslint .",
-    "lintfix": "eslint --fix ."
+    "lintfix": "eslint --fix .",
+    "sheo": "node dist/sheo-server.js"
   },
   "author": "slaurent22",
   "license": "GPL-3.0-only",

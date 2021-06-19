@@ -43,11 +43,10 @@ export class DiscordStreamBot {
         }
     }
 
-    public destroy() {
+    public async destroy() {
         this.#logger.info("destroying");
-        for (const sheo of this.#sheos.values()) {
-            sheo.destroy();
-        }
+
+        await Promise.all([...this.#sheos.values()].map(sheo => sheo.destroy()));
         this.#sheos.clear();
     }
 

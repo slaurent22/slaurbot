@@ -121,9 +121,12 @@ export class DiscordSheo {
         }
     }
 
-    public destroy() {
+    async destroy() {
         this.#logger.info("destroying");
-        void this.#streamingMessages?.flush();
+        if (this.#streamingMessages) {
+            await this.#streamingMessages.flush();
+            await this.#streamingMessages.dispose();
+        }
     }
 
     #cachedMessageById(id: string): Message | undefined {

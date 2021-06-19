@@ -127,6 +127,7 @@ export class PersistedMap<K, V> {
     }
 
     async dispose() {
+        this.#logger.info("disposing");
         this.#map.clear();
         await this.#redis.quit();
     }
