@@ -47,8 +47,7 @@ async function discordStreamBots() {
         DISCORD_SHEO_TOKEN,
     } = getEnv();
 
-    // authorize servers at
-    // https://discord.com/oauth2/authorize?client_id=855784088983568384&scope=bot
+    // contact slaurent to add your server
 
     const DISCORD_SHEO_CONFIG = new Map<string, DiscordStreamBotConfig>();
 
