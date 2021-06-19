@@ -103,6 +103,14 @@ export class PersistedMap<K, V> {
         return this.#map.delete(key);
     }
 
+    entries() {
+        return this.#map.entries();
+    }
+
+    values() {
+        return this.#map.values();
+    }
+
     get size() {
         return this.#map.size;
     }
