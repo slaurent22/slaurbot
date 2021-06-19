@@ -36,6 +36,7 @@ export interface DiscordSheoConfig {
     streamingMembersChannelId?: string;
     streamingRoleId?: string;
     guild: Guild;
+    filter?: (activity: Activity) => boolean;
 }
 
 function getStreamingActivity(presence: Presence | undefined): Activity | null {
@@ -74,6 +75,7 @@ export class DiscordSheo {
     #streamingMessages?: PersistedMap<string, Message | undefined>;
     #streamingRoleId?: string;
     #guild: Guild;
+    #filter: (activity: Activity) => boolean;
 
     constructor({
         client,
@@ -82,6 +84,7 @@ export class DiscordSheo {
         streamingMembersChannelId,
         streamingRoleId,
         guild,
+        filter,
     }: DiscordSheoConfig) {
         this.#cooldownInterval = cooldownInterval;
         this.#guild = guild;
@@ -92,6 +95,7 @@ export class DiscordSheo {
         this.#streamingRoleId = streamingRoleId;
 
         this.#client = client;
+        this.#filter = filter ?? (() => true);
 
         this.#logger.info("sheo created");
     }
@@ -255,30 +259,46 @@ export class DiscordSheo {
             return;
         }
 
-        // still streaming
-        if (oldStreamingAcivity && newStreamingAcivity) {
-            const shouldUpdate = shouldUpdateStreamingMessage(oldStreamingAcivity, newStreamingAcivity);
-            this.#logger.info(`[presence] ${user.id} ${user.tag} is still streaming; shouldUpdate=${shouldUpdate}`);
-            if (shouldUpdate) {
-                await this.#streamingMessagesUpsert(guildMember, newStreamingAcivity);
-            }
-            return;
-        }
+        const remove = () => Promise.all([
+            this.#removeRoleFromUser(guildMember),
+            this.#deleteStreamingMembersChannelMesssage(user.id)
+        ]);
 
         // stopped streaming
         if (oldStreamingAcivity && !newStreamingAcivity) {
             this.#logger.info(`[presence] ${user.id} ${user.tag} is no longer streaming`);
-            await Promise.all([
-                this.#removeRoleFromUser(guildMember),
-                this.#deleteStreamingMembersChannelMesssage(user.id)
-            ]);
+            await remove();
             return;
+        }
+
+        // still streaming
+        if (oldStreamingAcivity && newStreamingAcivity) {
+            const letThrough = this.#filter(newStreamingAcivity);
+            this.#logger.info(`[presence] ${user.id} ${user.tag} is still streaming; letThrough=${letThrough}`);
+            if (letThrough) {
+                const shouldUpdate = shouldUpdateStreamingMessage(oldStreamingAcivity, newStreamingAcivity);
+                this.#logger.info(`[presence] ${user.id} ${user.tag} is still streaming; shouldUpdate=${shouldUpdate}`);
+                if (shouldUpdate) {
+                    await this.#streamingMessagesUpsert(guildMember, newStreamingAcivity);
+                }
+            }
+            else {
+                this.#logger.info(`[presence] ${user.id} ${user.tag} removing`);
+                await remove();
+            }
         }
 
         assert(newStreamingAcivity, `[presence] ${user.id} if newStreamingAcivity is null, logic is broken`);
 
         if (!newStreamingAcivity.url) {
             this.#logger.info(`[presence] ${user.id} ${user.tag} is streaming, but without a url`);
+            await remove();
+            return;
+        }
+
+        const letThrough = this.#filter(newStreamingAcivity);
+        if (!letThrough) {
+            this.#logger.info(`[presence] ${user.id} ${user.tag}: activity filtered out`);
             return;
         }
 

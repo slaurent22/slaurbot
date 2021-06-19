@@ -37,6 +37,13 @@ export async function createSheo(): Promise<void> {
         cooldownInterval: 100,
         name: "hksr",
         streamingRoleId: "855853020914647080",
+        filter: activity => {
+            const state = activity.state;
+            if (!state) {
+                return false;
+            }
+            return state.includes("Hollow Knight");
+        },
     });
 
     const sheo = new DiscordStreamBot(DISCORD_SHEO_TOKEN, DISCORD_SHEO_CONFIG);
