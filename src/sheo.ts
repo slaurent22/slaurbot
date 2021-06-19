@@ -33,6 +33,12 @@ export async function createSheo(): Promise<void> {
         streamingRoleId: "855785447501070357",
     });
 
+    DISCORD_SHEO_CONFIG.set(DISCORD_GUILD_ID.HKSR, {
+        cooldownInterval: 100,
+        name: "hksr",
+        streamingRoleId: "855853020914647080",
+    });
+
     const sheo = new DiscordStreamBot(DISCORD_SHEO_TOKEN, DISCORD_SHEO_CONFIG);
 
     nodeCleanup(() => {

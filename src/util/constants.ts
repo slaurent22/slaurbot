@@ -378,6 +378,7 @@ export const DISCORD_ROLE_ID = Object.freeze({
 export const DISCORD_GUILD_ID = Object.freeze({
     SLAURCORD: "763579069228253251",
     SLAURTEST: "855781943806787634",
+    HKSR: "772964112908156938",
 });
 
 export const DISCORD_MESSAGE_ID = Object.freeze({
