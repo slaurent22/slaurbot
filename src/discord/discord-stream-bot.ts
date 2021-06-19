@@ -65,8 +65,6 @@ export class DiscordStreamBot {
             return;
         }
 
-        this.#logger.trace(`[presence] presenceUpdate user: ${user.tag}`);
-
         await Promise.all([...this.#sheos.values()].map(async sheo => {
             const guildMember = await sheo.getGuildMember(user);
             if (!guildMember) {

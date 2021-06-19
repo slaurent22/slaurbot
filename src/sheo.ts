@@ -42,7 +42,6 @@ export async function createSheo(): Promise<void> {
             if (!state) {
                 return false;
             }
-            logger.info(`state: '${state}'`);
             return state.includes("Hollow Knight");
         },
     });

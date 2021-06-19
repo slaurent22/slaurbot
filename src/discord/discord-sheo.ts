@@ -248,7 +248,6 @@ export class DiscordSheo {
         guildMember,
     }: {guildMember: GuildMember}) {
         const user = guildMember.user;
-        this.#logger.trace(`[presence] presenceUpdate user: ${guildMember.user.tag}`);
 
         const oldStreamingAcivity = getStreamingActivity(oldPresence);
         const newStreamingAcivity = getStreamingActivity(newPresence);
@@ -267,7 +266,8 @@ export class DiscordSheo {
         // stopped streaming
         if (oldStreamingAcivity && !newStreamingAcivity) {
             const oldAllowable = this.#filter(oldStreamingAcivity);
-            this.#logger.info(`[presence] ${user.id} ${user.tag} is no longer streaming; oldAllowable=${oldAllowable}`);
+            // eslint-disable-next-line max-len
+            this.#logger.debug(`[presence] ${user.id} ${user.tag} is no longer streaming; oldAllowable=${oldAllowable}`);
             if (oldAllowable) {
                 // only need to remove if we had added in the first place
                 await remove();
@@ -285,7 +285,7 @@ export class DiscordSheo {
                 this.#logger.debug(`[presence] ${user.id} ${user.tag} - doing nothing`);
                 return;
             }
-            this.#logger.info(`[presence] ${user.id} ${user.tag} is still streaming; letThrough=${letThrough}`);
+            this.#logger.debug(`[presence] ${user.id} ${user.tag} is still streaming; letThrough=${letThrough}`);
             if (letThrough) {
                 await this.#addRoleToUser(guildMember);
                 const shouldUpdate = shouldUpdateStreamingMessage(oldStreamingAcivity, newStreamingAcivity);
@@ -295,7 +295,7 @@ export class DiscordSheo {
                 }
             }
             else {
-                this.#logger.info(`[presence] ${user.id} ${user.tag} removing`);
+                this.#logger.debug(`[presence] ${user.id} ${user.tag} removing`);
                 await remove();
             }
             return;
