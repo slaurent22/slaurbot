@@ -37,6 +37,7 @@ export async function createSheo(): Promise<void> {
         cooldownInterval: 100,
         name: "hksr",
         streamingRoleId: "855853020914647080",
+        streamingMembersChannelId: "837761461290795078",
         filter: activity => {
             const state = activity.state;
             if (!state) {
