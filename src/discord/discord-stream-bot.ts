@@ -6,6 +6,7 @@ import Discord from "discord.js";
 import type { Logger } from "@d-fischer/logger/lib";
 import { getLogger } from "../util/logger";
 import { generateUuid } from "../util/uuid";
+import { discordUserString, guildMemberString } from "../util/log-strings";
 import { DiscordSheo } from "./discord-sheo";
 
 export interface DiscordStreamBotConfig {
@@ -65,20 +66,20 @@ export class DiscordStreamBot {
             user, guild, member,
         } = newPresence;
 
-        let event = `[${eid}] presenceUpdate event received`;
+        let event = `[${eid}] presenceUpdate:`;
         if (!user) {
             this.#logger.error(`${event} without user`);
             return;
         }
 
-        event = `${event} [user:${user.id}]`;
+        event = `${event} ${discordUserString(user)}`;
 
         if (!member) {
-            this.#logger.error(`${event} without member`);
+            this.#logger.error(`${event} without guild member`);
             return;
         }
 
-        event = `${event} [member:${member.id}]`;
+        event = `${event} ${guildMemberString(member)}`;
 
         if (!guild) {
             this.#logger.error(`${event} without guild`);

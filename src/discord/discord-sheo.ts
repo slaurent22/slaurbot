@@ -24,6 +24,10 @@ import humanizeDuration from "humanize-duration";
 import { getLogger } from "../util/logger";
 import { PersistedMap } from "../util/persisted-map";
 import { refreshed } from "../util/time-util";
+import {
+    discordUserString as du,
+    guildMemberString as gm
+} from "../util/log-strings";
 import { getGuildMemberStreamingEmbed, pickFromActivity } from "./discord-embed";
 
 interface MessageConfig {
@@ -185,7 +189,7 @@ export class DiscordSheo {
             return;
         }
         const role = this.#streamingRoleId;
-        const action = `[${eid}] [user:${guildMember.id}] Adding role ${role} for ${guildMember.displayName}`;
+        const action = `[${eid}] ${gm(guildMember)} Adding role ${role}`;
         this.#logger.info(action);
         try {
             const { id, } = await guildMember.roles.add(role);
@@ -206,7 +210,7 @@ export class DiscordSheo {
             return;
         }
         const role = this.#streamingRoleId;
-        const action = `[${eid}] [user:${guildMember.id}] Removing role ${role} for ${guildMember.displayName}`;
+        const action = `[${eid}] ${gm(guildMember)} Removing role ${role}`;
         this.#logger.info(action);
         try {
             const { id, } = await guildMember.roles.remove(role);
@@ -318,7 +322,7 @@ export class DiscordSheo {
         eid: string;
     }) {
         const user = guildMember.user;
-        const event = `[${eid}] [user:${user.id}] [tag:${user.tag}] presenceUpdate:`;
+        const event = `[${eid}] ${du(user)} presenceUpdate`;
 
 
         const oldStreamingAcivity = getStreamingActivity(oldPresence);
@@ -338,7 +342,6 @@ export class DiscordSheo {
         // stopped streaming
         if (oldStreamingAcivity && !newStreamingAcivity) {
             const oldAllowable = this.#filter(oldStreamingAcivity);
-            // eslint-disable-next-line max-len
             this.#logger.debug(`${event} STOPPED STREAMING oldAllowable=${oldAllowable}`);
             if (oldAllowable) {
                 // only need to remove if we had added in the first place
