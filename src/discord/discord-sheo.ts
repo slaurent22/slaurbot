@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/explicit-member-accessibility */
 import assert from "assert";
@@ -126,7 +128,7 @@ export class DiscordSheo {
         const initMap = await this.#streamingMessages.read();
         if (initMap) {
             for (const [userId, message] of initMap.entries()) {
-                this.#logger.info(`[user:${userId}] ${message?.content}`);
+                this.#logger.info(`[user:${userId}] [message:${message?.id}] ${message?.content}`);
             }
         }
     }
@@ -174,79 +176,147 @@ export class DiscordSheo {
         this.#logger.info(`read ${size} messages from streaming members channel`);
     }
 
-    async #addRoleToUser(guildMember: GuildMember) {
+    async #addRoleToUser(guildMember: GuildMember, {
+        eid,
+    }: {
+        eid: string;
+    }) {
         if (!this.#streamingRoleId) {
             return;
         }
         const role = this.#streamingRoleId;
+        const action = `[${eid}] [user:${guildMember.id}] Adding role ${role} for ${guildMember.displayName}`;
+        this.#logger.info(action);
         try {
-            await guildMember.roles.add(role);
-            this.#logger.info(`Added role ${role} for ${guildMember.displayName}`);
+            const { id, } = await guildMember.roles.add(role);
+            this.#logger.info(`${action} SUCCESS: [member:${id}]`);
         }
         catch (e) {
-            this.#logger.error(`Adding role ${role} for ${guildMember.displayName} FAILED`);
+            this.#logger.error(`${action} FAILURE: ${e?.message}`);
             this.#logger.error(e);
         }
     }
 
-    async #removeRoleFromUser(guildMember: GuildMember) {
+    async #removeRoleFromUser(guildMember: GuildMember, {
+        eid,
+    }: {
+        eid: string;
+    }) {
         if (!this.#streamingRoleId) {
             return;
         }
         const role = this.#streamingRoleId;
+        const action = `[${eid}] [user:${guildMember.id}] Removing role ${role} for ${guildMember.displayName}`;
+        this.#logger.info(action);
         try {
-            await guildMember.roles.remove(role);
-            this.#logger.info(`Removed role ${role} for ${guildMember.displayName}`);
+            const { id, } = await guildMember.roles.remove(role);
+            this.#logger.info(`${action} SUCCESS: [member:${id}]`);
         }
         catch (e) {
-            this.#logger.error(`Removing role ${role} for ${guildMember.displayName} FAILED`);
+            this.#logger.error(`${action} FAILURE: ${e?.message}`);
             this.#logger.error(e);
+
         }
     }
 
-    async #notifyStreamingMembersChannel(message: MessageConfig, userId: string): Promise<void> {
+    async #notifyStreamingMembersChannel(message: MessageConfig, {
+        userId, eid,
+    }: {
+        userId: string;
+        eid: string;
+    }): Promise<void> {
         if (!this.#streamingMessages || !this.#streamingMembersChannel) {
             return;
         }
 
+        const event = `[${eid}] [user:${userId}]`;
+
         const existingMessage = this.#streamingMessages.get(userId);
         if (existingMessage?.editable) {
-            this.#logger.info(`[message:${existingMessage.id}] editing message`);
-            const newMessage = await existingMessage.edit(message);
-            this.#streamingMessages.set(userId, newMessage);
+            const action = `${event} [message:${existingMessage.id}] editing message`;
+            this.#logger.info(action);
+            try {
+                const newMessage = await existingMessage.edit(message);
+                this.#streamingMessages.set(userId, newMessage);
+                this.#logger.info(`${action} SUCCESS: [message:${newMessage.id}]`);
+            }
+            catch (e) {
+                this.#logger.error(`${action} FAILURE: ${e?.message}`);
+                this.#logger.error(e);
+            }
+
             return;
         }
         if (existingMessage && !existingMessage.editable) {
-            this.#logger.info(`[message:${existingMessage.id}] deleting message`);
-            await existingMessage.delete({
-                reason: "message was not editable. reeplacing with new message",
-            });
-            this.#streamingMessages.delete(userId);
+            const action = `${event} [message:${existingMessage.id}] deleting message`;
+            this.#logger.info(action);
+            try {
+                const { id, } = await existingMessage.delete({
+                    reason: "message was not editable. replacing with new message",
+                });
+                this.#streamingMessages.delete(userId);
+                this.#logger.info(`${action} SUCCESS: [message:${id}]`);
+            }
+            catch (e) {
+                this.#logger.error(`${action} FAILURE: ${e?.message}`);
+                this.#logger.error(e);
+            }
         }
 
-        this.#streamingMessages.set(userId, await this.#streamingMembersChannel.send(message));
+        const action = `${event} posting new message`;
+        try {
+            this.#logger.info(action);
+            const newMessage = await this.#streamingMembersChannel.send(message);
+            this.#logger.info(`${action} SUCCESS: [message:${newMessage.id}]`);
+            this.#streamingMessages.set(userId, newMessage);
+        }
+        catch (e) {
+            this.#logger.error(`${action} FAILURE: ${e?.message}`);
+            this.#logger.error(e);
+        }
+
+        this.#logger.debug(`${event} flushing streamingMessages`);
         await this.#streamingMessages.flush();
     }
 
-    async #deleteStreamingMembersChannelMesssage(userId: string) {
+    async #deleteStreamingMembersChannelMesssage(userId: string, {
+        eid,
+    }: {
+        eid: string;
+    }) {
         if (!this.#streamingMessages) {
             return;
         }
+        const event = `[${eid}] [user:${userId}]`;
         const message = this.#streamingMessages.get(userId);
         if (!message) {
+            this.#logger.warn(`${event} no message found`);
             return;
         }
-        this.#logger.debug(`[user:${userId} message:${message.id}] deleting message`);
-        await message.delete({
-            reason: "user stopped streaming",
-        });
-        this.#streamingMessages.delete(userId);
+        const action = `${event} [message:${message.id}] deleting message`;
+        try {
+            this.#logger.info(action);
+            const { id, } = await message.delete({
+                reason: "user stopped streaming",
+            });
+            this.#streamingMessages.delete(userId);
+            this.#logger.info(`${action} SUCCESS: [message:${id}]`);
+        }
+        catch (e) {
+            this.#logger.error(`${action} FAILURE: ${e?.message}`);
+            this.#logger.error(e);
+        }
+
+        this.#logger.debug(`${event} flushing streamingMessages`);
         await this.#streamingMessages.flush();
     }
 
     async presenceUpdate(oldPresence: Presence | undefined, newPresence: Presence, {
-        guildMember,
-    }: {guildMember: GuildMember}) {
+        guildMember, eid,
+    }: {
+        guildMember: GuildMember;
+        eid: string;
+    }) {
         const user = guildMember.user;
 
         const oldStreamingAcivity = getStreamingActivity(oldPresence);
@@ -259,15 +329,17 @@ export class DiscordSheo {
         }
 
         const remove = () => Promise.all([
-            this.#removeRoleFromUser(guildMember),
-            this.#deleteStreamingMembersChannelMesssage(user.id)
+            this.#removeRoleFromUser(guildMember, { eid, }),
+            this.#deleteStreamingMembersChannelMesssage(user.id, { eid, })
         ]);
+
+        const event = `[${eid}] [user:${user.id}] [tag:${user.tag}]`;
 
         // stopped streaming
         if (oldStreamingAcivity && !newStreamingAcivity) {
             const oldAllowable = this.#filter(oldStreamingAcivity);
             // eslint-disable-next-line max-len
-            this.#logger.debug(`[presence] ${user.id} ${user.tag} is no longer streaming; oldAllowable=${oldAllowable}`);
+            this.#logger.debug(`${event} STOPPED STREAMING oldAllowable=${oldAllowable}`);
             if (oldAllowable) {
                 // only need to remove if we had added in the first place
                 await remove();
@@ -282,41 +354,41 @@ export class DiscordSheo {
             const letThrough = this.#filter(newStreamingAcivity);
             if (!oldAllowable && !letThrough) {
                 // no need to add or remove anything
-                this.#logger.debug(`[presence] ${user.id} ${user.tag} - doing nothing`);
+                this.#logger.debug(`${event} doing nothing`);
                 return;
             }
-            this.#logger.debug(`[presence] ${user.id} ${user.tag} is still streaming; letThrough=${letThrough}`);
+            this.#logger.debug(`${event} STILL STREAMING; letThrough=${letThrough}`);
             if (letThrough) {
-                await this.#addRoleToUser(guildMember);
+                await this.#addRoleToUser(guildMember, { eid, });
                 const shouldUpdate = shouldUpdateStreamingMessage(oldStreamingAcivity, newStreamingAcivity);
-                this.#logger.info(`[presence] ${user.id} ${user.tag} is still streaming; shouldUpdate=${shouldUpdate}`);
+                this.#logger.info(`${event} STILL STREAMING; shouldUpdate=${shouldUpdate}`);
                 if (shouldUpdate) {
-                    await this.#streamingMessagesUpsert(guildMember, newStreamingAcivity);
+                    await this.#streamingMessagesUpsert(guildMember, newStreamingAcivity, { eid, });
                 }
             }
             else {
-                this.#logger.debug(`[presence] ${user.id} ${user.tag} removing`);
+                this.#logger.debug(`${event} STILL STREAMING, but no longer allowable content`);
                 await remove();
             }
             return;
         }
 
         // started streaming
-        assert(newStreamingAcivity, `[presence] ${user.id} if newStreamingAcivity is null, logic is broken`);
+        assert(newStreamingAcivity);
 
         if (!newStreamingAcivity.url) {
-            this.#logger.info(`[presence] ${user.id} ${user.tag} is streaming, but without a url`);
+            this.#logger.info(`${event} STARTED STREAMING, but without a url`);
             await remove();
             return;
         }
 
         const letThrough = this.#filter(newStreamingAcivity);
         if (!letThrough) {
-            this.#logger.debug(`[presence] ${user.id} ${user.tag}: not allowable`);
+            this.#logger.debug(`${event} STARTED STREAMING, but not allowable content`);
             return;
         }
 
-        await this.#addRoleToUser(guildMember);
+        await this.#addRoleToUser(guildMember, { eid, });
 
         if (!this.#streamingMembersChannel) {
             return;
@@ -325,15 +397,19 @@ export class DiscordSheo {
         const previousMesageDate = this.#membersStreamingCooldown.get(user.id);
         if (previousMesageDate && !refreshed(previousMesageDate, this.#cooldownInterval)) {
             this.#logger.warn(
-                `[presence] skipping message: ${user.tag} was already broadcasted to streaming members channel ` +
+                `${event} skipping message: ${user.tag} was already broadcasted to streaming members channel ` +
                 `within the past ${humanizeDuration(this.#cooldownInterval)}`);
             return;
         }
 
-        await this.#streamingMessagesUpsert(guildMember, newStreamingAcivity);
+        await this.#streamingMessagesUpsert(guildMember, newStreamingAcivity, { eid, });
     }
 
-    async #streamingMessagesUpsert(guildMember: GuildMember, newStreamingAcivity: Activity) {
+    async #streamingMessagesUpsert(guildMember: GuildMember, newStreamingAcivity: Activity, {
+        eid,
+    }: {
+        eid: string;
+    }) {
         const embed = getGuildMemberStreamingEmbed(guildMember, newStreamingAcivity);
         const displayName = guildMember.displayName;
         const state = newStreamingAcivity.state;
@@ -343,7 +419,9 @@ export class DiscordSheo {
             content: `${displayName} is streaming${stateDisplay}`,
             embed,
         };
-        await this.#notifyStreamingMembersChannel(message, guildMember.user.id);
+        await this.#notifyStreamingMembersChannel(message, {
+            userId: guildMember.user.id, eid,
+        });
         this.#membersStreamingCooldown.set(guildMember.user.id, new Date());
     }
 }

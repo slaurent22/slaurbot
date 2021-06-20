@@ -5,6 +5,7 @@ import type { Activity, Presence } from "discord.js";
 import Discord from "discord.js";
 import type { Logger } from "@d-fischer/logger/lib";
 import { getLogger } from "../util/logger";
+import { generateUuid } from "../util/uuid";
 import { DiscordSheo } from "./discord-sheo";
 
 export interface DiscordStreamBotConfig {
@@ -59,9 +60,10 @@ export class DiscordStreamBot {
     }
 
     async #onPresenceUpdate(oldPresence: Presence | undefined, newPresence: Presence) {
+        const eid = generateUuid();
         const user = newPresence.user;
         if (!user) {
-            this.#logger.error("[presence] presenceUpdate event received without newPresence.user");
+            this.#logger.error(`[presence:${eid}] presenceUpdate event received without newPresence.user`);
             return;
         }
 
@@ -71,7 +73,7 @@ export class DiscordStreamBot {
                 return;
             }
             await sheo.presenceUpdate(oldPresence, newPresence, {
-                guildMember,
+                guildMember, eid,
             });
         }));
     }
