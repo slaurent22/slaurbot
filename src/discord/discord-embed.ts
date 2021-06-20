@@ -118,12 +118,10 @@ export function getGuildMemberStreamingEmbed(
         embed.setURL(url);
     }
 
-    if (largeImageUrl) {
-        embed.setImage(getEmbedImageUrl(largeImageUrl));
-    }
+    const imageUrl = smallImageURL ?? largeImageUrl;
 
-    if (smallImageURL) {
-        embed.setThumbnail(getEmbedImageUrl(smallImageURL));
+    if (imageUrl) {
+        embed.setThumbnail(getEmbedImageUrl(imageUrl));
     }
 
     if (state) {

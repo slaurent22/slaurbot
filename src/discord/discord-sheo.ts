@@ -414,11 +414,9 @@ export class DiscordSheo {
     }) {
         const embed = getGuildMemberStreamingEmbed(guildMember, newStreamingAcivity);
         const displayName = guildMember.displayName;
-        const state = newStreamingAcivity.state;
-        const stateDisplay = state ? ` **${state}**` : "";
 
         const message = {
-            content: `${displayName} is streaming${stateDisplay}`,
+            content: `${displayName} is now live!`,
             embed,
         };
         await this.#notifyStreamingMembersChannel(message, {
