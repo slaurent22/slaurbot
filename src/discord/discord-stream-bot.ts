@@ -61,21 +61,40 @@ export class DiscordStreamBot {
 
     async #onPresenceUpdate(oldPresence: Presence | undefined, newPresence: Presence) {
         const eid = generateUuid();
-        const user = newPresence.user;
+        const {
+            user, guild, member,
+        } = newPresence;
+
+        let event = `[${eid}] presenceUpdate event received`;
         if (!user) {
-            this.#logger.error(`[presence:${eid}] presenceUpdate event received without newPresence.user`);
+            this.#logger.error(`${event} without user`);
             return;
         }
 
-        await Promise.all([...this.#sheos.values()].map(async sheo => {
-            const guildMember = await sheo.getGuildMember(user);
-            if (!guildMember) {
-                return;
-            }
-            await sheo.presenceUpdate(oldPresence, newPresence, {
-                guildMember, eid,
-            });
-        }));
+        event = `${event} [user:${user.id}]`;
+
+        if (!member) {
+            this.#logger.error(`${event} without member`);
+            return;
+        }
+
+        event = `${event} [member:${member.id}]`;
+
+        if (!guild) {
+            this.#logger.error(`${event} without guild`);
+            return;
+        }
+
+        const guildSheo = this.#sheos.get(guild.id);
+        if (!guildSheo) {
+            this.#logger.error(`${event} with no corresponding sheo instance`);
+            return;
+        }
+
+        return guildSheo.presenceUpdate(oldPresence, newPresence, {
+            guildMember: member,
+            eid,
+        });
     }
 
     async #readyGuild(guildId: string, config: DiscordStreamBotConfig) {

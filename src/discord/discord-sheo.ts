@@ -318,6 +318,8 @@ export class DiscordSheo {
         eid: string;
     }) {
         const user = guildMember.user;
+        const event = `[${eid}] [user:${user.id}] [tag:${user.tag}] presenceUpdate:`;
+
 
         const oldStreamingAcivity = getStreamingActivity(oldPresence);
         const newStreamingAcivity = getStreamingActivity(newPresence);
@@ -332,8 +334,6 @@ export class DiscordSheo {
             this.#removeRoleFromUser(guildMember, { eid, }),
             this.#deleteStreamingMembersChannelMesssage(user.id, { eid, })
         ]);
-
-        const event = `[${eid}] [user:${user.id}] [tag:${user.tag}]`;
 
         // stopped streaming
         if (oldStreamingAcivity && !newStreamingAcivity) {
@@ -387,6 +387,8 @@ export class DiscordSheo {
             this.#logger.debug(`${event} STARTED STREAMING, but not allowable content`);
             return;
         }
+
+        this.#logger.info(`${event} STARTED STREAMING`);
 
         await this.#addRoleToUser(guildMember, { eid, });
 
