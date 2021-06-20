@@ -1,3 +1,4 @@
+import sourceMapSupport from "source-map-support";
 import nodeCleanup from "node-cleanup";
 import { Slaurbot } from "./slaurbot";
 import { getLogger } from "./util/logger";
@@ -5,6 +6,8 @@ import { createExpress } from "./express";
 import { createDiscordClient } from "./discord/discord-bot";
 import { getTwitchTokens } from "./twitch/twitch-token-cache";
 import { createSheo } from "./sheo";
+
+sourceMapSupport.install();
 
 const PORT = process.env.PORT || 5000;
 
