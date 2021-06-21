@@ -419,7 +419,7 @@ export class DiscordSheo {
         const displayName = guildMember.displayName;
 
         const message = {
-            content: `${displayName} is now live!`,
+            content: `**${displayName}** is now live!`,
             embed,
         };
         await this.#notifyStreamingMembersChannel(message, {

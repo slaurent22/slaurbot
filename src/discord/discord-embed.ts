@@ -1,5 +1,6 @@
 import type { Activity } from "discord.js";
 import Discord from "discord.js";
+import { STREAMING_PRESENCE_COLOR_RGB } from "../util/constants";
 
 // eslint-disable-next-line max-len
 const TWITCH_URL = "https://twitch.tv/slaurent22";
@@ -101,14 +102,15 @@ export function getGuildMemberStreamingEmbed(
     guildMember: Discord.GuildMember,
     streamingActivity: Discord.Activity): Discord.MessageEmbed {
 
-    const displayName = guildMember.displayName;
+    const author = guildMember.user.tag;
     const {
         details, url, state, largeImageUrl, smallImageURL,
     } = pickFromActivity(streamingActivity);
 
     const embed = new Discord.MessageEmbed()
+        .setColor(STREAMING_PRESENCE_COLOR_RGB)
         .setTimestamp(new Date())
-        .setAuthor(displayName);
+        .setAuthor(author);
 
     if (details) {
         embed.setTitle(details);

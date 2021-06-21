@@ -408,3 +408,5 @@ export const DISCORD_AUTODELETE_CHANNEL_CONFIG = new Map<string, number>([
 export const DISCORD_AUTODELETE_CHECK_INTERVAL = 5 * MS_PER_HOUR;
 
 export const STREAMING_MEMBERS_COOLDOWN = 30 * 1000;
+
+export const STREAMING_PRESENCE_COLOR_RGB: [number, number, number] = [139, 87, 162];
