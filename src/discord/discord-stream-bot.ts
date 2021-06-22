@@ -6,7 +6,7 @@ import Discord from "discord.js";
 import type { Logger } from "@d-fischer/logger/lib";
 import { getLogger } from "../util/logger";
 import { generateUuid } from "../util/uuid";
-import { discordUserString, guildMemberString } from "../util/log-strings";
+import { discordUserString, guildMemberString, guildString } from "../util/log-strings";
 import { DiscordSheo } from "./discord-sheo";
 
 export interface DiscordStreamBotConfig {
@@ -86,6 +86,8 @@ export class DiscordStreamBot {
             return;
         }
 
+        event = `${event} ${guildString(guild)}`;
+
         const guildSheo = this.#sheos.get(guild.id);
         if (!guildSheo) {
             this.#logger.error(`${event} with no corresponding sheo instance`);
@@ -105,7 +107,7 @@ export class DiscordStreamBot {
             this.#logger.error(`[guild: ${guildId}] found wrong guild: ${guild.id}`);
             return;
         }
-        this.#logger.info(`[guild:${guild.id} guild-name:${guild.name}] config: ${JSON.stringify(config)}`);
+        this.#logger.info(`${guildString(guild)} config: ${JSON.stringify(config)}`);
 
         const {
             cooldownInterval,
