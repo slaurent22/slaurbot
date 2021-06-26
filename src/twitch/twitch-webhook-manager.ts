@@ -1,4 +1,3 @@
-import type { ChatClient } from "twitch-chat-client/lib";
 import type { ConnectCompatibleApp, Subscription } from "twitch-webhooks";
 import { EnvPortAdapter, WebHookListener } from "twitch-webhooks";
 import type { ApiClient, HelixStream } from "twitch/lib";
@@ -17,7 +16,6 @@ import {
 
 export interface TwitchWebHookManagerConfig {
     apiClient: ApiClient;
-    chatClient: ChatClient;
     discordNotifier: DiscordNotifier;
 }
 
@@ -37,19 +35,15 @@ function wentOffline(previousStatus: TwitchStreamStatus, currentStatus: TwitchSt
 
 export class TwitchWebHookManager {
     private _apiClient: ApiClient;
-    private _chatClient: ChatClient;
     private _discordNotifier: DiscordNotifier;
     private _listener: WebHookListener;
     private _logger: Logger;
-    private _thankedFollowers = new Set<string>();
 
     constructor({
         apiClient,
-        chatClient,
         discordNotifier,
     }: TwitchWebHookManagerConfig) {
         this._apiClient = apiClient;
-        this._chatClient = chatClient;
         this._discordNotifier = discordNotifier;
         const { LOG_LEVEL, } = getEnv();
         this._listener = new WebHookListener(this._apiClient, new EnvPortAdapter({
@@ -74,10 +68,7 @@ export class TwitchWebHookManager {
         const userId = TWITCH_USER_ID.SLAURENT;
 
         this._listener.applyMiddleware(app);
-        await Promise.all([
-            this._subscribeToStreamChanges({ userId, userName, }),
-            this._subscribeToFollowsToUser({ userId, userName, })
-        ]);
+        await this._subscribeToStreamChanges({ userId, userName, });
     }
 
     private async _subscribeToStreamChanges({
@@ -172,25 +163,6 @@ export class TwitchWebHookManager {
             }
             await writeTwitchStreamStatusToCache(currentStatus);
             await this._discordNotifier.sendJSONToTestChannel(streamStatusData);
-        });
-
-        this._verifySubscription(subscription);
-    }
-
-    private async _subscribeToFollowsToUser({
-        userId, userName,
-    }: {
-        userId: string;
-        userName: string;
-    }): Promise<void> {
-        const subscription = await this._listener.subscribeToFollowsToUser(userId, (follow) => {
-            this._logger.info("Follow:" + JSON.stringify(follow));
-            if (this._thankedFollowers.has(follow.userId)) {
-                this._logger.warn("User has already been thanked; returning.");
-                return;
-            }
-            this._chatClient.say(userName, `@${follow.userDisplayName} thank you for the follow!`);
-            this._thankedFollowers.add(follow.userId);
         });
 
         this._verifySubscription(subscription);
