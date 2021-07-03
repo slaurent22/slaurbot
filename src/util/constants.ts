@@ -373,6 +373,8 @@ export const DISCORD_ROLE_ID = Object.freeze({
     THEY_THEM: "781328277771386960",
     STREAMING: "807079754766221313",
     STREAM_PING: "821068103454687283",
+    ASK_PNOUNS: "860920239634382858",
+    ANNOUNCE_PING: "860920941278527498",
 });
 
 export const DISCORD_GUILD_ID = Object.freeze({
@@ -393,7 +395,9 @@ export const DISCORD_ROLE_REACT_MAP = new Map<string, string>([
     ["⚧", DISCORD_ROLE_ID.THEY_THEM],
     ["♀️", DISCORD_ROLE_ID.SHE_HER],
     ["♂️", DISCORD_ROLE_ID.HE_HIM],
-    ["🎺", DISCORD_ROLE_ID.STREAM_PING]
+    ["🎺", DISCORD_ROLE_ID.STREAM_PING],
+    ["🏳", DISCORD_ROLE_ID.ASK_PNOUNS],
+    ["📢", DISCORD_ROLE_ID.ANNOUNCE_PING]
 ]) as Readonly<Map<string, string>>;
 
 const MS_PER_HOUR = 60 * 60 * 1000;
