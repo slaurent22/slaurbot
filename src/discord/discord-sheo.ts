@@ -42,7 +42,7 @@ export interface DiscordSheoConfig {
     streamingMembersChannelId?: string;
     streamingRoleId?: string;
     guild: Guild;
-    filter?: (activity: Activity) => boolean;
+    filter?: (activity: Activity, guildMember: GuildMember) => boolean;
 }
 
 function getStreamingActivity(presence: Presence | undefined): Activity | null {
@@ -81,7 +81,7 @@ export class DiscordSheo {
     #streamingMessages?: PersistedMap<string, Message | undefined>;
     #streamingRoleId?: string;
     #guild: Guild;
-    #filter: (activity: Activity) => boolean;
+    #filter: (activity: Activity, guildMember: GuildMember) => boolean;
 
     constructor({
         client,
@@ -341,7 +341,7 @@ export class DiscordSheo {
 
         // stopped streaming
         if (oldStreamingAcivity && !newStreamingAcivity) {
-            const oldAllowable = this.#filter(oldStreamingAcivity);
+            const oldAllowable = this.#filter(oldStreamingAcivity, guildMember);
             this.#logger.debug(`${event} STOPPED STREAMING oldAllowable=${oldAllowable}`);
             if (oldAllowable) {
                 // only need to remove if we had added in the first place
@@ -353,8 +353,8 @@ export class DiscordSheo {
 
         // still streaming
         if (oldStreamingAcivity && newStreamingAcivity) {
-            const oldAllowable = this.#filter(oldStreamingAcivity);
-            const letThrough = this.#filter(newStreamingAcivity);
+            const oldAllowable = this.#filter(oldStreamingAcivity, guildMember);
+            const letThrough = this.#filter(newStreamingAcivity, guildMember);
             if (!oldAllowable && !letThrough) {
                 // no need to add or remove anything
                 this.#logger.debug(`${event} doing nothing`);
@@ -385,7 +385,7 @@ export class DiscordSheo {
             return;
         }
 
-        const letThrough = this.#filter(newStreamingAcivity);
+        const letThrough = this.#filter(newStreamingAcivity, guildMember);
         if (!letThrough) {
             this.#logger.debug(`${event} STARTED STREAMING, but not allowable content`);
             return;

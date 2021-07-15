@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/explicit-member-accessibility */
 
-import type { Activity, Presence } from "discord.js";
+import type { Activity, GuildMember, Presence } from "discord.js";
 import Discord from "discord.js";
 import type { Logger } from "@d-fischer/logger/lib";
 import { getLogger } from "../util/logger";
@@ -14,7 +14,7 @@ export interface DiscordStreamBotConfig {
     name: string;
     streamingMembersChannelId?: string;
     streamingRoleId?: string;
-    filter?: (activity: Activity) => boolean;
+    filter?: (activity: Activity, guildMember: GuildMember) => boolean;
 }
 
 /**

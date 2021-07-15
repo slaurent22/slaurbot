@@ -4,6 +4,7 @@ import type { DiscordStreamBotConfig } from "./discord/discord-stream-bot";
 import { DiscordStreamBot } from "./discord/discord-stream-bot";
 import { DISCORD_CHANNEL_ID, DISCORD_GUILD_ID, DISCORD_ROLE_ID, STREAMING_MEMBERS_COOLDOWN } from "./util/constants";
 import { getEnv } from "./util/env";
+import { guildMemberString } from "./util/log-strings";
 
 
 export async function createSheo(): Promise<void> {
@@ -38,7 +39,13 @@ export async function createSheo(): Promise<void> {
         name: "hksr",
         streamingRoleId: "855853020914647080",
         streamingMembersChannelId: "837761461290795078",
-        filter: activity => {
+        filter: (activity, guildMember) => {
+            const mutedRole = guildMember.roles.cache.get("822719769970737152");
+            if (mutedRole) {
+                // todo: remove this log later
+                logger.critical(`${guildMemberString(guildMember)} is muted`);
+                return false;
+            }
             const state = activity.state;
             if (!state) {
                 return false;
