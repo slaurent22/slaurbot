@@ -42,10 +42,16 @@ export async function createSheo(): Promise<void> {
         filter: (activity, guildMember) => {
             const mutedRole = guildMember.roles.cache.get("822719769970737152");
             if (mutedRole) {
-                // todo: remove this log later
                 logger.critical(`${guildMemberString(guildMember)} is muted`);
                 return false;
             }
+
+            const sheoIgnoreRole = guildMember.roles.cache.get("868968408983683083");
+            if (sheoIgnoreRole) {
+                logger.critical(`${guildMemberString(guildMember)} is on sheo's ignore list`);
+                return false;
+            }
+
             const state = activity.state;
             if (!state) {
                 return false;
