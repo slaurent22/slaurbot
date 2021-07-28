@@ -46,6 +46,13 @@ function getEmbedImageUrl(imageUrl: string): string {
     return `${imageUrl}?r=${randomNumber(11111, 99999)}`;
 }
 
+function escape(text: string | null): string | null {
+    if (!text) {
+        return text;
+    }
+    return Discord.Util.escapeMarkdown(text);
+}
+
 export function getTwitchStreamEmbed({
     boxArtUrl,
     logo,
@@ -59,7 +66,7 @@ export function getTwitchStreamEmbed({
     const embedImageUrl = getEmbedImageUrl(embedImage);
     return new Discord.MessageEmbed()
         .setColor(EMBED_COLOR)
-        .setTitle(title)
+        .setTitle(escape(title))
         .setURL(TWITCH_URL)
         .setAuthor(EMBED_AUTHOR, logo, TWITCH_URL)
         .setThumbnail(embedThumbnail)
@@ -74,7 +81,7 @@ export function pickFromActivity(streamingActivity: Activity): {
     largeImageUrl: string | null | undefined;
     smallImageURL: string | null | undefined;
 } {
-    const details = streamingActivity.details;
+    const details = escape(streamingActivity.details);
     const url = streamingActivity.url;
     const state = streamingActivity.state;
 
