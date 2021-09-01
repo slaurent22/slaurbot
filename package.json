@@ -6,6 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc -p .",
+    "watch": "tsc -p . --watch",
     "clean": "rm -rf dist/",
     "start": "heroku local web",
     "express": "node dist/express-server.js",
@@ -29,6 +30,7 @@
     "ioredis": "^4.19.2",
     "marked": "^1.2.5",
     "node-cleanup": "^2.1.2",
+    "queue": "^6.0.2",
     "rate-limiter-flexible": "^2.1.16",
     "source-map-support": "^0.5.19",
     "twitch": "^4.3.6",

@@ -7,6 +7,7 @@ import type { Logger } from "@d-fischer/logger/lib";
 import { getLogger } from "../util/logger";
 import { generateUuid } from "../util/uuid";
 import { discordUserString, guildMemberString, guildString } from "../util/log-strings";
+import KeyedQueue from "../util/keyed-queue";
 import { DiscordSheo } from "./discord-sheo";
 
 export interface DiscordStreamBotConfig {
@@ -27,6 +28,7 @@ export class DiscordStreamBot {
     #sheos = new Map<string, DiscordSheo>();
     #client: Discord.Client;
     #logger: Logger;
+    #userUpdateQueue = new KeyedQueue<string, void>();
 
     constructor(botToken: string, config: Map<string, DiscordStreamBotConfig>) {
         this.#botToken = botToken;
@@ -60,7 +62,7 @@ export class DiscordStreamBot {
         await Promise.all([...this.#config.entries()].map(([g, c]) => this.#readyGuild(g, c)));
     }
 
-    async #onPresenceUpdate(oldPresence: Presence | undefined, newPresence: Presence) {
+    #onPresenceUpdate(oldPresence: Presence | undefined, newPresence: Presence) {
         const eid = generateUuid();
         const {
             user, guild, member,
@@ -94,10 +96,13 @@ export class DiscordStreamBot {
             return;
         }
 
-        return guildSheo.presenceUpdate(oldPresence, newPresence, {
-            guildMember: member,
-            eid,
-        });
+        const presenceUpdateExecutor = async() => {
+            await guildSheo.presenceUpdate(oldPresence, newPresence, {
+                guildMember: member,
+                eid,
+            });
+        };
+        this.#userUpdateQueue.push(member.id, presenceUpdateExecutor);
     }
 
     async #readyGuild(guildId: string, config: DiscordStreamBotConfig) {

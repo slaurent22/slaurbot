@@ -315,6 +315,23 @@ export class DiscordSheo {
         await this.#streamingMessages.flush();
     }
 
+    async presenceUpdateNoopTimeout(oldPresence: Presence | undefined, newPresence: Presence, {
+        guildMember, eid,
+    }: {
+        guildMember: GuildMember;
+        eid: string;
+    }) {
+        const user = guildMember.user;
+        const event = `[${eid}] ${du(user)} presenceUpdate`;
+        this.#logger.critical(`${event} NO-OP TIMEOUT START`);
+        await new Promise<void>(resolve => {
+            setTimeout(() => {
+                this.#logger.critical(`${event} NO-OP TIMEOUT END`);
+                resolve();
+            }, 5000);
+        });
+    }
+
     async presenceUpdate(oldPresence: Presence | undefined, newPresence: Presence, {
         guildMember, eid,
     }: {
