@@ -193,7 +193,7 @@ export class TwitchWebHookManager {
                 return;
             }
             if (banOnSight(user.name) || banOnSight(user.displayName)) {
-                await this._chatClient.ban(undefined, user.name, "Name matches ban filter");
+                await this._chatClient.ban("slaurent22", user.name, "Name matches ban filter");
             }
         });
         this._verifySubscription(subscription);
