@@ -2,6 +2,7 @@ import type { ConnectCompatibleApp, Subscription } from "twitch-webhooks";
 import { EnvPortAdapter, WebHookListener } from "twitch-webhooks";
 import type { ApiClient, HelixStream } from "twitch/lib";
 import type { Logger } from "@d-fischer/logger";
+import type { ChatClient } from "twitch-chat-client/lib";
 import { DISCORD_ROLE_ID, TWITCH_STREAM_TITLE_DIRECTIVE_NOPING, TWITCH_USER_ID } from "../util/constants";
 import { getEnv } from "../util/env";
 import { getLogger } from "../util/logger";
@@ -14,8 +15,13 @@ import {
     writeTwitchStreamStatusToCache
 } from "./twitch-stream-status-cache";
 
+function banOnSight(name: string) {
+    return name === "slaurtest" || name.toLowerCase().startsWith("hos");
+}
+
 export interface TwitchWebHookManagerConfig {
     apiClient: ApiClient;
+    chatClient: ChatClient;
     discordNotifier: DiscordNotifier;
 }
 
@@ -35,15 +41,18 @@ function wentOffline(previousStatus: TwitchStreamStatus, currentStatus: TwitchSt
 
 export class TwitchWebHookManager {
     private _apiClient: ApiClient;
+    private _chatClient: ChatClient;
     private _discordNotifier: DiscordNotifier;
     private _listener: WebHookListener;
     private _logger: Logger;
 
     constructor({
         apiClient,
+        chatClient,
         discordNotifier,
     }: TwitchWebHookManagerConfig) {
         this._apiClient = apiClient;
+        this._chatClient = chatClient;
         this._discordNotifier = discordNotifier;
         const { LOG_LEVEL, } = getEnv();
         this._listener = new WebHookListener(this._apiClient, new EnvPortAdapter({
@@ -68,7 +77,10 @@ export class TwitchWebHookManager {
         const userId = TWITCH_USER_ID.SLAURENT;
 
         this._listener.applyMiddleware(app);
-        await this._subscribeToStreamChanges({ userId, userName, });
+        await Promise.all([
+            this._subscribeToStreamChanges({ userId, userName, }),
+            this._subscribeToFollowsToUser({ userId, })
+        ]);
     }
 
     private async _subscribeToStreamChanges({
@@ -167,6 +179,26 @@ export class TwitchWebHookManager {
 
         this._verifySubscription(subscription);
     }
+
+    private async _subscribeToFollowsToUser({
+        userId,
+    }: {
+        userId: string;
+    }): Promise<void> {
+        const subscription = await this._listener.subscribeToFollowsToUser(userId, async(follow) => {
+            this._logger.info("Follow:" + JSON.stringify(follow));
+            const user = await follow.getUser();
+            if (!user) {
+                this._logger.warn("could not find user for follow");
+                return;
+            }
+            if (banOnSight(user.name) || banOnSight(user.displayName)) {
+                await this._chatClient.ban(undefined, user.id, "Name matches ban filter");
+            }
+        });
+        this._verifySubscription(subscription);
+    }
+
 
     private _verifySubscription(subscription: Subscription) {
         const VERIFICATION_TIMEOUT_SECONDS = 60;

@@ -65,6 +65,7 @@ export class TwitchEventManager {
 
         this._webHookManager = new TwitchWebHookManager({
             apiClient: this._apiClient,
+            chatClient: this._chatClient,
             discordNotifier: this._discordNotifier,
         });
     }
