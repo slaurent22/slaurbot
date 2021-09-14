@@ -17,7 +17,7 @@
   "author": "slaurent22",
   "license": "GPL-3.0-only",
   "engines": {
-    "node": "14.x"
+    "node": ">16.6.0"
   },
   "dependencies": {
     "@d-fischer/logger": "^2.1.1",
