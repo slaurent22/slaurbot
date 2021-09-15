@@ -9,12 +9,13 @@ import type {
     Activity,
     Client,
     Guild,
-    MessageEmbed,
     Message,
     Presence,
     User,
     GuildMember,
-    TextBasedChannels } from "discord.js";
+    TextBasedChannels,
+    MessageOptions
+} from "discord.js";
 import {
     DiscordAPIError
 } from "discord.js";
@@ -27,11 +28,6 @@ import {
     guildMemberString as gm
 } from "../util/log-strings";
 import { getGuildMemberStreamingEmbed, pickFromActivity } from "./discord-embed";
-
-interface MessageConfig {
-    content: string;
-    embed?: MessageEmbed;
-}
 
 export interface DiscordSheoConfig {
     client: Client;
@@ -220,7 +216,7 @@ export class DiscordSheo {
         }
     }
 
-    async #notifyStreamingMembersChannel(message: MessageConfig, {
+    async #notifyStreamingMembersChannel(message: MessageOptions, {
         userId, eid,
     }: {
         userId: string;
@@ -430,7 +426,7 @@ export class DiscordSheo {
 
         const message = {
             content: `**${displayName}** is now live!`,
-            embed,
+            embeds: [embed],
         };
         await this.#notifyStreamingMembersChannel(message, {
             userId: guildMember.user.id, eid,
