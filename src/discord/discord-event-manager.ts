@@ -34,7 +34,7 @@ export class DiscordEventManager {
             name: "slaurbot-discord-event-manager",
         });
 
-        const guilds = this._discordClient.guilds.cache.array();
+        const guilds = this._discordClient.guilds.cache.toJSON();
         this._guild = guilds[0];
     }
 
@@ -60,12 +60,10 @@ export class DiscordEventManager {
 
     private async _awaitReactions() {
         const roleRequestChannel = await this._discordClient.channels.fetch(DISCORD_CHANNEL_ID.ROLE_REQUEST);
-        assert(roleRequestChannel.isText());
+        assert(roleRequestChannel && roleRequestChannel.isText());
         const roleReactMessage = await roleRequestChannel.messages.fetch(DISCORD_MESSAGE_ID.ROLE_REACT);
 
-        const collector = roleReactMessage.createReactionCollector(() => true, {
-            dispose: true,
-        });
+        const collector = roleReactMessage.createReactionCollector();
 
         collector.on("collect", this._onReactAdd.bind(this));
         collector.on("dispose", this._onReactRemove.bind(this));
@@ -77,6 +75,9 @@ export class DiscordEventManager {
 
     private async _onReactAdd(reaction: MessageReaction, user: DiscordUser) {
         this._logger.info(`ReactAdd: ${reaction.emoji.name} from ${user.tag}`);
+        if (!reaction.emoji.name) {
+            return;
+        }
         const role = DISCORD_ROLE_REACT_MAP.get(reaction.emoji.name);
         if (!role) {
             this._logger.warn("No role for this reaction");
@@ -87,6 +88,9 @@ export class DiscordEventManager {
 
     private async _onReactRemove(reaction: MessageReaction, user: DiscordUser) {
         this._logger.info(`ReactRemove: ${reaction.emoji.name} from ${user.tag}`);
+        if (!reaction.emoji.name) {
+            return;
+        }
         const role = DISCORD_ROLE_REACT_MAP.get(reaction.emoji.name);
         if (!role) {
             this._logger.warn("No role for this reaction");
@@ -103,7 +107,7 @@ export class DiscordEventManager {
         }
         catch (e) {
             this._logger.error(`Adding role ${role} for ${user.tag} FAILED`);
-            this._logger.error(e);
+            this._logger.error(e as string);
         }
     }
 
@@ -115,7 +119,7 @@ export class DiscordEventManager {
         }
         catch (e) {
             this._logger.error(`Removing role ${role} for ${user.tag} FAILED`);
-            this._logger.error(e);
+            this._logger.error(e as string);
         }
     }
 }

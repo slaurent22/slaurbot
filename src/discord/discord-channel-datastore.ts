@@ -1,6 +1,5 @@
 import assert from "assert";
-import type { Client as DiscordClient, Collection } from "discord.js";
-import type { DiscordMessageChannel } from "../util/constants";
+import type { Client as DiscordClient, Collection, TextBasedChannels } from "discord.js";
 import { getLogger } from "../util/logger";
 
 export enum DBTypes {
@@ -66,7 +65,7 @@ function parseMessageContent(dbSpec: DBSpec, content: string) {
 export class DiscordChannelDataStore {
     private _discordClient: DiscordClient;
     private _dbSpec: DBSpec;
-    private _storeChannel: DiscordMessageChannel;
+    private _storeChannel: TextBasedChannels;
     private _logger = getLogger({
         name: "slaurbot-discord-channel-datastore",
     });
@@ -87,7 +86,7 @@ export class DiscordChannelDataStore {
 
     public async readChannel(): Promise<Collection<string, Array<DBValueType>>> {
         const messages = this._storeChannel.messages;
-        const messageCollection = await messages.fetch({}, false, true);
+        const messageCollection = await messages.fetch({}, { cache: false, force: true, });
         return messageCollection.mapValues(message => {
             const { content, } = message;
             this._logger.debug(`msg content: ${content}`);

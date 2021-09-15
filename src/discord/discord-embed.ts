@@ -66,7 +66,7 @@ export function getTwitchStreamEmbed({
     const embedImageUrl = getEmbedImageUrl(embedImage);
     return new Discord.MessageEmbed()
         .setColor(EMBED_COLOR)
-        .setTitle(escape(title))
+        .setTitle(escape(title) as string)
         .setURL(TWITCH_URL)
         .setAuthor(EMBED_AUTHOR, logo, TWITCH_URL)
         .setThumbnail(embedThumbnail)

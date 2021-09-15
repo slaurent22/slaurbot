@@ -8,6 +8,7 @@ import { getLogger } from "../util/logger";
 import { generateUuid } from "../util/uuid";
 import { discordUserString, guildMemberString, guildString } from "../util/log-strings";
 import KeyedQueue from "../util/keyed-queue";
+import { DISCORD_CLIENT_INTENTS } from "../util/constants";
 import { DiscordSheo } from "./discord-sheo";
 
 export interface DiscordStreamBotConfig {
@@ -35,7 +36,9 @@ export class DiscordStreamBot {
         this.#config = config;
         this.#logger = getLogger({ name: "streambot-sheo", });
 
-        this.#client = new Discord.Client();
+        this.#client = new Discord.Client({
+            intents: DISCORD_CLIENT_INTENTS,
+        });
         this.#client.once("ready", this.#onReady.bind(this));
     }
 
@@ -62,7 +65,7 @@ export class DiscordStreamBot {
         await Promise.all([...this.#config.entries()].map(([g, c]) => this.#readyGuild(g, c)));
     }
 
-    #onPresenceUpdate(oldPresence: Presence | undefined, newPresence: Presence) {
+    #onPresenceUpdate(oldPresence: Presence | null, newPresence: Presence) {
         const eid = generateUuid();
         const {
             user, guild, member,
@@ -107,7 +110,7 @@ export class DiscordStreamBot {
 
     async #readyGuild(guildId: string, config: DiscordStreamBotConfig) {
         this.#logger.info(`[guild: ${guildId}] fetching guild`);
-        const guild = await this.#client.guilds.fetch(guildId, true, true);
+        const guild = await this.#client.guilds.fetch(guildId);
         if (guild.id !== guildId) {
             this.#logger.error(`[guild: ${guildId}] found wrong guild: ${guild.id}`);
             return;

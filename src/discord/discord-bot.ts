@@ -2,7 +2,11 @@ import Discord from "discord.js";
 import type { Client as DiscordClient } from "discord.js";
 import { getEnv } from "../util/env";
 import { getLogger } from "../util/logger";
-import { DISCORD_AUTODELETE_CHANNEL_CONFIG, DISCORD_AUTODELETE_CHECK_INTERVAL } from "../util/constants";
+import {
+    DISCORD_AUTODELETE_CHANNEL_CONFIG,
+    DISCORD_AUTODELETE_CHECK_INTERVAL,
+    DISCORD_CLIENT_INTENTS
+} from "../util/constants";
 import { DiscordNotifier } from "./discord-notifier";
 import { DiscordEventManager } from "./discord-event-manager";
 import { DicordChannelAutodeleter } from "./discord-channel-autodeleter";
@@ -12,7 +16,9 @@ const logger = getLogger({
 });
 
 export async function createDiscordClientImp(resolve: ((dc: DiscordClient) => void)): Promise<void> {
-    const client = new Discord.Client();
+    const client = new Discord.Client({
+        intents: DISCORD_CLIENT_INTENTS,
+    });
 
     client.once("ready", async() => {
         logger.info("Discord client is ready");
@@ -44,7 +50,7 @@ export async function createDiscordClientImp(resolve: ((dc: DiscordClient) => vo
         resolve(client);
     });
 
-    client.on("message", message => {
+    client.on("messageCreate", message => {
         // eslint-disable-next-line max-len
         logger.info(`[DISCORD MSG] USER:'${message.author.id}' CHANNEL:'${message.channel.id}' CONTENT:'${message.content}'`);
         if (message.content === "!ping") {

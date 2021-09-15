@@ -8,15 +8,13 @@ import type { Logger } from "@d-fischer/logger/lib";
 import type {
     Activity,
     Client,
-    DMChannel,
     Guild,
     MessageEmbed,
     Message,
-    NewsChannel,
     Presence,
-    TextChannel,
     User,
-    GuildMember } from "discord.js";
+    GuildMember,
+    TextBasedChannels } from "discord.js";
 import {
     DiscordAPIError
 } from "discord.js";
@@ -45,7 +43,7 @@ export interface DiscordSheoConfig {
     filter?: (activity: Activity, guildMember: GuildMember) => boolean;
 }
 
-function getStreamingActivity(presence: Presence | undefined): Activity | null {
+function getStreamingActivity(presence: Presence | null): Activity | null {
     if (!presence) {
         return null;
     }
@@ -76,7 +74,7 @@ export class DiscordSheo {
     #logger: Logger;
     #name: string;
     #membersStreamingCooldown = new Map<string, Date>();
-    #streamingMembersChannel?: TextChannel | DMChannel | NewsChannel;
+    #streamingMembersChannel?: TextBasedChannels;
     #streamingMembersChannelId?: string;
     #streamingMessages?: PersistedMap<string, Message | undefined>;
     #streamingRoleId?: string;
@@ -196,8 +194,8 @@ export class DiscordSheo {
             this.#logger.info(`${action} SUCCESS: [member:${id}]`);
         }
         catch (e) {
-            this.#logger.error(`${action} FAILURE: ${e?.message}`);
-            this.#logger.error(e);
+            this.#logger.error(`${action} FAILURE: ${(e as Error)?.message}`);
+            this.#logger.error(e as string);
         }
     }
 
@@ -217,9 +215,8 @@ export class DiscordSheo {
             this.#logger.info(`${action} SUCCESS: [member:${id}]`);
         }
         catch (e) {
-            this.#logger.error(`${action} FAILURE: ${e?.message}`);
-            this.#logger.error(e);
-
+            this.#logger.error(`${action} FAILURE: ${(e as Error)?.message}`);
+            this.#logger.error(e as string);
         }
     }
 
@@ -245,8 +242,8 @@ export class DiscordSheo {
                 this.#logger.info(`${action} SUCCESS: [message:${newMessage.id}]`);
             }
             catch (e) {
-                this.#logger.error(`${action} FAILURE: ${e?.message}`);
-                this.#logger.error(e);
+                this.#logger.error(`${action} FAILURE: ${(e as Error)?.message}`);
+                this.#logger.error(e as string);
             }
 
             return;
@@ -255,15 +252,13 @@ export class DiscordSheo {
             const action = `${event} [message:${existingMessage.id}] deleting message`;
             this.#logger.info(action);
             try {
-                const { id, } = await existingMessage.delete({
-                    reason: "message was not editable. replacing with new message",
-                });
+                const { id, } = await existingMessage.delete();
                 this.#streamingMessages.delete(userId);
                 this.#logger.info(`${action} SUCCESS: [message:${id}]`);
             }
             catch (e) {
-                this.#logger.error(`${action} FAILURE: ${e?.message}`);
-                this.#logger.error(e);
+                this.#logger.error(`${action} FAILURE: ${(e as Error)?.message}`);
+                this.#logger.error(e as string);
             }
         }
 
@@ -275,8 +270,8 @@ export class DiscordSheo {
             this.#streamingMessages.set(userId, newMessage);
         }
         catch (e) {
-            this.#logger.error(`${action} FAILURE: ${e?.message}`);
-            this.#logger.error(e);
+            this.#logger.error(`${action} FAILURE: ${(e as Error)?.message}`);
+            this.#logger.error(e as string);
         }
 
         this.#logger.debug(`${event} flushing streamingMessages`);
@@ -300,15 +295,13 @@ export class DiscordSheo {
         const action = `${event} [message:${message.id}] deleting message`;
         try {
             this.#logger.info(action);
-            const { id, } = await message.delete({
-                reason: "user stopped streaming",
-            });
+            const { id, } = await message.delete();
             this.#streamingMessages.delete(userId);
             this.#logger.info(`${action} SUCCESS: [message:${id}]`);
         }
         catch (e) {
-            this.#logger.error(`${action} FAILURE: ${e?.message}`);
-            this.#logger.error(e);
+            this.#logger.error(`${action} FAILURE: ${(e as Error)?.message}`);
+            this.#logger.error(e as string);
         }
 
         this.#logger.debug(`${event} flushing streamingMessages`);
@@ -332,7 +325,7 @@ export class DiscordSheo {
         });
     }
 
-    async presenceUpdate(oldPresence: Presence | undefined, newPresence: Presence, {
+    async presenceUpdate(oldPresence: Presence | null, newPresence: Presence, {
         guildMember, eid,
     }: {
         guildMember: GuildMember;

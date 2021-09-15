@@ -1,10 +1,8 @@
 import assert from "assert";
-import type { Client as DiscordClient } from "discord.js";
+import type { Client as DiscordClient, TextBasedChannels } from "discord.js";
 import type { Logger } from "@d-fischer/logger";
-import humanizeDuration from "humanize-duration";
 import { RateLimiterMemory, RateLimiterQueue } from "rate-limiter-flexible";
 import { getLogger } from "../util/logger";
-import type { DiscordMessageChannel } from "../util/constants";
 import type { DiscordNotifier } from "./discord-notifier";
 
 interface DiscordChannelAutodeleterConfig {
@@ -27,7 +25,7 @@ function createRateLimiterQueue(): RateLimiterQueue {
 
 export class DicordChannelAutodeleter {
     private _channelConfig: Map<string, number>;
-    private _channelMap = new Map<string, DiscordMessageChannel>();
+    private _channelMap = new Map<string, TextBasedChannels>();
     private _checkInterval: number;
     private _discordClient: DiscordClient;
     private _logger: Logger;
@@ -72,7 +70,7 @@ export class DicordChannelAutodeleter {
             const messageCollection = await messages.fetch({
                 limit: 100,
             });
-            const messageArray = messageCollection.array();
+            const messageArray = messageCollection.toJSON();
             this._logger.info(`[channel:${channelId}] checking ${messageArray.length} messages`);
             const deletionResults = await Promise.all(messageArray.map(async(message) => {
                 const {
@@ -91,9 +89,7 @@ export class DicordChannelAutodeleter {
                 await this._queue.removeTokens(1).then(async() => {
                     this._logger.info(`[channel:${channelId}] DELETING: ${message.id}`);
 
-                    await message.delete({
-                        reason: `slaurbot autodeleter due to age greater than: ${humanizeDuration(maxAge)}`,
-                    });
+                    await message.delete();
                 });
 
 

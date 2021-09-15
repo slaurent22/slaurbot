@@ -1,6 +1,4 @@
-import type { DMChannel, NewsChannel, TextChannel } from "discord.js";
-
-export type DiscordMessageChannel = TextChannel | DMChannel | NewsChannel;
+import { Intents } from "discord.js";
 
 /* eslint-disable max-len */
 const EN_ZOTE = Object.freeze({
@@ -413,3 +411,10 @@ export const DISCORD_AUTODELETE_CHECK_INTERVAL = 5 * MS_PER_HOUR;
 export const STREAMING_MEMBERS_COOLDOWN = 30 * 1000;
 
 export const STREAMING_PRESENCE_COLOR_RGB: [number, number, number] = [139, 87, 162];
+
+export const DISCORD_CLIENT_INTENTS = [
+    Intents.FLAGS.GUILDS,
+    Intents.FLAGS.GUILD_MEMBERS,
+    Intents.FLAGS.GUILD_PRESENCES,
+    Intents.FLAGS.GUILD_MESSAGES
+];
