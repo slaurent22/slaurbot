@@ -1,5 +1,5 @@
 import type { Logger } from "@d-fischer/logger";
-import type { Client as DiscordClient, Channel as DiscordChannel, MessageEmbed } from "discord.js";
+import type { Client as DiscordClient, Channel as DiscordChannel, MessageOptions } from "discord.js";
 import {
     DISCORD_CHANNEL_ID,
     DISCORD_CHARACTER_LIMIT
@@ -8,11 +8,6 @@ import { getLogger } from "../util/logger";
 
 interface DiscordNotifierConfig {
     discordClient: DiscordClient;
-}
-
-interface MessageConfig {
-    content: string;
-    embed?: MessageEmbed;
 }
 
 export class DiscordNotifier {
@@ -35,7 +30,7 @@ export class DiscordNotifier {
         this._testChannel = this._discordClient.channels.cache.get(DISCORD_CHANNEL_ID.TEST);
     }
 
-    public async notifyStreamStatusChannel(message: MessageConfig): Promise<void> {
+    public async notifyStreamStatusChannel(message: MessageOptions): Promise<void> {
         if (this._streamStatusChannel && this._streamStatusChannel.isText()) {
             await this._streamStatusChannel.send(message);
         }
@@ -44,7 +39,7 @@ export class DiscordNotifier {
         }
     }
 
-    public async notifyStreamingMembersChannel(message: MessageConfig): Promise<void> {
+    public async notifyStreamingMembersChannel(message: MessageOptions): Promise<void> {
         if (this._streamingMembersChannel && this._streamingMembersChannel.isText()) {
             await this._streamingMembersChannel.send(message);
         }
@@ -53,7 +48,7 @@ export class DiscordNotifier {
         }
     }
 
-    public async notifyTestChannel(message: MessageConfig): Promise<void> {
+    public async notifyTestChannel(message: MessageOptions): Promise<void> {
         if (this._testChannel && this._testChannel.isText()) {
             await this._testChannel.send(message);
         }

@@ -140,37 +140,43 @@ export class TwitchWebHookManager {
                 if (noPing) {
                     await this._discordNotifier.notifyTestChannel({
                         content: TWITCH_STREAM_TITLE_DIRECTIVE_NOPING,
-                        embed: getTwitchStreamEmbed({
-                            title: stream.title,
-                            gameName,
-                            startDate: stream.startDate,
-                            thumbnailUrl: stream.thumbnailUrl,
-                            boxArtUrl: null,
-                            logo: channel.logo,
-                        }),
+                        embeds: [
+                            getTwitchStreamEmbed({
+                                title: stream.title,
+                                gameName,
+                                startDate: stream.startDate,
+                                thumbnailUrl: stream.thumbnailUrl,
+                                boxArtUrl: null,
+                                logo: channel.logo,
+                            })
+                        ],
                     });
                 }
                 else if (wentOnline(previousStatus, currentStatus)) {
                     const pingRole = DISCORD_ROLE_ID.STREAM_PING;
                     await this._discordNotifier.notifyStreamStatusChannel({
                         content: `<@&${pingRole}> ${userName} is streaming ${gameName}!`,
-                        embed: getTwitchStreamEmbed({
-                            title: stream.title,
-                            gameName,
-                            startDate: stream.startDate,
-                            thumbnailUrl: stream.thumbnailUrl,
-                            boxArtUrl: game ? game.boxArtUrl : null,
-                            logo: channel.logo,
-                        }),
+                        embeds: [
+                            getTwitchStreamEmbed({
+                                title: stream.title,
+                                gameName,
+                                startDate: stream.startDate,
+                                thumbnailUrl: stream.thumbnailUrl,
+                                boxArtUrl: game ? game.boxArtUrl : null,
+                                logo: channel.logo,
+                            })
+                        ],
                     });
                 }
             }
             else if (wentOffline(previousStatus, currentStatus)) {
                 await this._discordNotifier.notifyStreamStatusChannel({
                     content: `${userName} went offline`,
-                    embed: getTwitchOfflineEmbed({
-                        startDate: new Date(),
-                    }),
+                    embeds: [
+                        getTwitchOfflineEmbed({
+                            startDate: new Date(),
+                        })
+                    ],
                 });
             }
             await writeTwitchStreamStatusToCache(currentStatus);
