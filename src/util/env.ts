@@ -22,14 +22,14 @@ function assertIsString(val: unknown, message: string): asserts val is string {
 
 function getLogLevelEnum(logLevel: string): LogLevel {
     switch (logLevel) {
-    case "TRACE":
-    case "DEBUG":
-    case "INFO":
-    case "WARNING":
-    case "ERROR":
-    case "CRITICAL":
-        return LogLevel[logLevel];
-    default: throw new Error(`Unknown log level: '${logLevel}'`);
+        case "TRACE":
+        case "DEBUG":
+        case "INFO":
+        case "WARNING":
+        case "ERROR":
+        case "CRITICAL":
+            return LogLevel[logLevel];
+        default: throw new Error(`Unknown log level: '${logLevel}'`);
     }
 }
 

@@ -32,32 +32,32 @@ function parseMessageContent(dbSpec: DBSpec, content: string) {
     return row.map((value, index) => {
         const dbType = rowSchema[index];
         switch (dbType) {
-        case DBTypes.BOOLEAN: {
-            if (value === "true") {
-                return true;
-            }
-            if (value === "false") {
-                return false;
-            }
-            throw new Error(`Invalid ${dbType}: ${value}`);
-        }
-        case DBTypes.STRING: {
-            return value;
-        }
-        case DBTypes.INT: {
-            const num = parseInt(value, 10);
-            if (isNaN(num)) {
+            case DBTypes.BOOLEAN: {
+                if (value === "true") {
+                    return true;
+                }
+                if (value === "false") {
+                    return false;
+                }
                 throw new Error(`Invalid ${dbType}: ${value}`);
             }
-            return num;
-        }
-        case DBTypes.DATE: {
-            return new Date(value);
-        }
-        default: {
+            case DBTypes.STRING: {
+                return value;
+            }
+            case DBTypes.INT: {
+                const num = parseInt(value, 10);
+                if (isNaN(num)) {
+                    throw new Error(`Invalid ${dbType}: ${value}`);
+                }
+                return num;
+            }
+            case DBTypes.DATE: {
+                return new Date(value);
+            }
+            default: {
             // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-            throw new Error(`Unknown dbType: ${dbType}`);
-        }
+                throw new Error(`Unknown dbType: ${dbType}`);
+            }
         }
     });
 }

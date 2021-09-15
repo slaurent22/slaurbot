@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-misused-promises */
 import fs from "fs/promises";
 import express from "express";
 import type { Express } from "express";

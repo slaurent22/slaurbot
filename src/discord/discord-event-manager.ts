@@ -73,7 +73,7 @@ export class DiscordEventManager {
         });
     }
 
-    private async _onReactAdd(reaction: MessageReaction, user: DiscordUser) {
+    private _onReactAdd(reaction: MessageReaction, user: DiscordUser) {
         this._logger.info(`ReactAdd: ${reaction.emoji.name} from ${user.tag}`);
         if (!reaction.emoji.name) {
             return;

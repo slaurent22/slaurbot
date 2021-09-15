@@ -88,20 +88,20 @@ export class TwitchEventManager {
             let suffix = "!";
 
             switch (subInfo.plan) {
-            case "1000":
-                suffix = " at Tier 1!";
-                break;
-            case "2000":
-                suffix = " at Tier 2!";
-                break;
-            case "3000":
-                suffix = " at Tier 3!";
-                break;
-            case "Prime":
-                suffix = " with Prime!";
-                break;
-            default:
-                this._logger.warn(`Unknown plan:'${subInfo.plan}'`);
+                case "1000":
+                    suffix = " at Tier 1!";
+                    break;
+                case "2000":
+                    suffix = " at Tier 2!";
+                    break;
+                case "3000":
+                    suffix = " at Tier 3!";
+                    break;
+                case "Prime":
+                    suffix = " with Prime!";
+                    break;
+                default:
+                    this._logger.warn(`Unknown plan:'${subInfo.plan}'`);
             }
 
             chatClient.say(channel, `Thanks to @${subInfo.displayName} for subscribing to the channel${suffix}`);
