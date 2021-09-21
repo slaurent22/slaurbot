@@ -10,7 +10,6 @@ import { DiscordNotifier } from "../discord/discord-notifier";
 import { DiscordReader } from "../discord/discord-reader";
 import { getEnv } from "../util/env";
 import { TwitchCommandManager } from "./twitch-command-manager";
-import { TwitchWebHookManager } from "./twitch-webhook-manager";
 
 export interface TwitchEventManagerConfig {
     apiClient: ApiClient;
@@ -29,7 +28,6 @@ export class TwitchEventManager {
     private _logger: Logger;
     private _pubSubClient: PubSubClient;
     private _uwuifier: Uwuifier;
-    private _webHookManager: TwitchWebHookManager;
 
     constructor({
         apiClient,
@@ -62,19 +60,12 @@ export class TwitchEventManager {
         this._logger = getLogger({
             name: "slaurbot-twitch-event-manager",
         });
-
-        this._webHookManager = new TwitchWebHookManager({
-            apiClient: this._apiClient,
-            chatClient: this._chatClient,
-            discordNotifier: this._discordNotifier,
-        });
     }
 
     public async listen(app: ConnectCompatibleApp): Promise<void> {
         this._initRandomUwuification();
 
         await this._commandManager.listen();
-        await this._webHookManager.listen(app);
 
         const chatClient = this._chatClient;
         const pubSubClient = this._pubSubClient;
