@@ -63,7 +63,9 @@ export class DiscordEventManager {
         assert(roleRequestChannel && roleRequestChannel.isText());
         const roleReactMessage = await roleRequestChannel.messages.fetch(DISCORD_MESSAGE_ID.ROLE_REACT);
 
-        const collector = roleReactMessage.createReactionCollector();
+        const collector = roleReactMessage.createReactionCollector({
+            dispose: true,
+        });
 
         collector.on("collect", this._onReactAdd.bind(this));
         collector.on("dispose", this._onReactRemove.bind(this));
