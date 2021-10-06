@@ -15,19 +15,19 @@ const logger = getLogger({
     name: "slaurbot-server",
 });
 
-async function botServer() {
-    const [
-        discordClient,
-        twitchTokens
-    ] = await Promise.all([
-        createDiscordClient(),
-        getTwitchTokens()
-    ]);
+function botServer() {
+    // const [
+    //     discordClient,
+    //     twitchTokens
+    // ] = await Promise.all([
+    //     createDiscordClient(),
+    //     getTwitchTokens()
+    // ]);
 
-    const slaurbot = new Slaurbot({
-        discordClient,
-        tokenData: twitchTokens,
-    });
+    // const slaurbot = new Slaurbot({
+    //     discordClient,
+    //     tokenData: twitchTokens,
+    // });
 
     const app = createExpress(getLogger({
         name: "slaurbot-express",
@@ -37,7 +37,7 @@ async function botServer() {
 
     nodeCleanup(() => {
         logger.info("slaurbot: Performing cleanup");
-        slaurbot.destroy();
+        // slaurbot.destroy();
     });
 
 }
