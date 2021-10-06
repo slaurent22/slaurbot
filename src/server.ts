@@ -33,7 +33,7 @@ async function botServer() {
         name: "slaurbot-express",
     }));
     app.listen(PORT, () => logger.info(`Express app listening on ${ PORT }`));
-    await slaurbot.start(app);
+    // await slaurbot.start(app);
 
     nodeCleanup(() => {
         logger.info("slaurbot: Performing cleanup");
@@ -43,4 +43,4 @@ async function botServer() {
 }
 
 void createSheo();
-// void botServer();
+void botServer();
