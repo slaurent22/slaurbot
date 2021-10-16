@@ -5,5 +5,9 @@ async function main() {
     dotenv.config();
     await createSheo();
 }
-
-void main();
+try {
+    void main();
+}
+catch (e) {
+    console.error("sheo error", e);
+}

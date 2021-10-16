@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import assert from "assert";
+import https from "https";
 import dotenv from "dotenv";
+import axios from "axios";
 import { getTwitchTokens, writeTwitchTokens } from "../twitch/twitch-token-cache";
-import { createRedis } from "../util/redis";
 
 // Refer to
 // https://dev.twitch.tv/docs/authentication/getting-tokens-oauth#oauth-authorization-code-flow
@@ -101,8 +102,26 @@ function step2() {
         code,
     });
 
-    console.log("Send a POST request to this url, and copy the response into tokens.json");
+    console.log("Making a POST request to this url; copy the response into tokens.json");
     console.log(url);
+    // const response = https.request({ method: "POST", path: url, }, postResponse => {
+    //     console.log(postResponse);
+    // });
+
+    axios.post(url)
+        .then(response => {
+            if (axios.isAxiosError(response)) {
+                console.log(response.toJSON());
+            }
+            else {
+                console.log(response);
+            }
+        })
+        .catch(error => {
+            console.log(error);
+        });
+
+
 }
 
 interface Tokens {
@@ -129,9 +148,9 @@ async function step3() {
 function main() {
     dotenv.config();
 
-    // step1();
+    step1();
     // step2();
-    void step3();
+    // void step3();
 }
 
 main();

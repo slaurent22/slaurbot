@@ -12,7 +12,8 @@
     "express": "node dist/express-server.js",
     "lint": "eslint .",
     "lintfix": "eslint --fix .",
-    "sheo": "node dist/sheo-server.js"
+    "sheo": "node dist/sheo-server.js",
+    "slaurbot": "node dist/slaurbot-server.js"
   },
   "author": "slaurent22",
   "license": "GPL-3.0-only",
@@ -21,6 +22,7 @@
   },
   "dependencies": {
     "@d-fischer/logger": "^2.1.1",
+    "axios": "^0.23.0",
     "deepequal": "0.0.1",
     "discord.js": "^13.1.0",
     "easy-twitch-bot": "^4.3.5",
