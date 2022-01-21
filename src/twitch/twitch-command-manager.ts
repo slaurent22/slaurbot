@@ -1,5 +1,5 @@
-import type { ChatClient } from "twitch-chat-client";
-import type { ApiClient } from "twitch/lib";
+import type { ChatClient } from "@twurple/chat";
+import type { ApiClient } from "@twurple/api";
 import humanizeDuration from "humanize-duration";
 import type { Logger } from "@d-fischer/logger";
 import type { Uwuifier } from "uwuifier";
@@ -71,48 +71,40 @@ export class TwitchCommandManager {
 
     private initCommands(): void {
 
-        this._simpleTwitchBot.addCommand("!ping", (params, context) => {
-            context.say("pong!");
+        this._simpleTwitchBot.addCommand("!ping", async(params, context) => {
+            await context.say("pong!");
         });
 
         this._simpleTwitchBot.addCommand("!followage", async(params, context) => {
-            const follow = await this._apiClient.kraken.users
-                .getFollowedChannel(
-                    context.msg.userInfo.userId as string,
+            const follow = await this._apiClient.users
+                .getFollowFromUserToBroadcaster(
+                    context.msg.userInfo.userId,
                     context.msg.channelId as string);
 
             if (follow) {
                 const followDate = follow.followDate;
                 const duration = new Date().getTime() - followDate.getTime();
                 const durationEnglish = durationInEnglish(duration);
-                context.say(`@${context.user} You have been following for ${durationEnglish}`);
+                await context.say(`@${context.user} You have been following for ${durationEnglish}`);
             }
             else {
-                context.say(`@${context.user} You are not following!`);
-            }
-        });
-
-        this._simpleTwitchBot.addCommand("TPFufun", (params, context) => {
-            const edThoone = context.msg.userInfo.userId === TWITCH_USER_ID.EDTHOONE;
-
-            if (edThoone) {
-                context.say("TPFufun");
+                await context.say(`@${context.user} You are not following!`);
             }
         });
 
         this._simpleTwitchBot.addCommand("!bttv", async(params, context) => {
-            context.say(await getTwitchBttvEmotes());
+            await context.say(await getTwitchBttvEmotes());
         });
 
         this._simpleTwitchBot.addCommand("!ffz", async(params, context) => {
-            context.say(await getTwitchFfzEmotes());
+            await context.say(await getTwitchFfzEmotes());
         });
 
         this._simpleTwitchBot.addCommand("!song", async(params, context) => {
-            context.say(await getPretzelNowPlaying());
+            await context.say(await getPretzelNowPlaying());
         });
 
-        this._simpleTwitchBot.addCommand("!precept", (params, context) => {
+        this._simpleTwitchBot.addCommand("!precept", async(params, context) => {
             this._logger.info("!precept params:" + params.join(" "));
             let preceptNum = parseInt(params[0], 10);
             let precept = ZOTE_PRECEPTS.get(preceptNum);
@@ -125,7 +117,7 @@ export class TwitchCommandManager {
             }
             precept = precept.replace(/<page>/g, " ");
 
-            context.say(precept);
+            await context.say(precept);
         }, {
             cooldown: {
                 time: 10000,
@@ -137,7 +129,7 @@ export class TwitchCommandManager {
             const callingUser = context.msg.userInfo;
             const userDisplayName = callingUser.displayName;
             if (params.length === 0) {
-                context.say(`@${userDisplayName} try shouting out a user or channel`);
+                await context.say(`@${userDisplayName} try shouting out a user or channel`);
                 return;
             }
 
@@ -152,12 +144,12 @@ export class TwitchCommandManager {
             }
             catch (e) {
                 this._logger.error(JSON.stringify(e));
-                context.say(`@${userDisplayName}, I encountered an error looking up '${shoutoutTarget}'`);
+                await context.say(`@${userDisplayName}, I encountered an error looking up '${shoutoutTarget}'`);
                 return;
             }
 
             if (!shoutoutUser) {
-                context.say(`@${userDisplayName}, I could not find user '${shoutoutTarget}'`);
+                await context.say(`@${userDisplayName}, I could not find user '${shoutoutTarget}'`);
                 return;
             }
 
@@ -172,7 +164,7 @@ export class TwitchCommandManager {
                 msg += " !";
             }
 
-            context.say(msg);
+            await context.say(msg);
 
         }, {
             cooldown: {
@@ -191,19 +183,19 @@ export class TwitchCommandManager {
         this._simpleTwitchBot.addCommand("!uptime", async(params, context) => {
             const cachedStatus = await getCachedTwitchStreamStatus();
             if (cachedStatus === "OFFLINE") {
-                context.say("Stream is offline");
+                await context.say("Stream is offline");
                 return;
             }
 
             const stream = await this._apiClient.helix.streams.getStreamByUserName(TWITCH_USER_ID.SLAURENT);
             if (!stream) {
-                context.say("Stream is live, but I failed to fetch stream data :(");
+                await context.say("Stream is live, but I failed to fetch stream data :(");
                 return;
             }
 
             const duration = new Date().getTime() - stream.startDate.getTime();
             const durationEnglish = durationInEnglish(duration);
-            context.say(`Stream has been live for ${durationEnglish}`);
+            await context.say(`Stream has been live for ${durationEnglish}`);
         }, {
             cooldown: {
                 time: 1000,
@@ -213,7 +205,7 @@ export class TwitchCommandManager {
 
         this._simpleTwitchBot.addCommand("!refreshCommands", async(params, context) => {
             await this._refreshMessageCommandsFromDataStore();
-            context.say("Successfully refreshed commands!");
+            await context.say("Successfully refreshed commands!");
         }, {
             permissions: {
                 broadcaster: true,
@@ -224,11 +216,11 @@ export class TwitchCommandManager {
             },
         });
 
-        this._simpleTwitchBot.addCommand("!uwuify", (params, context) => {
+        this._simpleTwitchBot.addCommand("!uwuify", async(params, context) => {
             const user = context.msg.userInfo;
             const userDisplayName = user.displayName;
             if (params.length === 0) {
-                context.say(`@${userDisplayName} give me some text, for example: "!uwuify I love slaurbot" `);
+                await context.say(`@${userDisplayName} give me some text, for example: "!uwuify I love slaurbot" `);
                 return;
             }
             const sentence = params.join(" ").trim();
@@ -239,10 +231,10 @@ export class TwitchCommandManager {
 
             if (response.length > TWITCH_CHARACTER_LIMIT) {
                 // eslint-disable-next-line max-len
-                context.say(`@${userDisplayName} the uwuified result exceeds the Twitch character limit of ${TWITCH_CHARACTER_LIMIT}; I'll post as much as I can.`);
+                await context.say(`@${userDisplayName} the uwuified result exceeds the Twitch character limit of ${TWITCH_CHARACTER_LIMIT}; I'll post as much as I can.`);
                 response = response.slice(0, TWITCH_CHARACTER_LIMIT - 1);
             }
-            context.say(response);
+            await context.say(response);
         }, {
             cooldown: {
                 time: 4000,
@@ -259,8 +251,8 @@ export class TwitchCommandManager {
         for (const c of commands) {
             const { command, enabled, message, } = c;
             if (enabled) {
-                this._simpleTwitchBot.addCommand(command, (_params, _context) => {
-                    _context.say(message);
+                this._simpleTwitchBot.addCommand(command, async(_params, _context) => {
+                    await _context.say(message);
                 }, {
                     cooldown: {
                         time: 4000,

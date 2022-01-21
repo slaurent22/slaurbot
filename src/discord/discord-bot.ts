@@ -35,7 +35,7 @@ export async function createDiscordClientImp(resolve: ((dc: DiscordClient) => vo
 
     const loginResult = await client.login(DISCORD_BOT_TOKEN);
     if (loginResult !== DISCORD_BOT_TOKEN) {
-        logger.warning("login return value does not match DISCORD_BOT_TOKEN");
+        logger.warn("login return value does not match DISCORD_BOT_TOKEN");
     }
 }
 

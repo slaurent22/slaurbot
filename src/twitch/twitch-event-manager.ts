@@ -1,10 +1,10 @@
-import type { ChatClient } from "twitch-chat-client/lib";
-import type { ConnectCompatibleApp } from "twitch-webhooks/lib";
-import type { ApiClient } from "twitch/lib";
-import { PubSubClient } from "twitch-pubsub-client";
+import type { ChatClient } from "@twurple/chat";
+import type { ApiClient } from "@twurple/api";
+import { PubSubClient } from "@twurple/pubsub";
 import type { Client as DiscordClient } from "discord.js";
 import type { Logger } from "@d-fischer/logger";
 import { Uwuifier } from "uwuifier";
+import type { AuthProvider } from "@twurple/auth";
 import { getLogger } from "../util/logger";
 import { DiscordNotifier } from "../discord/discord-notifier";
 import { DiscordReader } from "../discord/discord-reader";
@@ -13,6 +13,7 @@ import { TwitchCommandManager } from "./twitch-command-manager";
 
 export interface TwitchEventManagerConfig {
     apiClient: ApiClient;
+    authProvider: AuthProvider;
     chatClient: ChatClient;
     discordClient: DiscordClient;
 }
@@ -21,6 +22,7 @@ const MIN_MESSAGE_LENGTH_TO_TRIGGER_UWUIFIER = 15;
 
 export class TwitchEventManager {
     private _apiClient: ApiClient;
+    private _authProvider: AuthProvider;
     private _chatClient: ChatClient;
     private _commandManager: TwitchCommandManager;
     private _discordClient: DiscordClient;
@@ -31,10 +33,12 @@ export class TwitchEventManager {
 
     constructor({
         apiClient,
+        authProvider,
         chatClient,
         discordClient,
     }: TwitchEventManagerConfig) {
         this._apiClient = apiClient;
+        this._authProvider = authProvider;
         this._chatClient = chatClient;
         this._discordClient = discordClient;
         this._pubSubClient = new PubSubClient();
@@ -62,16 +66,16 @@ export class TwitchEventManager {
         });
     }
 
-    public async listen(app: ConnectCompatibleApp): Promise<void> {
+    public async listen(): Promise<void> {
         this._initRandomUwuification();
 
         await this._commandManager.listen();
 
         const chatClient = this._chatClient;
         const pubSubClient = this._pubSubClient;
-        const pubSubUserId = await this._pubSubClient.registerUserListener(this._apiClient);
+        const pubSubUserId = await this._pubSubClient.registerUserListener(this._authProvider);
 
-        chatClient.onSub((channel, user, subInfo, msg) => {
+        chatClient.onSub(async(channel, user, subInfo, msg) => {
             this._logger.debug("onSub: " + JSON.stringify({
                 channel, user, subInfo, msg,
             }));
@@ -95,42 +99,42 @@ export class TwitchEventManager {
                     this._logger.warn(`Unknown plan:'${subInfo.plan}'`);
             }
 
-            chatClient.say(channel, `Thanks to @${subInfo.displayName} for subscribing to the channel${suffix}`);
+            await chatClient.say(channel, `Thanks to @${subInfo.displayName} for subscribing to the channel${suffix}`);
         });
 
-        chatClient.onResub((channel, user, subInfo, msg) => {
+        chatClient.onResub(async(channel, user, subInfo, msg) => {
             this._logger.debug("onSub: " + JSON.stringify({
                 channel, user, subInfo, msg,
             }));
 
             // eslint-disable-next-line max-len
-            chatClient.say(channel, `Thanks to @${subInfo.displayName} for subscribing to the channel for a total of ${subInfo.months} months!`);
+            await chatClient.say(channel, `Thanks to @${subInfo.displayName} for subscribing to the channel for a total of ${subInfo.months} months!`);
         });
 
-        chatClient.onSubGift((channel, user, subInfo, msg) => {
+        chatClient.onSubGift(async(channel, user, subInfo, msg) => {
             this._logger.debug("onSub: " + JSON.stringify({
                 channel, user, subInfo, msg,
             }));
             const gifter = subInfo.gifter ? `@${subInfo.gifter}` : "unknown gifter";
-            chatClient.say(channel, `Thanks to ${gifter} for gifting a subscription to @${subInfo.displayName}!`);
+            await chatClient.say(channel, `Thanks to ${gifter} for gifting a subscription to @${subInfo.displayName}!`);
         });
 
-        chatClient.onHosted((channel, byChannel, auto, viewers) => {
+        chatClient.onHosted(async(channel, byChannel, auto, viewers) => {
             this._logger.debug("onHosted: " + JSON.stringify({
                 channel, byChannel, auto, viewers,
             }));
 
             const suffix = typeof viewers === "number" ? ` for ${viewers} viewers!` : "!";
-            chatClient.say(channel, `${byChannel} just hosted the channel${suffix}`);
+            await chatClient.say(channel, `${byChannel} just hosted the channel${suffix}`);
         });
 
-        chatClient.onRaid((channel, user, raidInfo, msg) => {
+        chatClient.onRaid(async(channel, user, raidInfo, msg) => {
             this._logger.debug("onRaid: " + JSON.stringify({
                 channel, user, raidInfo, msg,
             }));
 
             // eslint-disable-next-line max-len
-            chatClient.say(channel, `@${raidInfo.displayName} just raided the channel with ${raidInfo.viewerCount} viewers!`);
+            await chatClient.say(channel, `@${raidInfo.displayName} just raided the channel with ${raidInfo.viewerCount} viewers!`);
         });
 
         const {
@@ -140,25 +144,25 @@ export class TwitchEventManager {
         await pubSubClient.onBits(pubSubUserId, async(message) => {
             if (message.isAnonymous) {
                 // eslint-disable-next-line max-len
-                chatClient.say(TWITCH_CHANNEL_NAME, `Anonymous just cheered ${message.bits}! Thank you slaureLove`);
+                await chatClient.say(TWITCH_CHANNEL_NAME, `Anonymous just cheered ${message.bits}! Thank you slaureLove`);
                 return;
             }
 
             if (!message.userId) {
-                chatClient.say(TWITCH_CHANNEL_NAME,
+                await chatClient.say(TWITCH_CHANNEL_NAME,
                     `Unknown user just cheered ${message.bits}! Thank you slaureLove`);
                 return;
             }
 
             const user = await this._apiClient.helix.users.getUserById(message.userId);
             if (!user) {
-                chatClient.say(TWITCH_CHANNEL_NAME,
+                await chatClient.say(TWITCH_CHANNEL_NAME,
                     `Unknown user just cheered ${message.bits}! Thank you slaureLove`);
                 return;
             }
 
             // eslint-disable-next-line max-len
-            chatClient.say(TWITCH_CHANNEL_NAME, `@${user.displayName} just cheered ${message.bits}! That brings their total to ${message.totalBits}! Thank you slaureLove`);
+            await chatClient.say(TWITCH_CHANNEL_NAME, `@${user.displayName} just cheered ${message.bits}! That brings their total to ${message.totalBits}! Thank you slaureLove`);
         });
     }
 
@@ -180,7 +184,7 @@ export class TwitchEventManager {
         const {
             UWU_PERCENT,
         } = getEnv();
-        this._chatClient.onMessage((channel, user, _message) => {
+        this._chatClient.onMessage(async(channel, user, _message) => {
             if (Math.random() * 100 > UWU_PERCENT) {
                 return;
             }
@@ -203,7 +207,7 @@ export class TwitchEventManager {
                 this._logger.info("[uwuify] message === response, dropping");
                 return;
             }
-            this._chatClient.say(channel, response);
+            await this._chatClient.say(channel, response);
         });
     }
 }

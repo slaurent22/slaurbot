@@ -21,7 +21,12 @@
     "node": ">16.6.0"
   },
   "dependencies": {
-    "@d-fischer/logger": "^2.1.1",
+    "@d-fischer/logger": "^4.0.0",
+    "@twurple/api": "^5.0.13",
+    "@twurple/auth": "^5.0.13",
+    "@twurple/chat": "^5.0.13",
+    "@twurple/easy-bot": "^5.0.13",
+    "@twurple/pubsub": "^5.0.13",
     "axios": "^0.23.0",
     "deepequal": "0.0.1",
     "discord.js": "^13.1.0",
@@ -35,11 +40,6 @@
     "queue": "^6.0.2",
     "rate-limiter-flexible": "^2.1.16",
     "source-map-support": "^0.5.19",
-    "twitch": "^4.3.6",
-    "twitch-auth": "^4.3.6",
-    "twitch-chat-client": "^4.3.6",
-    "twitch-pubsub-client": "^4.3.6",
-    "twitch-webhooks": "^4.3.6",
     "uuid": "^8.3.2",
     "uwuifier": "^2.0.2"
   },

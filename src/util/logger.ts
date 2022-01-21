@@ -1,9 +1,10 @@
-import { Logger } from "@d-fischer/logger";
+import type { Logger } from "@d-fischer/logger";
+import { createLogger } from "@d-fischer/logger";
 import { getEnv } from "./env";
 
 export function getLogger({ name, }: { name: string }): Logger {
     const { LOG_LEVEL, } = getEnv();
-    const logger = new Logger({
+    const logger = createLogger({
         name,
         minLevel: LOG_LEVEL,
         colors: false,

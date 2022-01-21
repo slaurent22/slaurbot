@@ -312,10 +312,10 @@ export class DiscordSheo {
     }) {
         const user = guildMember.user;
         const event = `[${eid}] ${du(user)} presenceUpdate`;
-        this.#logger.critical(`${event} NO-OP TIMEOUT START`);
+        this.#logger.crit(`${event} NO-OP TIMEOUT START`);
         await new Promise<void>(resolve => {
             setTimeout(() => {
-                this.#logger.critical(`${event} NO-OP TIMEOUT END`);
+                this.#logger.crit(`${event} NO-OP TIMEOUT END`);
                 resolve();
             }, 5000);
         });

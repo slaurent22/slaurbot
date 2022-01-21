@@ -45,7 +45,7 @@ export class DiscordStreamBot {
     public async login(): Promise<void> {
         const loginResult = await this.#client.login(this.#botToken);
         if (loginResult !== this.#botToken) {
-            this.#logger.warning("login return value does not match botToken");
+            this.#logger.warn("login return value does not match botToken");
         }
         else {
             this.#logger.info("Discord client has logged in");

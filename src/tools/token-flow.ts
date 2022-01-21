@@ -127,16 +127,20 @@ function step2() {
 interface Tokens {
     access_token: string;
     refresh_token: string;
+    scope: Array<string>;
+    expires_in: number;
 }
 
 async function step3() {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { access_token, refresh_token, } = require("../../tokens.json") as Tokens;
+    const { access_token, refresh_token, scope, expires_in, } = require("../../tokens.json") as Tokens;
 
     await writeTwitchTokens({
         accessToken: access_token,
         refreshToken: refresh_token,
-        expiryTimestamp: null,
+        scope,
+        expiresIn: expires_in,
+        obtainmentTimestamp: Date.now(),
     });
 
     const tokenData = await getTwitchTokens();
@@ -148,9 +152,9 @@ async function step3() {
 function main() {
     dotenv.config();
 
-    step1();
+    // step1();
     // step2();
-    // void step3();
+    void step3();
 }
 
 main();

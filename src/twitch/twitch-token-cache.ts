@@ -1,11 +1,6 @@
 import assert from "assert";
+import type { AccessToken } from "@twurple/auth";
 import { createRedis } from "../util/redis";
-
-export interface TokenData {
-    "accessToken": string;
-    "refreshToken": string;
-    "expiryTimestamp": number | null;
-}
 
 function parseNullableInt(str: string | null): number | null {
     if (str === null) {
@@ -21,41 +16,69 @@ function parseNullableInt(str: string | null): number | null {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function validateTokenData(tokenData: Record<string, any>): asserts tokenData is TokenData {
+function validateTokenData(tokenData: Record<string, any>): asserts tokenData is AccessToken {
     assert("accessToken" in tokenData);
     assert(typeof tokenData.accessToken === "string");
 
     assert("refreshToken" in tokenData);
-    assert(typeof tokenData.refreshToken === "string");
+    assert(typeof tokenData.refreshToken === "string" || tokenData.refreshToken === null);
 
-    assert("expiryTimestamp" in tokenData);
-    assert(typeof tokenData.expiryTimestamp === "number" || tokenData.expiryTimestamp === null);
+    assert("scope" in tokenData);
+    assert(typeof tokenData.scope === "object");
+    assert(typeof (tokenData.scope as Array<unknown>).length === "number");
+    for (const scopeTag of tokenData.scope) {
+        assert(typeof scopeTag === "string");
+    }
+
+    assert("expiresIn" in tokenData);
+    assert(typeof tokenData.expiresIn === "number" || tokenData.expiresIn === null);
+
+    assert("obtainmentTimestamp" in tokenData);
+    assert(typeof tokenData.obtainmentTimestamp === "number");
 }
 
-export async function getTwitchTokens(): Promise<TokenData> {
+function jsonParseFallback(val: string | null, fallback: unknown) {
+    if (!val) {
+        return fallback;
+    }
+    try {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        return JSON.parse(val);
+    }
+    catch {
+        return fallback;
+    }
+}
+
+export async function getTwitchTokens(): Promise<AccessToken> {
     const redis = createRedis();
     const [
         accessToken,
         refreshToken,
-        expiryTimestamp
-    ] = await redis.hmget("twitchTokens", "accessToken", "refreshToken", "expiryTimestamp");
+        scope,
+        expiresIn,
+        obtainmentTimestamp
+    ] = await redis.hmget("twitchTokens", "accessToken", "refreshToken", "scope", "expiresIn", "obtainmentTimestamp");
+    assert(accessToken);
     const tokenData = {
         accessToken,
         refreshToken,
-        expiryTimestamp: parseNullableInt(expiryTimestamp),
+        scope: jsonParseFallback(scope, []) as Array<string>,
+        expiresIn: parseNullableInt(expiresIn),
+        obtainmentTimestamp: parseNullableInt(obtainmentTimestamp) as number,
     };
-    validateTokenData(tokenData);
     await redis.quit();
     return tokenData;
 }
 
-export async function writeTwitchTokens(tokenData: TokenData): Promise<void> {
+export async function writeTwitchTokens(tokenData: AccessToken): Promise<void> {
     const redis = createRedis();
-    validateTokenData(tokenData);
     await redis.hmset("twitchTokens", {
-        accessToken: tokenData.accessToken,
-        refreshToken: tokenData.refreshToken,
-        expiryTimestamp: String(tokenData.expiryTimestamp),
+        accessToken: String(tokenData.accessToken),
+        refreshToken: String(tokenData.refreshToken),
+        scope: JSON.stringify(tokenData.scope),
+        expiresIn: String(tokenData.expiresIn),
+        obtainmentTimestamp: tokenData.obtainmentTimestamp,
     });
     await redis.quit();
 }

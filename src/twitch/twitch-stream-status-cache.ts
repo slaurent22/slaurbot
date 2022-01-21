@@ -1,7 +1,7 @@
 import type {
     ApiClient as TwitchApiClient,
     UserIdResolvable as TwitchUserIdResolvable
-} from "twitch/lib";
+} from "@twurple/api";
 import { getLogger } from "../util/logger";
 import { createRedis } from "../util/redis";
 

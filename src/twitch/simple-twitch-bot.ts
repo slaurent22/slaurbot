@@ -1,6 +1,6 @@
-import type { ChatClient, PrivateMessage } from "twitch-chat-client";
-import type { BotCommand, BotCommandMatch } from "easy-twitch-bot";
-import { BotCommandContext, createBotCommand } from "easy-twitch-bot";
+import type { ChatClient } from "@twurple/chat";
+import type { BotCommand, BotCommandMatch } from "@twurple/easy-bot";
+import { BotCommandContext, createBotCommand } from "@twurple/easy-bot";
 import type { Logger } from "@d-fischer/logger";
 import { getLogger } from "../util/logger";
 import { refreshed } from "../util/time-util";
@@ -62,7 +62,7 @@ export class SimpleTwitchBot {
     public listen(): void {
         // https://github.com/d-fischer/twitch/blob/master/packages/easy-twitch-bot/src/Bot.ts
         this._chatClient.onMessage(async(channel, user, message, msg) => {
-            const match = this._findMatch(msg);
+            const match = this._findMatch(message);
             if (match === null) {
                 return;
             }
@@ -74,7 +74,7 @@ export class SimpleTwitchBot {
             catch (e) {
                 const errMsg = `${match.command.name} command failed`;
                 this._logger.error(`${errMsg}:` + String(e));
-                commandContext.say(errMsg);
+                await commandContext.say(errMsg);
             }
         });
 
@@ -82,7 +82,7 @@ export class SimpleTwitchBot {
     }
 
     private _createMetaHandler(commandName: string, handler: CommandHandler, options?: CommandOptions): CommandHandler {
-        return (params: string[], context: BotCommandContext) => {
+        return async(params: string[], context: BotCommandContext) => {
             if (!options) {
                 return handler(params, context);
             }
@@ -102,7 +102,7 @@ export class SimpleTwitchBot {
                 this._logger.info("allowed = " + String(allowed));
 
                 if (!allowed) {
-                    context.say(`@${userDisplayName} you are not allowed to use ${commandName}`);
+                    await context.say(`@${userDisplayName} you are not allowed to use ${commandName}`);
                     return;
                 }
             }
@@ -111,7 +111,7 @@ export class SimpleTwitchBot {
                 const isRefreshed = refreshed(commandLastUsed, options.cooldown.time);
                 if (!isRefreshed) {
                     if (options.cooldown.reply) {
-                        context.say(`@${userDisplayName}, ${commandName} is still on cooldown`);
+                        await context.say(`@${userDisplayName}, ${commandName} is still on cooldown`);
                     }
                     return;
                 }
@@ -122,9 +122,8 @@ export class SimpleTwitchBot {
         };
     }
 
-    // https://github.com/d-fischer/twitch/blob/master/packages/easy-twitch-bot/src/Bot.ts
-    private _findMatch(msg: PrivateMessage): BotCommandMatch | null {
-        const line = msg.params.message.trim().replace(/  +/g, " ");
+    private _findMatch(line: string): BotCommandMatch | null {
+        // const line = msg.params.message.trim().replace(/  +/g, " ");
         for (const command of this._commands.values()) {
             const params = command.match(line, this._commandPrefix);
             if (params !== null) {
