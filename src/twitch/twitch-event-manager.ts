@@ -6,7 +6,6 @@ import type { Logger } from "@d-fischer/logger";
 import { Uwuifier } from "uwuifier";
 import type { AuthProvider } from "@twurple/auth";
 import { getLogger } from "../util/logger";
-import { DiscordNotifier } from "../discord/discord-notifier";
 import { DiscordReader } from "../discord/discord-reader";
 import { getEnv } from "../util/env";
 import { TwitchCommandManager } from "./twitch-command-manager";
@@ -26,7 +25,6 @@ export class TwitchEventManager {
     private _chatClient: ChatClient;
     private _commandManager: TwitchCommandManager;
     private _discordClient: DiscordClient;
-    private _discordNotifier: DiscordNotifier;
     private _logger: Logger;
     private _pubSubClient: PubSubClient;
     private _uwuifier: Uwuifier;
@@ -55,10 +53,6 @@ export class TwitchEventManager {
             chatClient: this._chatClient,
             discordReader,
             uwuifier: this._uwuifier,
-        });
-
-        this._discordNotifier = new DiscordNotifier({
-            discordClient: this._discordClient,
         });
 
         this._logger = getLogger({

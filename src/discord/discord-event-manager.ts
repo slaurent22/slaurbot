@@ -11,25 +11,18 @@ import {
     DISCORD_ROLE_REACT_MAP
 } from "../util/constants";
 import { getLogger } from "../util/logger";
-import type { DiscordNotifier } from "./discord-notifier";
 
 interface DiscordEventManagerConfig {
     discordClient: DiscordClient;
-    discordNotifier: DiscordNotifier;
 }
 
 export class DiscordEventManager {
     private _discordClient: DiscordClient;
-    private _discordNotifier: DiscordNotifier;
     private _guild: Guild;
     private _logger;
 
-    constructor({
-        discordClient,
-        discordNotifier,
-    }: DiscordEventManagerConfig) {
+    constructor({ discordClient, }: DiscordEventManagerConfig) {
         this._discordClient = discordClient;
-        this._discordNotifier = discordNotifier;
         this._logger = getLogger({
             name: "slaurbot-discord-event-manager",
         });
@@ -43,12 +36,6 @@ export class DiscordEventManager {
         this._discordClient.on("debug", msg => {
             const message = `[client debug] ${msg}`;
             this._logger.debug(message);
-        });
-
-        this._discordClient.on("warn", msg => {
-            const message = `[client warn] ${msg}`;
-            this._logger.warn(message);
-            void this._discordNotifier.sendJSONToTestChannel({ warn: msg, });
         });
 
         this._discordClient.on("userUpdate", (oldUser, newUser) => {

@@ -3,13 +3,11 @@ import type { Client as DiscordClient, TextBasedChannels } from "discord.js";
 import type { Logger } from "@d-fischer/logger";
 import { RateLimiterMemory, RateLimiterQueue } from "rate-limiter-flexible";
 import { getLogger } from "../util/logger";
-import type { DiscordNotifier } from "./discord-notifier";
 
 interface DiscordChannelAutodeleterConfig {
     checkInterval: number;
     channelConfig: Map<string, number>;
     discordClient: DiscordClient;
-    discordNotifier: DiscordNotifier;
 }
 
 function createRateLimiterQueue(): RateLimiterQueue {

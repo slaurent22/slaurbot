@@ -5,7 +5,6 @@ import { getLogger } from "../util/logger";
 import {
     DISCORD_CLIENT_INTENTS
 } from "../util/constants";
-import { DiscordNotifier } from "./discord-notifier";
 
 const logger = getLogger({
     name: "slaurbot-discord-bot",
@@ -16,16 +15,8 @@ export async function createDiscordClientImp(resolve: ((dc: DiscordClient) => vo
         intents: DISCORD_CLIENT_INTENTS,
     });
 
-    client.once("ready", async() => {
+    client.once("ready", () => {
         logger.info("Discord client is ready");
-        const notifier = new DiscordNotifier({
-            discordClient: client,
-        });
-
-        await notifier.sendJSONToTestChannel({
-            content: "Hello slaurent I am the Discord Notifier",
-        });
-
         resolve(client);
     });
 
