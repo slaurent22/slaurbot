@@ -15,28 +15,6 @@ function parseNullableInt(str: string | null): number | null {
     return parsed;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function validateTokenData(tokenData: Record<string, any>): asserts tokenData is AccessToken {
-    assert("accessToken" in tokenData);
-    assert(typeof tokenData.accessToken === "string");
-
-    assert("refreshToken" in tokenData);
-    assert(typeof tokenData.refreshToken === "string" || tokenData.refreshToken === null);
-
-    assert("scope" in tokenData);
-    assert(typeof tokenData.scope === "object");
-    assert(typeof (tokenData.scope as Array<unknown>).length === "number");
-    for (const scopeTag of tokenData.scope) {
-        assert(typeof scopeTag === "string");
-    }
-
-    assert("expiresIn" in tokenData);
-    assert(typeof tokenData.expiresIn === "number" || tokenData.expiresIn === null);
-
-    assert("obtainmentTimestamp" in tokenData);
-    assert(typeof tokenData.obtainmentTimestamp === "number");
-}
-
 function jsonParseFallback(val: string | null, fallback: unknown) {
     if (!val) {
         return fallback;
