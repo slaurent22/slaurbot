@@ -13,6 +13,7 @@ export interface Env {
     LOG_LEVEL: LogLevel;
     DISCORD_SHEO_TOKEN: string;
     SHEO_READ_ONLY: boolean;
+    TWITCH_EVENTSUB_SECRET: string;
 }
 
 let ENV_CACHE: Readonly<Env> | undefined;
@@ -46,6 +47,7 @@ function getEnvImpl(): Readonly<Env> {
     assertIsString(process.env.LOG_LEVEL,            "LOG_LEVEL not found in process.env");
     assertIsString(process.env.DISCORD_SHEO_TOKEN,   "DISCORD_SHEO_TOKEN not found in process.env");
     assertIsString(process.env.SHEO_READ_ONLY,       "SHEO_READ_ONLY not found in process.env");
+    assertIsString(process.env.TWITCH_EVENTSUB_SECRET, "TWITCH_EVENTSUB_SECRET not found in process.env");
 
     const {
         TWITCH_CHANNEL_NAME,
@@ -59,6 +61,7 @@ function getEnvImpl(): Readonly<Env> {
         LOG_LEVEL,
         DISCORD_SHEO_TOKEN,
         SHEO_READ_ONLY,
+        TWITCH_EVENTSUB_SECRET,
     } = process.env;
 
     const UWU_PERCENT_PARSED = parseInt(UWU_PERCENT, 10);
@@ -76,6 +79,7 @@ function getEnvImpl(): Readonly<Env> {
         LOG_LEVEL: getLogLevelEnum(LOG_LEVEL),
         DISCORD_SHEO_TOKEN,
         SHEO_READ_ONLY: SHEO_READ_ONLY === "true",
+        TWITCH_EVENTSUB_SECRET,
     });
 
     console.log({

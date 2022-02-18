@@ -20,6 +20,7 @@ import {
     DiscordAPIError
 } from "discord.js";
 import humanizeDuration from "humanize-duration";
+import type { EventSubSubscription } from "@twurple/eventsub/lib";
 import { getLogger } from "../util/logger";
 import { PersistedMap } from "../util/persisted-map";
 import { refreshed } from "../util/time-util";
@@ -27,6 +28,7 @@ import {
     discordUserString as du,
     guildMemberString as gm
 } from "../util/log-strings";
+import { createEventSubListener } from "../slaurbot";
 import { getGuildMemberStreamingEmbed, pickFromActivity } from "./discord-embed";
 
 export interface DiscordSheoConfig {
@@ -38,6 +40,7 @@ export interface DiscordSheoConfig {
     guild: Guild;
     filter?: (activity: Activity, guildMember: GuildMember) => boolean;
     readOnly: boolean;
+    twitchChannels?: Set<string>;
 }
 
 function getStreamingActivity(presence: Presence | null): Activity | null {
@@ -65,6 +68,11 @@ function shouldUpdateStreamingMessage(oldActivity: Activity, newActivity: Activi
     return !deepequal(oldInfo, newInfo, true);
 }
 
+interface StreamListeners {
+    online: EventSubSubscription;
+    offline: EventSubSubscription;
+}
+
 export class DiscordSheo {
     #client: Client;
     #cooldownInterval: number;
@@ -78,6 +86,8 @@ export class DiscordSheo {
     #guild: Guild;
     #filter: (activity: Activity, guildMember: GuildMember) => boolean;
     #readOnly: boolean;
+    #twitchChannels: Set<string>;
+    #twitchListeners = new Map<string, StreamListeners>();
 
     constructor({
         client,
@@ -88,6 +98,7 @@ export class DiscordSheo {
         guild,
         filter,
         readOnly,
+        twitchChannels = new Set(),
     }: DiscordSheoConfig) {
         this.#cooldownInterval = cooldownInterval;
         this.#guild = guild;
@@ -101,6 +112,7 @@ export class DiscordSheo {
         this.#filter = filter ?? (() => true);
 
         this.#readOnly = readOnly;
+        this.#twitchChannels = twitchChannels;
 
         this.#logger.info("sheo created" + (this.#readOnly ? ": SHEO_READ_ONLY" : ""));
     }
@@ -134,6 +146,40 @@ export class DiscordSheo {
                 this.#logger.info(`[user:${userId}] [message:${message?.id}] ${message?.content}`);
             }
         }
+
+        await this.#initializeTwitchListen();
+    }
+
+    async #initializeTwitchListen() {
+        if (this.#twitchChannels.size === 0) {
+            return;
+        }
+        try {
+            const { apiClient, eventSubListener, } = createEventSubListener();
+            for (const channel of this.#twitchChannels.values()) {
+                // eslint-disable-next-line no-await-in-loop
+                const user = await apiClient.users.getUserByName(channel);
+                // eslint-disable-next-line no-await-in-loop
+                const online = await eventSubListener.subscribeToStreamOnlineEvents(user?.id ?? channel, event => {
+                    // eslint-disable-next-line max-len
+                    this.#logger.info(`[twitch:${channel}] ${event.broadcasterDisplayName} went online at ${event.startDate}`);
+                });
+
+                // eslint-disable-next-line no-await-in-loop
+                const offline = await eventSubListener.subscribeToStreamOfflineEvents(user?.id ?? channel, event => {
+                    // eslint-disable-next-line max-len
+                    this.#logger.info(`[twitch:${channel}] ${event.broadcasterDisplayName} went offline`);
+                });
+
+                this.#twitchListeners.set(channel, { online, offline, });
+            }
+
+            await eventSubListener.listen();
+        }
+        catch (e) {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+            this.#logger.error(e && e?.toString());
+        }
     }
 
     async destroy() {
@@ -141,6 +187,12 @@ export class DiscordSheo {
         if (this.#streamingMessages) {
             await this.#streamingMessages.flush();
             await this.#streamingMessages.dispose();
+        }
+        for (const listeners of this.#twitchListeners.values()) {
+            // eslint-disable-next-line no-await-in-loop
+            await listeners.online.stop();
+            // eslint-disable-next-line no-await-in-loop
+            await listeners.offline.stop();
         }
     }
 
