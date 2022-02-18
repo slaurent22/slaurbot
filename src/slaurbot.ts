@@ -1,8 +1,7 @@
 import type { AccessToken, AuthProvider } from "@twurple/auth";
-import { ClientCredentialsAuthProvider, RefreshingAuthProvider } from "@twurple/auth";
+import { RefreshingAuthProvider } from "@twurple/auth";
 import { ChatClient } from "@twurple/chat";
 import { ApiClient } from "@twurple/api";
-import { EventSubListener, EnvPortAdapter } from "@twurple/eventsub";
 import type { Client as DiscordClient } from "discord.js";
 import { getLogger } from "./util/logger";
 import { getEnv } from "./util/env";
@@ -13,7 +12,6 @@ export interface TwitchBotConfig {
     apiClient: ApiClient;
     authProvider: AuthProvider;
     chatClient: ChatClient;
-    eventSubListener: EventSubListener;
 }
 
 const logger = getLogger({
@@ -44,14 +42,6 @@ export function createBotConfig(tokenData: AccessToken): TwitchBotConfig {
         logger: { minLevel: env.LOG_LEVEL, },
     });
 
-    const eventSubListener = new EventSubListener({
-        apiClient,
-        adapter: new EnvPortAdapter({
-            hostName: "slaurbot.herokuapp.com",
-        }),
-        secret: env.TWITCH_EVENTSUB_SECRET,
-    });
-
     const chatClient = new ChatClient({
         authProvider,
         channels: [env.TWITCH_CHANNEL_NAME ],
@@ -67,32 +57,9 @@ export function createBotConfig(tokenData: AccessToken): TwitchBotConfig {
         apiClient,
         authProvider,
         chatClient,
-        eventSubListener,
     };
 }
 
-export function createEventSubListener(): {apiClient: ApiClient; eventSubListener: EventSubListener} {
-    logger.info("Creating eventSubListener");
-    const env = getEnv();
-    if (env === null) {
-        throw new Error("Local environment not found");
-    }
-    const authProvider = new ClientCredentialsAuthProvider(env.TWITCH_CLIENT_ID, env.TWITCH_CLIENT_SECRET);
-    const apiClient = new ApiClient({
-        authProvider,
-        logger: { minLevel: env.LOG_LEVEL, },
-    });
-
-    const eventSubListener = new EventSubListener({
-        apiClient,
-        adapter: new EnvPortAdapter({
-            hostName: "slaurbot.herokuapp.com",
-        }),
-        secret: env.TWITCH_EVENTSUB_SECRET,
-    });
-
-    return { apiClient, eventSubListener, };
-}
 interface SlaurbotConfig {
     discordClient: DiscordClient;
     tokenData: AccessToken;

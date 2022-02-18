@@ -17,7 +17,6 @@ export interface DiscordStreamBotConfig {
     streamingMembersChannelId?: string;
     streamingRoleId?: string;
     filter?: (activity: Activity, guildMember: GuildMember) => boolean;
-    twitchChannels?: Set<string>;
 }
 
 /**
@@ -126,7 +125,6 @@ export class DiscordStreamBot {
             streamingMembersChannelId,
             streamingRoleId,
             filter,
-            twitchChannels,
         } = config;
         const sheo = new DiscordSheo({
             client: this.#client,
@@ -137,7 +135,6 @@ export class DiscordStreamBot {
             streamingRoleId,
             filter,
             readOnly: this.#readOnly,
-            twitchChannels,
         });
         this.#sheos.set(guild.id, sheo);
 

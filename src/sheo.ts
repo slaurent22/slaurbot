@@ -59,13 +59,6 @@ export async function createSheo(): Promise<void> {
             }
             return state.includes("Hollow Knight");
         },
-        twitchChannels: new Set([
-            // initial testing set while we are read-only for this functionality
-            "hollowknightcommunity",
-            "sawayoshiyt",
-            "slaurent22",
-            "blue_sr_"
-        ]),
     });
 
     const sheo = new DiscordStreamBot(DISCORD_SHEO_TOKEN, DISCORD_SHEO_CONFIG, SHEO_READ_ONLY);
