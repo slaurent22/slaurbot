@@ -30,11 +30,13 @@ export class DiscordStreamBot {
     #client: Discord.Client;
     #logger: Logger;
     #userUpdateQueue = new KeyedQueue<string, void>();
+    #readOnly = false;
 
-    constructor(botToken: string, config: Map<string, DiscordStreamBotConfig>) {
+    constructor(botToken: string, config: Map<string, DiscordStreamBotConfig>, readOnly = false) {
         this.#botToken = botToken;
         this.#config = config;
         this.#logger = getLogger({ name: "streambot-sheo", });
+        this.#readOnly = readOnly;
 
         this.#client = new Discord.Client({
             intents: DISCORD_CLIENT_INTENTS,
@@ -132,6 +134,7 @@ export class DiscordStreamBot {
             streamingMembersChannelId,
             streamingRoleId,
             filter,
+            readOnly: this.#readOnly,
         });
         this.#sheos.set(guild.id, sheo);
 

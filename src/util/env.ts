@@ -12,6 +12,7 @@ export interface Env {
     COMMAND_PREFIX: string;
     LOG_LEVEL: LogLevel;
     DISCORD_SHEO_TOKEN: string;
+    SHEO_READ_ONLY: boolean;
 }
 
 let ENV_CACHE: Readonly<Env> | undefined;
@@ -44,6 +45,7 @@ function getEnvImpl(): Readonly<Env> {
     assertIsString(process.env.COMMAND_PREFIX,       "COMMAND_PREFIX not found in process.env");
     assertIsString(process.env.LOG_LEVEL,            "LOG_LEVEL not found in process.env");
     assertIsString(process.env.DISCORD_SHEO_TOKEN,   "DISCORD_SHEO_TOKEN not found in process.env");
+    assertIsString(process.env.SHEO_READ_ONLY,       "SHEO_READ_ONLY not found in process.env");
 
     const {
         TWITCH_CHANNEL_NAME,
@@ -56,6 +58,7 @@ function getEnvImpl(): Readonly<Env> {
         COMMAND_PREFIX,
         LOG_LEVEL,
         DISCORD_SHEO_TOKEN,
+        SHEO_READ_ONLY,
     } = process.env;
 
     const UWU_PERCENT_PARSED = parseInt(UWU_PERCENT, 10);
@@ -72,6 +75,7 @@ function getEnvImpl(): Readonly<Env> {
         COMMAND_PREFIX,
         LOG_LEVEL: getLogLevelEnum(LOG_LEVEL),
         DISCORD_SHEO_TOKEN,
+        SHEO_READ_ONLY: SHEO_READ_ONLY === "true",
     });
 
     console.log({

@@ -37,6 +37,7 @@ export interface DiscordSheoConfig {
     streamingRoleId?: string;
     guild: Guild;
     filter?: (activity: Activity, guildMember: GuildMember) => boolean;
+    readOnly: boolean;
 }
 
 function getStreamingActivity(presence: Presence | null): Activity | null {
@@ -76,6 +77,7 @@ export class DiscordSheo {
     #streamingRoleId?: string;
     #guild: Guild;
     #filter: (activity: Activity, guildMember: GuildMember) => boolean;
+    #readOnly: boolean;
 
     constructor({
         client,
@@ -85,6 +87,7 @@ export class DiscordSheo {
         streamingRoleId,
         guild,
         filter,
+        readOnly,
     }: DiscordSheoConfig) {
         this.#cooldownInterval = cooldownInterval;
         this.#guild = guild;
@@ -97,7 +100,9 @@ export class DiscordSheo {
         this.#client = client;
         this.#filter = filter ?? (() => true);
 
-        this.#logger.info("sheo created");
+        this.#readOnly = readOnly;
+
+        this.#logger.info("sheo created" + (this.#readOnly ? ": SHEO_READ_ONLY" : ""));
     }
 
     public async initialize() {
@@ -185,6 +190,10 @@ export class DiscordSheo {
         const role = this.#streamingRoleId;
         const action = `[${eid}] ${gm(guildMember)} Adding role ${role}`;
         this.#logger.info(action);
+        if (this.#readOnly) {
+            this.#logger.info(`${action} SHEO_READ_ONLY: bailing out`);
+            return;
+        }
         try {
             const { id, } = await guildMember.roles.add(role);
             this.#logger.info(`${action} SUCCESS: [member:${id}]`);
@@ -206,6 +215,10 @@ export class DiscordSheo {
         const role = this.#streamingRoleId;
         const action = `[${eid}] ${gm(guildMember)} Removing role ${role}`;
         this.#logger.info(action);
+        if (this.#readOnly) {
+            this.#logger.info(`${action} SHEO_READ_ONLY: bailing out`);
+            return;
+        }
         try {
             const { id, } = await guildMember.roles.remove(role);
             this.#logger.info(`${action} SUCCESS: [member:${id}]`);
@@ -232,6 +245,10 @@ export class DiscordSheo {
         if (existingMessage?.editable) {
             const action = `${event} [message:${existingMessage.id}] editing message`;
             this.#logger.info(action);
+            if (this.#readOnly) {
+                this.#logger.info(`${action} SHEO_READ_ONLY: bailing out`);
+                return;
+            }
             try {
                 const newMessage = await existingMessage.edit(message);
                 this.#streamingMessages.set(userId, newMessage);
@@ -247,6 +264,10 @@ export class DiscordSheo {
         if (existingMessage && !existingMessage.editable) {
             const action = `${event} [message:${existingMessage.id}] deleting message`;
             this.#logger.info(action);
+            if (this.#readOnly) {
+                this.#logger.info(`${action} SHEO_READ_ONLY: bailing out`);
+                return;
+            }
             try {
                 const { id, } = await existingMessage.delete();
                 this.#streamingMessages.delete(userId);
@@ -259,6 +280,10 @@ export class DiscordSheo {
         }
 
         const action = `${event} posting new message`;
+        if (this.#readOnly) {
+            this.#logger.info(`${action} SHEO_READ_ONLY: bailing out`);
+            return;
+        }
         try {
             this.#logger.info(action);
             const newMessage = await this.#streamingMembersChannel.send(message);
@@ -289,6 +314,10 @@ export class DiscordSheo {
             return;
         }
         const action = `${event} [message:${message.id}] deleting message`;
+        if (this.#readOnly) {
+            this.#logger.info(`${action} SHEO_READ_ONLY: bailing out`);
+            return;
+        }
         try {
             this.#logger.info(action);
             const { id, } = await message.delete();

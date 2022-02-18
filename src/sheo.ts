@@ -14,6 +14,7 @@ export async function createSheo(): Promise<void> {
 
     const {
         DISCORD_SHEO_TOKEN,
+        SHEO_READ_ONLY,
     } = getEnv();
 
     // contact slaurent to add your server
@@ -60,7 +61,7 @@ export async function createSheo(): Promise<void> {
         },
     });
 
-    const sheo = new DiscordStreamBot(DISCORD_SHEO_TOKEN, DISCORD_SHEO_CONFIG);
+    const sheo = new DiscordStreamBot(DISCORD_SHEO_TOKEN, DISCORD_SHEO_CONFIG, SHEO_READ_ONLY);
 
     nodeCleanup(() => {
         logger.info("performing cleanup");
