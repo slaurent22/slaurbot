@@ -61,6 +61,20 @@ export async function createSheo(): Promise<void> {
         },
     });
 
+    DISCORD_SHEO_CONFIG.set(DISCORD_GUILD_ID.HISPANO, {
+        cooldownInterval: 100,
+        name: "hispano",
+        streamingRoleId: "947153797254377522",
+        streamingMembersChannelId: "947153445763285007",
+        filter: (activity) => {
+            const state = activity.state;
+            if (!state) {
+                return false;
+            }
+            return state.includes("Hollow Knight");
+        },
+    });
+
     const sheo = new DiscordStreamBot(DISCORD_SHEO_TOKEN, DISCORD_SHEO_CONFIG, SHEO_READ_ONLY);
 
     nodeCleanup(() => {
