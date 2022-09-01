@@ -27,6 +27,7 @@ import {
     discordUserString as du,
     guildMemberString as gm
 } from "../util/log-strings";
+import { DISCORD_USER_ID } from "../util/constants";
 import { getGuildMemberStreamingEmbed, pickFromActivity } from "./discord-embed";
 
 export interface DiscordSheoConfig {
@@ -103,6 +104,24 @@ export class DiscordSheo {
         this.#readOnly = readOnly;
 
         this.#logger.info("sheo created" + (this.#readOnly ? ": SHEO_READ_ONLY" : ""));
+
+        this.#client.on("messageCreate", async(msg) => {
+            if (msg.author.id !== DISCORD_USER_ID.SLAURENT) {
+                return;
+            }
+            const parsedCleanCommand = /;sheo-clean (?<userId>\w+)/.exec(msg.content);
+            if (parsedCleanCommand && parsedCleanCommand.groups) {
+                const { userId, } = parsedCleanCommand.groups;
+                try {
+                    await this.#cleanupUser(userId);
+                    await msg.reply("Success");
+                }
+                catch (e) {
+                    this.#logger.error(`sheo-clean error: ${(e && e.message) ?? "unknown error"}`);
+                    await msg.reply(`Error: ${(e && e.message) ?? "unknown. Check logs."}`);
+                }
+            }
+        });
     }
 
     public async initialize() {
@@ -461,5 +480,18 @@ export class DiscordSheo {
             userId: guildMember.user.id, eid,
         });
         this.#membersStreamingCooldown.set(guildMember.user.id, new Date());
+    }
+
+    async #cleanupGuildMember(guildMember: GuildMember) {
+        await Promise.all([
+            this.#removeRoleFromUser(guildMember, { eid: "cleanup", }),
+            this.#deleteStreamingMembersChannelMesssage(guildMember.user.id, { eid: "cleanup", })
+        ]);
+    }
+
+    async #cleanupUser(userId: string) {
+        this.#logger.info("cleanup userId: " + userId);
+        const guildMember = await this.#guild.members.fetch(userId);
+        await this.#cleanupGuildMember(guildMember);
     }
 }
