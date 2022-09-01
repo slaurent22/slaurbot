@@ -330,6 +330,16 @@ export class DiscordSheo {
         const message = this.#streamingMessages.get(userId);
         if (!message) {
             this.#logger.warn(`${event} no message found`);
+            if (this.#streamingMessages.has(userId)) {
+                const action = `${event} removing falsy value from messages map`;
+                this.#logger.info(action);
+                if (this.#readOnly) {
+                    this.#logger.info(`${action} SHEO_READ_ONLY: bailing out`);
+                    return;
+                }
+                this.#streamingMessages.delete(userId);
+                await this.#streamingMessages.flush();
+            }
             return;
         }
         const action = `${event} [message:${message.id}] deleting message`;
