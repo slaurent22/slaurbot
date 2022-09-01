@@ -141,7 +141,7 @@ export class DiscordSheo {
         if (msg.author.id !== DISCORD_USER_ID.SLAURENT) {
             return;
         }
-        const parsedCleanCommand = /!sheo-clean (?<userId>\w+)/.exec(msg.content);
+        const parsedCleanCommand = /^!sheo-clean (?<userId>\w+)/.exec(msg.content);
         if (parsedCleanCommand && parsedCleanCommand.groups) {
             const { userId, } = parsedCleanCommand.groups;
             try {

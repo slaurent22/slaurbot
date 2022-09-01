@@ -116,7 +116,6 @@ export class DiscordStreamBot {
             return;
         }
         const event = "messageCreate";
-        console.log(msg);
         const guildId = msg.guild?.id;
         if (!guildId) {
             this.#logger.error(`${event} with no guild id`);
