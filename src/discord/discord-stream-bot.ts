@@ -1,14 +1,14 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/explicit-member-accessibility */
 
-import type { Activity, GuildMember, Presence } from "discord.js";
+import type { Activity, GuildMember, Message, Presence } from "discord.js";
 import Discord from "discord.js";
 import type { Logger } from "@d-fischer/logger/lib";
 import { getLogger } from "../util/logger";
 import { generateUuid } from "../util/uuid";
 import { discordUserString, guildMemberString, guildString } from "../util/log-strings";
 import KeyedQueue from "../util/keyed-queue";
-import { DISCORD_CLIENT_INTENTS } from "../util/constants";
+import { DISCORD_CLIENT_INTENTS, DISCORD_USER_ID } from "../util/constants";
 import { DiscordSheo } from "./discord-sheo";
 
 export interface DiscordStreamBotConfig {
@@ -64,6 +64,7 @@ export class DiscordStreamBot {
     async #onReady() {
         this.#logger.info("Discord client is ready");
         this.#client.on("presenceUpdate", this.#onPresenceUpdate.bind(this));
+        this.#client.on("messageCreate", this.#onMessageCreate.bind(this));
         await Promise.all([...this.#config.entries()].map(([g, c]) => this.#readyGuild(g, c)));
     }
 
@@ -108,6 +109,26 @@ export class DiscordStreamBot {
             });
         };
         this.#userUpdateQueue.push(member.id, presenceUpdateExecutor);
+    }
+
+    async #onMessageCreate(msg: Message) {
+        if (msg.author.id !== DISCORD_USER_ID.SLAURENT) {
+            return;
+        }
+        const event = "messageCreate";
+        console.log(msg);
+        const guildId = msg.guild?.id;
+        if (!guildId) {
+            this.#logger.error(`${event} with no guild id`);
+            return;
+        }
+        const guildSheo = this.#sheos.get(guildId);
+        if (!guildSheo) {
+            this.#logger.error(`${event} with no corresponding sheo instance`);
+            return;
+        }
+
+        await guildSheo.onMessageCreate(msg);
     }
 
     async #readyGuild(guildId: string, config: DiscordStreamBotConfig) {

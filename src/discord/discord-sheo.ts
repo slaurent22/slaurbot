@@ -104,24 +104,6 @@ export class DiscordSheo {
         this.#readOnly = readOnly;
 
         this.#logger.info("sheo created" + (this.#readOnly ? ": SHEO_READ_ONLY" : ""));
-
-        this.#client.on("messageCreate", async(msg) => {
-            if (msg.author.id !== DISCORD_USER_ID.SLAURENT) {
-                return;
-            }
-            const parsedCleanCommand = /;sheo-clean (?<userId>\w+)/.exec(msg.content);
-            if (parsedCleanCommand && parsedCleanCommand.groups) {
-                const { userId, } = parsedCleanCommand.groups;
-                try {
-                    await this.#cleanupUser(userId);
-                    await msg.reply("Success");
-                }
-                catch (e) {
-                    this.#logger.error(`sheo-clean error: ${(e && e.message) ?? "unknown error"}`);
-                    await msg.reply(`Error: ${(e && e.message) ?? "unknown. Check logs."}`);
-                }
-            }
-        });
     }
 
     public async initialize() {
@@ -151,6 +133,24 @@ export class DiscordSheo {
         if (initMap) {
             for (const [userId, message] of initMap.entries()) {
                 this.#logger.info(`[user:${userId}] [message:${message?.id}] ${message?.content}`);
+            }
+        }
+    }
+
+    async onMessageCreate(msg: Message) {
+        if (msg.author.id !== DISCORD_USER_ID.SLAURENT) {
+            return;
+        }
+        const parsedCleanCommand = /!sheo-clean (?<userId>\w+)/.exec(msg.content);
+        if (parsedCleanCommand && parsedCleanCommand.groups) {
+            const { userId, } = parsedCleanCommand.groups;
+            try {
+                await this.#cleanupUser(userId);
+                await msg.reply("Success");
+            }
+            catch (e) {
+                this.#logger.error(`sheo-clean error: ${(e && e.message) ?? "unknown error"}`);
+                await msg.reply(`Error: ${(e && e.message) ?? "unknown. Check logs."}`);
             }
         }
     }
