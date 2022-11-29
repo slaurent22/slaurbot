@@ -33,6 +33,14 @@ export async function createSheo(): Promise<void> {
         name: "slaurtest",
         streamingMembersChannelId: "855786635995774987",
         streamingRoleId: "855785447501070357",
+        filter: (activity, guildMember) => {
+            const sheoIgnoreRole = guildMember.roles.cache.get("1047282292831289414");
+            if (sheoIgnoreRole) {
+                logger.crit(`${guildMemberString(guildMember)} is on sheo's ignore list`);
+                return false;
+            }
+            return true;
+        },
     });
 
     DISCORD_SHEO_CONFIG.set(DISCORD_GUILD_ID.HKSR, {
