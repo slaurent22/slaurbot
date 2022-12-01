@@ -26,13 +26,6 @@ export async function createSheo(): Promise<void> {
         name: "streambot-slaurcord",
         streamingMembersChannelId: DISCORD_CHANNEL_ID.STREAMING_MEMBERS,
         streamingRoleId: DISCORD_ROLE_ID.STREAMING,
-    });
-
-    DISCORD_SHEO_CONFIG.set(DISCORD_GUILD_ID.SLAURTEST, {
-        cooldownInterval: 0,
-        name: "slaurtest",
-        streamingMembersChannelId: "855786635995774987",
-        streamingRoleId: "855785447501070357",
         filter: (activity, guildMember) => {
             const sheoIgnoreRole = guildMember.roles.cache.get("1047282292831289414");
             if (sheoIgnoreRole) {
@@ -41,6 +34,13 @@ export async function createSheo(): Promise<void> {
             }
             return true;
         },
+    });
+
+    DISCORD_SHEO_CONFIG.set(DISCORD_GUILD_ID.SLAURTEST, {
+        cooldownInterval: 0,
+        name: "slaurtest",
+        streamingMembersChannelId: "855786635995774987",
+        streamingRoleId: "855785447501070357",
     });
 
     DISCORD_SHEO_CONFIG.set(DISCORD_GUILD_ID.HKSR, {
