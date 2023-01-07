@@ -1,5 +1,5 @@
-import type { Activity } from "discord.js";
-import Discord from "discord.js";
+import type { Activity, GuildMember } from "discord.js";
+import {EmbedBuilder, escapeMarkdown } from "discord.js";
 import { STREAMING_PRESENCE_COLOR_RGB } from "../util/constants";
 
 // eslint-disable-next-line max-len
@@ -7,12 +7,16 @@ const TWITCH_URL = "https://twitch.tv/slaurent22";
 const EMBED_COLOR = "#71368A";
 const EMBED_AUTHOR = "slaurent22";
 
-export function getTestEmbed({ logo, }: { logo: string }): Discord.MessageEmbed {
-    return new Discord.MessageEmbed()
+export function getTestEmbed({ logo, }: { logo: string }): EmbedBuilder {
+    return new EmbedBuilder()
         .setColor("#0099ff")
         .setTitle("Stream Title Goes Here")
         .setURL(TWITCH_URL)
-        .setAuthor("slaurent22", logo, TWITCH_URL)
+        .setAuthor({
+            name: "slaurent22",
+            iconURL: logo,
+            url: TWITCH_URL
+        })
         // .setDescription("Some description here")
         .setThumbnail(logo)
         .addFields(
@@ -50,7 +54,7 @@ function escape(text: string | null): string | null {
     if (!text) {
         return text;
     }
-    return Discord.Util.escapeMarkdown(text);
+    return escapeMarkdown(text);
 }
 
 export function getTwitchStreamEmbed({
@@ -59,16 +63,20 @@ export function getTwitchStreamEmbed({
     startDate,
     thumbnailUrl,
     title,
-}: TwitchStreamEmbedConfig): Discord.MessageEmbed {
+}: TwitchStreamEmbedConfig): EmbedBuilder {
     const embedThumbnail = boxArtUrl ?
         boxArtUrl.replace("{width}", "188").replace("{height}", "250") : logo;
     const embedImage = thumbnailUrl.replace("{width}", "440").replace("{height}", "248");
     const embedImageUrl = getEmbedImageUrl(embedImage);
-    return new Discord.MessageEmbed()
+    return new EmbedBuilder()
         .setColor(EMBED_COLOR)
         .setTitle(escape(title) as string)
         .setURL(TWITCH_URL)
-        .setAuthor(EMBED_AUTHOR, logo, TWITCH_URL)
+        .setAuthor({
+            name: EMBED_AUTHOR,
+            iconURL: logo,
+            url: TWITCH_URL
+        })
         .setThumbnail(embedThumbnail)
         .setImage(embedImageUrl)
         .setTimestamp(startDate);
@@ -98,26 +106,26 @@ interface TwitchOfflineEmbedConfig {
 }
 export function getTwitchOfflineEmbed({
     startDate,
-}: TwitchOfflineEmbedConfig): Discord.MessageEmbed {
-    return new Discord.MessageEmbed()
+}: TwitchOfflineEmbedConfig): EmbedBuilder {
+    return new EmbedBuilder()
         .setColor(EMBED_COLOR)
-        .setFooter("Stream went offline")
+        .setFooter({text: "Stream went offline"})
         .setTimestamp(startDate);
 }
 
 export function getGuildMemberStreamingEmbed(
-    guildMember: Discord.GuildMember,
-    streamingActivity: Discord.Activity): Discord.MessageEmbed {
+    guildMember: GuildMember,
+    streamingActivity: Activity): EmbedBuilder {
 
     const author = guildMember.user.tag;
     const {
         details, url, state, largeImageUrl, smallImageURL,
     } = pickFromActivity(streamingActivity);
 
-    const embed = new Discord.MessageEmbed()
+    const embed = new EmbedBuilder()
         .setColor(STREAMING_PRESENCE_COLOR_RGB)
         .setTimestamp(new Date())
-        .setAuthor(author);
+        .setAuthor({name: author});
 
     if (details) {
         embed.setTitle(details);
@@ -134,7 +142,7 @@ export function getGuildMemberStreamingEmbed(
     }
 
     if (state) {
-        embed.setFooter(state);
+        embed.setFooter({text: state});
     }
 
     return embed;

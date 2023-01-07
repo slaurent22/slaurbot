@@ -13,10 +13,12 @@ import type {
     Presence,
     User,
     GuildMember,
-    TextBasedChannels,
-    MessageOptions
+    TextBasedChannel,
+    BaseMessageOptions
 } from "discord.js";
 import {
+    ActivityType,
+    ChannelType,
     DiscordAPIError
 } from "discord.js";
 import humanizeDuration from "humanize-duration";
@@ -50,7 +52,7 @@ function getStreamingActivity(presence: Presence | null): Activity | null {
         if (activity.url === null) {
             return false;
         }
-        return activity.type === "STREAMING" && activity.url.length > 0;
+        return activity.type === ActivityType.Streaming && activity.url.length > 0;
     });
 
     if (!streamingAcitivity) {
@@ -72,7 +74,7 @@ export class DiscordSheo {
     #logger: Logger;
     #name: string;
     #membersStreamingCooldown = new Map<string, Date>();
-    #streamingMembersChannel?: TextBasedChannels;
+    #streamingMembersChannel?: TextBasedChannel;
     #streamingMembersChannelId?: string;
     #streamingMessages?: PersistedMap<string, Message | undefined>;
     #streamingRoleId?: string;
@@ -109,7 +111,7 @@ export class DiscordSheo {
     public async initialize() {
         if (this.#streamingMembersChannelId) {
             const channel = this.#client.channels.cache.get(this.#streamingMembersChannelId);
-            if (!channel?.isText()) {
+            if (channel?.type !== ChannelType.GuildText) {
                 this.#logger.error(`[channel:${this.#streamingMembersChannelId}] Failed to find text channel`);
                 return;
             }
@@ -148,7 +150,7 @@ export class DiscordSheo {
                 await this.#cleanupUser(userId);
                 await msg.reply("Success");
             }
-            catch (e) {
+            catch (e: any) {
                 this.#logger.error(`sheo-clean error: ${(e && e.message) ?? "unknown error"}`);
                 await msg.reply(`Error: ${(e && e.message) ?? "unknown. Check logs."}`);
             }
@@ -248,7 +250,7 @@ export class DiscordSheo {
         }
     }
 
-    async #notifyStreamingMembersChannel(message: MessageOptions, {
+    async #notifyStreamingMembersChannel(message: BaseMessageOptions, {
         userId, eid,
     }: {
         userId: string;

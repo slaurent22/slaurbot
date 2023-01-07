@@ -1,4 +1,4 @@
-import { Intents } from "discord.js";
+import { GatewayIntentBits } from "discord.js";
 
 /* eslint-disable max-len */
 const EN_ZOTE = Object.freeze({
@@ -414,9 +414,9 @@ export const STREAMING_MEMBERS_COOLDOWN = 30 * 1000;
 export const STREAMING_PRESENCE_COLOR_RGB: [number, number, number] = [139, 87, 162];
 
 export const DISCORD_CLIENT_INTENTS = [
-    Intents.FLAGS.GUILDS,
-    Intents.FLAGS.GUILD_MEMBERS,
-    Intents.FLAGS.GUILD_PRESENCES,
-    Intents.FLAGS.GUILD_MESSAGES,
-    Intents.FLAGS.GUILD_MESSAGE_REACTIONS
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMembers,
+    GatewayIntentBits.GuildPresences,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.GuildMessageReactions,
 ];
