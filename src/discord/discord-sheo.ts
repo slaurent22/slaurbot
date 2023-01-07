@@ -150,6 +150,7 @@ export class DiscordSheo {
                 await this.#cleanupUser(userId);
                 await msg.reply("Success");
             }
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             catch (e: any) {
                 this.#logger.error(`sheo-clean error: ${(e && e.message) ?? "unknown error"}`);
                 await msg.reply(`Error: ${(e && e.message) ?? "unknown. Check logs."}`);

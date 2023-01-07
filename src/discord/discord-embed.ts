@@ -1,5 +1,5 @@
 import type { Activity, GuildMember } from "discord.js";
-import {EmbedBuilder, escapeMarkdown } from "discord.js";
+import { EmbedBuilder, escapeMarkdown } from "discord.js";
 import { STREAMING_PRESENCE_COLOR_RGB } from "../util/constants";
 
 // eslint-disable-next-line max-len
@@ -15,7 +15,7 @@ export function getTestEmbed({ logo, }: { logo: string }): EmbedBuilder {
         .setAuthor({
             name: "slaurent22",
             iconURL: logo,
-            url: TWITCH_URL
+            url: TWITCH_URL,
         })
         // .setDescription("Some description here")
         .setThumbnail(logo)
@@ -75,7 +75,7 @@ export function getTwitchStreamEmbed({
         .setAuthor({
             name: EMBED_AUTHOR,
             iconURL: logo,
-            url: TWITCH_URL
+            url: TWITCH_URL,
         })
         .setThumbnail(embedThumbnail)
         .setImage(embedImageUrl)
@@ -93,8 +93,8 @@ export function pickFromActivity(streamingActivity: Activity): {
     const url = streamingActivity.url;
     const state = streamingActivity.state;
 
-    const largeImageUrl = streamingActivity.assets?.largeImageURL({ forceStatic: true });
-    const smallImageURL = streamingActivity.assets?.smallImageURL({ forceStatic: true });
+    const largeImageUrl = streamingActivity.assets?.largeImageURL({ forceStatic: true, });
+    const smallImageURL = streamingActivity.assets?.smallImageURL({ forceStatic: true, });
 
     return {
         details, url, state, largeImageUrl, smallImageURL,
@@ -109,7 +109,7 @@ export function getTwitchOfflineEmbed({
 }: TwitchOfflineEmbedConfig): EmbedBuilder {
     return new EmbedBuilder()
         .setColor(EMBED_COLOR)
-        .setFooter({text: "Stream went offline"})
+        .setFooter({ text: "Stream went offline", })
         .setTimestamp(startDate);
 }
 
@@ -125,7 +125,7 @@ export function getGuildMemberStreamingEmbed(
     const embed = new EmbedBuilder()
         .setColor(STREAMING_PRESENCE_COLOR_RGB)
         .setTimestamp(new Date())
-        .setAuthor({name: author});
+        .setAuthor({ name: author, });
 
     if (details) {
         embed.setTitle(details);
@@ -142,7 +142,7 @@ export function getGuildMemberStreamingEmbed(
     }
 
     if (state) {
-        embed.setFooter({text: state});
+        embed.setFooter({ text: state, });
     }
 
     return embed;

@@ -1,6 +1,6 @@
 import assert from "assert";
-import { ChannelType, MessageManager } from "discord.js";
-import type { Client as DiscordClient, Collection, TextBasedChannel } from "discord.js";
+import { ChannelType } from "discord.js";
+import type { Client as DiscordClient, Collection, TextBasedChannel, MessageManager } from "discord.js";
 import { getLogger } from "../util/logger";
 
 export enum DBTypes {
@@ -88,7 +88,7 @@ export class DiscordChannelDataStore {
 
     public async readChannel(): Promise<Collection<string, Array<DBValueType>>> {
         const messages = this._storeChannel.messages as MessageManager<true>;
-        const messageCollection = await messages.fetch({ limit: 100 });
+        const messageCollection = await messages.fetch({ limit: 100, });
         return messageCollection.mapValues(message => {
             const { content, } = message;
             this._logger.debug(`msg content: ${content}`);
