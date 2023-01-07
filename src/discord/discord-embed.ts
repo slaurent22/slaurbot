@@ -93,8 +93,8 @@ export function pickFromActivity(streamingActivity: Activity): {
     const url = streamingActivity.url;
     const state = streamingActivity.state;
 
-    const largeImageUrl = streamingActivity.assets?.largeImageURL();
-    const smallImageURL = streamingActivity.assets?.smallImageURL();
+    const largeImageUrl = streamingActivity.assets?.largeImageURL({ forceStatic: true });
+    const smallImageURL = streamingActivity.assets?.smallImageURL({ forceStatic: true });
 
     return {
         details, url, state, largeImageUrl, smallImageURL,
