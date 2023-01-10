@@ -86,18 +86,20 @@ export function pickFromActivity(streamingActivity: Activity): {
     details: string | null;
     url: string | null;
     state: string | null;
-    largeImageUrl: string | null | undefined;
-    smallImageURL: string | null | undefined;
+    imageURL: string | null;
 } {
     const details = escape(streamingActivity.details);
     const url = streamingActivity.url;
     const state = streamingActivity.state;
 
-    const largeImageUrl = streamingActivity.assets?.largeImageURL({ forceStatic: true, });
-    const smallImageURL = streamingActivity.assets?.smallImageURL({ forceStatic: true, });
+    let imageURL = streamingActivity.assets?.largeImage ?? null;
+    if (imageURL && /^twitch:/.test(imageURL)) {
+        imageURL = `https://static-cdn.jtvnw.net/previews-ttv/live_user_${imageURL.slice(7)}.png`;
+    }
+
 
     return {
-        details, url, state, largeImageUrl, smallImageURL,
+        details, url, state, imageURL,
     };
 }
 
@@ -119,7 +121,7 @@ export function getGuildMemberStreamingEmbed(
 
     const author = guildMember.user.tag;
     const {
-        details, url, state, largeImageUrl, smallImageURL,
+        details, url, state, imageURL,
     } = pickFromActivity(streamingActivity);
 
     const embed = new EmbedBuilder()
@@ -135,10 +137,8 @@ export function getGuildMemberStreamingEmbed(
         embed.setURL(url);
     }
 
-    const imageUrl = smallImageURL ?? largeImageUrl;
-
-    if (imageUrl) {
-        embed.setThumbnail(getEmbedImageUrl(imageUrl));
+    if (imageURL) {
+        embed.setThumbnail(getEmbedImageUrl(imageURL));
     }
 
     if (state) {
