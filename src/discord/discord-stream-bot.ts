@@ -8,7 +8,7 @@ import { getLogger } from "../util/logger";
 import { generateUuid } from "../util/uuid";
 import { discordUserString, guildMemberString, guildString } from "../util/log-strings";
 import KeyedQueue from "../util/keyed-queue";
-import { DISCORD_CLIENT_INTENTS, DISCORD_USER_ID } from "../util/constants";
+import { DISCORD_CLIENT_INTENTS } from "../util/constants";
 import { DiscordSheo } from "./discord-sheo";
 
 export interface DiscordStreamBotConfig {
@@ -112,7 +112,7 @@ export class DiscordStreamBot {
     }
 
     async #onMessageCreate(msg: Message) {
-        if (msg.author.id !== DISCORD_USER_ID.SLAURENT) {
+        if (!msg.content.startsWith("!sheo")) {
             return;
         }
         const event = "messageCreate";
