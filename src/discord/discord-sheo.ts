@@ -140,6 +140,12 @@ export class DiscordSheo {
     }
 
     async onMessageCreate(msg: Message) {
+        if (msg.content === "!sheo-ping") {
+            return msg.reply("sheo pong!");
+        }
+        if (msg.content === "!sheo-pong") {
+            return msg.reply("sheo ping!");
+        }
         if (msg.author.id !== DISCORD_USER_ID.SLAURENT) {
             return;
         }
