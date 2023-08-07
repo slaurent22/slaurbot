@@ -119,7 +119,7 @@ export function getGuildMemberStreamingEmbed(
     guildMember: GuildMember,
     streamingActivity: Activity): EmbedBuilder {
 
-    const author = guildMember.user.tag;
+    const author = guildMember.user.username;
     const {
         details, url, state, imageURL,
     } = pickFromActivity(streamingActivity);
