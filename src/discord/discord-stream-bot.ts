@@ -103,7 +103,7 @@ export class DiscordStreamBot {
             return;
         }
 
-        const presenceUpdateExecutor = async () => {
+        const presenceUpdateExecutor = async() => {
             await guildSheo.presenceUpdate(oldPresence, newPresence, {
                 guildMember: member,
                 eid,
