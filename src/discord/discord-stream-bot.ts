@@ -146,6 +146,7 @@ export class DiscordStreamBot {
             streamingMembersChannelId,
             streamingRoleId,
             filter,
+            modRole,
         } = config;
         const sheo = new DiscordSheo({
             client: this.#client,
@@ -156,6 +157,7 @@ export class DiscordStreamBot {
             streamingRoleId,
             filter,
             readOnly: this.#readOnly,
+            modRole,
         });
         this.#sheos.set(guild.id, sheo);
 
