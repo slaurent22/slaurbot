@@ -11,15 +11,13 @@ import type {
     Guild,
     Message,
     Presence,
-    User,
     GuildMember,
     TextBasedChannel,
     BaseMessageOptions
 } from "discord.js";
 import {
     ActivityType,
-    ChannelType,
-    DiscordAPIError
+    ChannelType
 } from "discord.js";
 import humanizeDuration from "humanize-duration";
 import { getLogger } from "../util/logger";
@@ -41,6 +39,7 @@ export interface DiscordSheoConfig {
     guild: Guild;
     filter?: (activity: Activity, guildMember: GuildMember) => boolean;
     readOnly: boolean;
+    modRole?: string;
 }
 
 function getStreamingActivity(presence: Presence | null): Activity | null {
@@ -81,6 +80,7 @@ export class DiscordSheo {
     #guild: Guild;
     #filter: (activity: Activity, guildMember: GuildMember) => boolean;
     #readOnly: boolean;
+    #modRole?: string;
 
     constructor({
         client,
@@ -91,6 +91,7 @@ export class DiscordSheo {
         guild,
         filter,
         readOnly,
+        modRole,
     }: DiscordSheoConfig) {
         this.#cooldownInterval = cooldownInterval;
         this.#guild = guild;
@@ -104,6 +105,8 @@ export class DiscordSheo {
         this.#filter = filter ?? (() => true);
 
         this.#readOnly = readOnly;
+
+        this.#modRole = modRole;
 
         this.#logger.info("sheo created" + (this.#readOnly ? ": SHEO_READ_ONLY" : ""));
     }
@@ -146,21 +149,30 @@ export class DiscordSheo {
         if (msg.content === "!sheo-pong") {
             return msg.reply("sheo ping!");
         }
-        if (msg.author.id !== DISCORD_USER_ID.SLAURENT) {
-            return;
-        }
         const parsedCleanCommand = /^!sheo-clean (?<userId>\w+)/.exec(msg.content);
         if (parsedCleanCommand && parsedCleanCommand.groups) {
             const { userId, } = parsedCleanCommand.groups;
-            try {
-                await this.#cleanupUser(userId);
-                await msg.reply("Success");
+            return this.#processSheoCleanCommand(msg, userId);
+        }
+    }
+
+    async #processSheoCleanCommand(msg: Message, targetUserId: string) {
+        try {
+            const commandUserGuildMember = await this.#guild.members.fetch(msg.author);
+            let allowed = msg.author.id === DISCORD_USER_ID.SLAURENT;
+            if (this.#modRole) {
+                allowed = allowed || commandUserGuildMember.roles.cache.has(this.#modRole);
             }
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            catch (e: any) {
-                this.#logger.error(`sheo-clean error: ${(e && e.message) ?? "unknown error"}`);
-                await msg.reply(`Error: ${(e && e.message) ?? "unknown. Check logs."}`);
+            if (!allowed) {
+                return msg.reply("You are not allowed to use !sheo-clean");
             }
+            await this.#cleanupUser(targetUserId);
+            return msg.reply("Success");
+        }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        catch (e: any) {
+            this.#logger.error(`sheo-clean error: ${(e && e.message) ?? "unknown error"}`);
+            return msg.reply(`Error: ${(e && e.message) ?? "unknown. Check logs."}`);
         }
     }
 
@@ -179,21 +191,6 @@ export class DiscordSheo {
         const messageManager = this.#streamingMembersChannel.messages;
         return messageManager.cache.get(id);
     }
-
-    async getGuildMember(user: User): Promise<GuildMember | null> {
-        let guildMember: GuildMember | null = null;
-        try {
-            guildMember = await this.#guild.members.fetch(user);
-        }
-        catch (e) {
-            if (e instanceof DiscordAPIError && e.message.includes("Unknown Member")) {
-                return null;
-            }
-            throw e;
-        }
-        return guildMember;
-    }
-
 
     async #readStreamingMembersChannel() {
         if (!this.#streamingMembersChannel) {

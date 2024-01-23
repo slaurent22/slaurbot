@@ -34,6 +34,7 @@ export async function createSheo(): Promise<void> {
             }
             return true;
         },
+        modRole: "763945762815344650",
     });
 
     DISCORD_SHEO_CONFIG.set(DISCORD_GUILD_ID.SLAURTEST, {
@@ -67,6 +68,7 @@ export async function createSheo(): Promise<void> {
             }
             return state.includes("Hollow Knight");
         },
+        modRole: "772974621166141441",
     });
 
     DISCORD_SHEO_CONFIG.set(DISCORD_GUILD_ID.HISPANO, {
@@ -81,6 +83,7 @@ export async function createSheo(): Promise<void> {
             }
             return state.includes("Hollow Knight");
         },
+        modRole: "870713690838691861",
     });
 
     const sheo = new DiscordStreamBot(DISCORD_SHEO_TOKEN, DISCORD_SHEO_CONFIG, SHEO_READ_ONLY);

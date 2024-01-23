@@ -17,6 +17,7 @@ export interface DiscordStreamBotConfig {
     streamingMembersChannelId?: string;
     streamingRoleId?: string;
     filter?: (activity: Activity, guildMember: GuildMember) => boolean;
+    modRole?: string;
 }
 
 /**
@@ -102,7 +103,7 @@ export class DiscordStreamBot {
             return;
         }
 
-        const presenceUpdateExecutor = async() => {
+        const presenceUpdateExecutor = async () => {
             await guildSheo.presenceUpdate(oldPresence, newPresence, {
                 guildMember: member,
                 eid,
