@@ -10,7 +10,6 @@ Create a `.env` file with:
 TWITCH_CHANNEL_NAME=slaurent22
 TWITCH_CLIENT_ID=[redacted]
 TWITCH_CLIENT_SECRET=[redacted]
-REDIS_TLS_URL=[redacted]
 REDIS_URL=[redacted]
 DISCORD_BOT_TOKEN=[redacted]
 ```
