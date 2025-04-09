@@ -86,6 +86,26 @@ export async function createSheo(): Promise<void> {
         modRole: "870713690838691861",
     });
 
+    DISCORD_SHEO_CONFIG.set(DISCORD_GUILD_ID.HKPTBR, {
+        cooldownInterval: 100,
+        name: "hkptbr",
+        streamingRoleId: "1359603945802305777",
+        streamingMembersChannelId: "1354067755095031810",
+        filter: (activity, guildMember) => {
+            const sheoIgnoreRole = guildMember.roles.cache.get("1359610562803400774");
+            if (sheoIgnoreRole) {
+                logger.crit(`${guildMemberString(guildMember)} is on sheo's ignore list`);
+                return false;
+            }
+            const state = activity.state;
+            if (!state) {
+                return false;
+            }
+            return state.includes("Hollow Knight");
+        },
+        modRole: "1353841903535263830",
+    });
+
     const sheo = new DiscordStreamBot(DISCORD_SHEO_TOKEN, DISCORD_SHEO_CONFIG, SHEO_READ_ONLY);
 
     nodeCleanup(() => {
