@@ -30,16 +30,20 @@ import {
 import { DISCORD_USER_ID } from "../util/constants";
 import { getGuildMemberStreamingEmbed, pickFromActivity } from "./discord-embed";
 
-export interface DiscordSheoConfig {
-    client: Client;
+export interface DiscordStreamBotConfig {
     cooldownInterval: number;
     name: string;
     streamingMembersChannelId?: string;
     streamingRoleId?: string;
-    guild: Guild;
     filter?: (activity: Activity, guildMember: GuildMember) => boolean;
-    readOnly: boolean;
     modRole?: string;
+    messageTemplate?: string;
+}
+
+export interface DiscordSheoConfig extends DiscordStreamBotConfig {
+    client: Client;
+    guild: Guild;
+    readOnly: boolean;
 }
 
 function getStreamingActivity(presence: Presence | null): Activity | null {
@@ -81,6 +85,7 @@ export class DiscordSheo {
     #filter: (activity: Activity, guildMember: GuildMember) => boolean;
     #readOnly: boolean;
     #modRole?: string;
+    #messageTemplate: string;
 
     constructor({
         client,
@@ -92,6 +97,7 @@ export class DiscordSheo {
         filter,
         readOnly,
         modRole,
+        messageTemplate,
     }: DiscordSheoConfig) {
         this.#cooldownInterval = cooldownInterval;
         this.#guild = guild;
@@ -107,6 +113,8 @@ export class DiscordSheo {
         this.#readOnly = readOnly;
 
         this.#modRole = modRole;
+
+        this.#messageTemplate = messageTemplate ?? "**$displayName** is now live!";
 
         this.#logger.info("sheo created" + (this.#readOnly ? ": SHEO_READ_ONLY" : ""));
     }
@@ -486,16 +494,20 @@ export class DiscordSheo {
         eid: string;
     }) {
         const embed = getGuildMemberStreamingEmbed(guildMember, newStreamingAcivity);
-        const displayName = guildMember.displayName;
-
         const message = {
-            content: `**${displayName}** is now live!`,
+            content: this.#streamingMessageContent(guildMember, newStreamingAcivity),
             embeds: [embed],
         };
         await this.#notifyStreamingMembersChannel(message, {
             userId: guildMember.user.id, eid,
         });
         this.#membersStreamingCooldown.set(guildMember.user.id, new Date());
+    }
+
+    #streamingMessageContent(guildMember: GuildMember, activity: Activity) {
+        return this.#messageTemplate
+            .replace("$displayName", guildMember.displayName)
+            .replace("$state", activity.state as string);
     }
 
     async #cleanupGuildMember(guildMember: GuildMember) {

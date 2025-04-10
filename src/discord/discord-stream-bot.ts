@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/explicit-member-accessibility */
 
-import type { Activity, GuildMember, Message, Presence } from "discord.js";
+import type { Message, Presence } from "discord.js";
 import Discord from "discord.js";
 import type { Logger } from "@d-fischer/logger/lib";
 import { getLogger } from "../util/logger";
@@ -10,15 +10,7 @@ import { discordUserString, guildMemberString, guildString } from "../util/log-s
 import KeyedQueue from "../util/keyed-queue";
 import { DISCORD_CLIENT_INTENTS } from "../util/constants";
 import { DiscordSheo } from "./discord-sheo";
-
-export interface DiscordStreamBotConfig {
-    cooldownInterval: number;
-    name: string;
-    streamingMembersChannelId?: string;
-    streamingRoleId?: string;
-    filter?: (activity: Activity, guildMember: GuildMember) => boolean;
-    modRole?: string;
-}
+import type { DiscordStreamBotConfig } from "./discord-sheo";
 
 /**
  * A generic bot that can post a message and add a role while a Discord member
@@ -140,24 +132,11 @@ export class DiscordStreamBot {
         }
         this.#logger.info(`${guildString(guild)} config: ${JSON.stringify(config)}`);
 
-        const {
-            cooldownInterval,
-            name,
-            streamingMembersChannelId,
-            streamingRoleId,
-            filter,
-            modRole,
-        } = config;
         const sheo = new DiscordSheo({
+            ...config,
             client: this.#client,
             guild,
-            cooldownInterval,
-            name,
-            streamingMembersChannelId,
-            streamingRoleId,
-            filter,
             readOnly: this.#readOnly,
-            modRole,
         });
         this.#sheos.set(guild.id, sheo);
 

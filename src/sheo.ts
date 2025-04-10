@@ -1,6 +1,6 @@
 import nodeCleanup from "node-cleanup";
 import { getLogger } from "./util/logger";
-import type { DiscordStreamBotConfig } from "./discord/discord-stream-bot";
+import type { DiscordStreamBotConfig } from "./discord/discord-sheo";
 import { DiscordStreamBot } from "./discord/discord-stream-bot";
 import { DISCORD_CHANNEL_ID, DISCORD_GUILD_ID, DISCORD_ROLE_ID, STREAMING_MEMBERS_COOLDOWN } from "./util/constants";
 import { getEnv } from "./util/env";
@@ -104,6 +104,7 @@ export async function createSheo(): Promise<void> {
             return state.includes("Hollow Knight");
         },
         modRole: "1353841903535263830",
+        messageTemplate: "**$displayName** está ao vivo agora jogando **$state**! <@&1356762041834279044>",
     });
 
     const sheo = new DiscordStreamBot(DISCORD_SHEO_TOKEN, DISCORD_SHEO_CONFIG, SHEO_READ_ONLY);
