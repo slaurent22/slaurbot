@@ -84,6 +84,7 @@ export async function createSheo(): Promise<void> {
             return state.includes("Hollow Knight");
         },
         modRole: "870713690838691861",
+        messageTemplate: "**$displayName** está en directo!",
     });
 
     DISCORD_SHEO_CONFIG.set(DISCORD_GUILD_ID.HKPTBR, {
