@@ -13,7 +13,8 @@ import type {
     Presence,
     GuildMember,
     TextBasedChannel,
-    BaseMessageOptions
+    BaseMessageOptions,
+    PartialGuildMember
 } from "discord.js";
 import {
     ActivityType,
@@ -162,6 +163,10 @@ export class DiscordSheo {
             const { userId, } = parsedCleanCommand.groups;
             return this.#processSheoCleanCommand(msg, userId);
         }
+    }
+
+    async onGuildMemberRemove(guildMember: GuildMember | PartialGuildMember, { eid, }: { eid: string }) {
+        await this.#deleteStreamingMembersChannelMesssage(guildMember.user.id, { eid, });
     }
 
     async #processSheoCleanCommand(msg: Message, targetUserId: string) {

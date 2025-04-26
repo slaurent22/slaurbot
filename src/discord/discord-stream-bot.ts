@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/explicit-member-accessibility */
 
-import type { Message, Presence } from "discord.js";
+import type { GuildMember, Message, PartialGuildMember, Presence } from "discord.js";
 import Discord from "discord.js";
 import type { Logger } from "@d-fischer/logger/lib";
 import { getLogger } from "../util/logger";
@@ -58,6 +58,7 @@ export class DiscordStreamBot {
         this.#logger.info("Discord client is ready");
         this.#client.on("presenceUpdate", this.#onPresenceUpdate.bind(this));
         this.#client.on("messageCreate", this.#onMessageCreate.bind(this));
+        this.#client.on("guildMemberRemove", this.#onGuildMemberRemove.bind(this));
         await Promise.all([...this.#config.entries()].map(([g, c]) => this.#readyGuild(g, c)));
     }
 
@@ -121,6 +122,22 @@ export class DiscordStreamBot {
         }
 
         await guildSheo.onMessageCreate(msg);
+    }
+
+    async #onGuildMemberRemove(member: GuildMember | PartialGuildMember) {
+        const eid = generateUuid();
+        const event = "guildMemberRemove";
+        const guildId = member.guild.id;
+        if (!guildId) {
+            this.#logger.error(`${event} with no guild id`);
+            return;
+        }
+        const guildSheo = this.#sheos.get(guildId);
+        if (!guildSheo) {
+            this.#logger.error(`${event} with no corresponding sheo instance`);
+            return;
+        }
+        await guildSheo.onGuildMemberRemove(member, { eid, });
     }
 
     async #readyGuild(guildId: string, config: DiscordStreamBotConfig) {
