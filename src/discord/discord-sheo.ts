@@ -166,7 +166,9 @@ export class DiscordSheo {
     }
 
     async onGuildMemberRemove(guildMember: GuildMember | PartialGuildMember, { eid, }: { eid: string }) {
-        await this.#deleteStreamingMembersChannelMesssage(guildMember.user.id, { eid, });
+        if (this.#streamingMessages?.get(guildMember.user.id)) {
+            await this.#deleteStreamingMembersChannelMesssage(guildMember.user.id, { eid, });
+        }
     }
 
     async #processSheoCleanCommand(msg: Message, targetUserId: string) {
