@@ -124,10 +124,12 @@ export function getGuildMemberStreamingEmbed(
         details, url, state, imageURL,
     } = pickFromActivity(streamingActivity);
 
+    const iconURL = guildMember.avatarURL({ size: 32, }) ?? undefined;
+
     const embed = new EmbedBuilder()
         .setColor(STREAMING_PRESENCE_COLOR_RGB)
         .setTimestamp(new Date())
-        .setAuthor({ name: author, });
+        .setAuthor({ name: author, iconURL, });
 
     if (details) {
         embed.setTitle(details);
