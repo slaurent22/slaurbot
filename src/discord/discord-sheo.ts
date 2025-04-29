@@ -501,6 +501,33 @@ export class DiscordSheo {
         eid: string;
     }) {
         const embed = getGuildMemberStreamingEmbed(guildMember, newStreamingAcivity);
+        this.#logger.info("avatarURL: " + JSON.stringify({
+            16: guildMember.avatarURL({ size: 16, }),
+            32: guildMember.avatarURL({ size: 32, }),
+            64: guildMember.avatarURL({ size: 64, }),
+            128: guildMember.avatarURL({ size: 128, }),
+            256: guildMember.avatarURL({ size: 256, }),
+            512: guildMember.avatarURL({ size: 512, }),
+            1024: guildMember.avatarURL({ size: 1024, }),
+            2048: guildMember.avatarURL({ size: 2048, }),
+            4096: guildMember.avatarURL({ size: 4096, }),
+            undefined: guildMember.avatarURL({}),
+            no_options: guildMember.avatarURL({}),
+        }));
+        this.#logger.info("displayAvatarURL: " + JSON.stringify({
+            16: guildMember.displayAvatarURL({ size: 16, }),
+            32: guildMember.displayAvatarURL({ size: 32, }),
+            64: guildMember.displayAvatarURL({ size: 64, }),
+            128: guildMember.displayAvatarURL({ size: 128, }),
+            256: guildMember.displayAvatarURL({ size: 256, }),
+            512: guildMember.displayAvatarURL({ size: 512, }),
+            1024: guildMember.displayAvatarURL({ size: 1024, }),
+            2048: guildMember.displayAvatarURL({ size: 2048, }),
+            4096: guildMember.displayAvatarURL({ size: 4096, }),
+            undefined: guildMember.displayAvatarURL({}),
+            no_options: guildMember.displayAvatarURL({}),
+        }));
+        this.#logger.info(`avatar: ${guildMember.avatar}`);
         const message = {
             content: this.#streamingMessageContent(guildMember, newStreamingAcivity),
             embeds: [embed],
