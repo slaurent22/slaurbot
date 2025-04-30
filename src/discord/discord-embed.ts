@@ -124,7 +124,7 @@ export function getGuildMemberStreamingEmbed(
         details, url, state, imageURL,
     } = pickFromActivity(streamingActivity);
 
-    const iconURL = guildMember.displayAvatarURL({ size: 24, }) ?? undefined;
+    const iconURL = guildMember.displayAvatarURL({ size: 32, }) ?? undefined;
 
     const embed = new EmbedBuilder()
         .setColor(STREAMING_PRESENCE_COLOR_RGB)
