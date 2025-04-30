@@ -12,7 +12,7 @@ import type {
     Message,
     Presence,
     GuildMember,
-    TextBasedChannel,
+    SendableChannels,
     BaseMessageOptions,
     PartialGuildMember
 } from "discord.js";
@@ -78,7 +78,7 @@ export class DiscordSheo {
     #logger: Logger;
     #name: string;
     #membersStreamingCooldown = new Map<string, Date>();
-    #streamingMembersChannel?: TextBasedChannel;
+    #streamingMembersChannel?: SendableChannels;
     #streamingMembersChannelId?: string;
     #streamingMessages?: PersistedMap<string, Message | undefined>;
     #streamingRoleId?: string;
