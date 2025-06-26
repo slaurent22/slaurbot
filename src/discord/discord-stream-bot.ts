@@ -92,7 +92,7 @@ export class DiscordStreamBot {
 
         const guildSheo = this.#sheos.get(guild.id);
         if (!guildSheo) {
-            this.#logger.error(`${event} with no corresponding sheo instance`);
+            // this.#logger.error(`${event} with no corresponding sheo instance`);
             return;
         }
 
@@ -117,7 +117,7 @@ export class DiscordStreamBot {
         }
         const guildSheo = this.#sheos.get(guildId);
         if (!guildSheo) {
-            this.#logger.error(`${event} with no corresponding sheo instance`);
+            // this.#logger.error(`${event} with no corresponding sheo instance`);
             return;
         }
 
@@ -134,7 +134,7 @@ export class DiscordStreamBot {
         }
         const guildSheo = this.#sheos.get(guildId);
         if (!guildSheo) {
-            this.#logger.error(`${event} with no corresponding sheo instance`);
+            // this.#logger.error(`${event} with no corresponding sheo instance`);
             return;
         }
         await guildSheo.onGuildMemberRemove(member, { eid, });
